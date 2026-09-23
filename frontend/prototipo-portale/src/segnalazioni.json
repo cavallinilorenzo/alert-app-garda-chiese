@@ -1,0 +1,1539 @@
+[
+ {
+  "id": 1041,
+  "codice": "GC-1041",
+  "ricevuta_il": "2026-09-24T08:50",
+  "canale_ingresso": "web app",
+  "stato": "Ricevuta",
+  "esito": null,
+  "priorita": "Critica",
+  "priorita_calcolata": "Critica",
+  "fattori": [
+   "pericolo edifici"
+  ],
+  "categoria": "ostruzione",
+  "pericoli": {
+   "persone": "no",
+   "strada": "no",
+   "edifici": "sì"
+  },
+  "quantita": "non so",
+  "durata": "da alcune ore",
+  "confidenza": {
+   "categoria": 0.97,
+   "pericoli": 0.88,
+   "durata": 0.71,
+   "quantita": 0.73
+  },
+  "descrizione": "Rami e plastica bloccano il passaggio sotto il ponte",
+  "transcript": "Allora… rami e plastica bloccano il passaggio sotto il ponte. Lo vedo da alcune ore, mi sembra pericoloso.",
+  "lat": 45.250846,
+  "lng": 10.393124,
+  "infrastruttura": {
+   "layer": "Reticolo principale",
+   "codice": "7004",
+   "nome": "Torrente BRANCHELLO - AIPO",
+   "distanza_m": 27
+  },
+  "zona": null,
+  "acquaiolo_zona": null,
+  "acquaiolo": null,
+  "operatore_riferimento": null,
+  "segnalante_cellulare": "+39 339 463 7252",
+  "duplicato_di": null,
+  "duplicati": [],
+  "foto": "https://picsum.photos/seed/gc0/640/420"
+ },
+ {
+  "id": 1042,
+  "codice": "GC-1042",
+  "ricevuta_il": "2026-09-23T15:32",
+  "canale_ingresso": "web app",
+  "stato": "Ricevuta",
+  "esito": null,
+  "priorita": "Bassa",
+  "priorita_calcolata": "Bassa",
+  "fattori": [
+   "nessun indicatore forte"
+  ],
+  "categoria": "sporca",
+  "pericoli": {
+   "persone": "no",
+   "strada": "no",
+   "edifici": "non so"
+  },
+  "quantita": "non so",
+  "durata": "adesso",
+  "confidenza": {
+   "categoria": 0.65,
+   "pericoli": 0.64,
+   "durata": 0.95,
+   "quantita": 0.79
+  },
+  "descrizione": "L'acqua del canale è schiumosa e ha un cattivo odore",
+  "transcript": "Allora… l'acqua del canale è schiumosa e ha un cattivo odore. Lo vedo adesso, non mi sembra pericoloso.",
+  "lat": 45.341791,
+  "lng": 10.549176,
+  "infrastruttura": {
+   "layer": "Canale",
+   "codice": "3015",
+   "nome": "Dispensatore H",
+   "distanza_m": 40
+  },
+  "zona": "Alto Mantovano",
+  "acquaiolo_zona": "BIGNOTTI",
+  "acquaiolo": null,
+  "operatore_riferimento": null,
+  "segnalante_cellulare": "+39 330 782 9994",
+  "duplicato_di": null,
+  "duplicati": [],
+  "foto": "https://picsum.photos/seed/gc1/640/420"
+ },
+ {
+  "id": 1043,
+  "codice": "GC-1043",
+  "ricevuta_il": "2026-09-23T17:13",
+  "canale_ingresso": "web app",
+  "stato": "Ricevuta",
+  "esito": null,
+  "priorita": "Alta",
+  "priorita_calcolata": "Alta",
+  "fattori": [
+   "categoria",
+   "molta acqua"
+  ],
+  "categoria": "tracima",
+  "pericoli": {
+   "persone": "no",
+   "strada": "no",
+   "edifici": "non so"
+  },
+  "quantita": "molta acqua",
+  "durata": "adesso",
+  "confidenza": {
+   "categoria": 0.62,
+   "pericoli": 0.8,
+   "durata": 0.71,
+   "quantita": 0.81
+  },
+  "descrizione": "Il canale è pieno fino all'orlo e l'acqua va sulla strada",
+  "transcript": "Allora… il canale è pieno fino all'orlo e l'acqua va sulla strada. Lo vedo adesso, non mi sembra pericoloso.",
+  "lat": 45.381024,
+  "lng": 10.547398,
+  "infrastruttura": {
+   "layer": "Condotta",
+   "codice": null,
+   "nome": "Condotta CASTIGLIONE SOLFERINO - BARCHE",
+   "distanza_m": 17
+  },
+  "zona": "Colli Morenici",
+  "acquaiolo_zona": "GUIDETTI",
+  "acquaiolo": null,
+  "operatore_riferimento": null,
+  "segnalante_cellulare": "+39 344 891 2582",
+  "duplicato_di": null,
+  "duplicati": [],
+  "foto": "https://picsum.photos/seed/gc2/640/420"
+ },
+ {
+  "id": 1044,
+  "codice": "GC-1044",
+  "ricevuta_il": "2026-09-24T02:19",
+  "canale_ingresso": "web app",
+  "stato": "Ricevuta",
+  "esito": null,
+  "priorita": "Media",
+  "priorita_calcolata": "Media",
+  "fattori": [
+   "categoria"
+  ],
+  "categoria": "ostruzione",
+  "pericoli": {
+   "persone": "no",
+   "strada": "no",
+   "edifici": "non so"
+  },
+  "quantita": "piccolo flusso",
+  "durata": "adesso",
+  "confidenza": {
+   "categoria": 0.68,
+   "pericoli": 0.84,
+   "durata": 0.96,
+   "quantita": 0.63
+  },
+  "descrizione": "Rami e plastica bloccano il passaggio sotto il ponte",
+  "transcript": "Allora… rami e plastica bloccano il passaggio sotto il ponte. Lo vedo adesso, non mi sembra pericoloso.",
+  "lat": 45.323586,
+  "lng": 10.559804,
+  "infrastruttura": {
+   "layer": "Canale",
+   "codice": "3021",
+   "nome": "Dispensatore N",
+   "distanza_m": 72
+  },
+  "zona": "Alto Mantovano",
+  "acquaiolo_zona": "BRIGNANI",
+  "acquaiolo": null,
+  "operatore_riferimento": null,
+  "segnalante_cellulare": "+39 335 891 6694",
+  "duplicato_di": null,
+  "duplicati": [],
+  "foto": "https://picsum.photos/seed/gc3/640/420"
+ },
+ {
+  "id": 1045,
+  "codice": "GC-1045",
+  "ricevuta_il": "2026-09-23T12:26",
+  "canale_ingresso": "web app",
+  "stato": "Ricevuta",
+  "esito": null,
+  "priorita": "Alta",
+  "priorita_calcolata": "Alta",
+  "fattori": [
+   "categoria"
+  ],
+  "categoria": "argine",
+  "pericoli": {
+   "persone": "no",
+   "strada": "no",
+   "edifici": "no"
+  },
+  "quantita": "non so",
+  "durata": "da più di un giorno",
+  "confidenza": {
+   "categoria": 0.87,
+   "pericoli": 0.99,
+   "durata": 0.67,
+   "quantita": 0.76
+  },
+  "descrizione": "Si è aperta una crepa lungo l'argine vicino al ponticello",
+  "transcript": "Allora… si è aperta una crepa lungo l'argine vicino al ponticello. Lo vedo da più di un giorno, non mi sembra pericoloso.",
+  "lat": 45.206808,
+  "lng": 10.444224,
+  "infrastruttura": {
+   "layer": "Canale",
+   "codice": "0081",
+   "nome": "Scolo TORNAPASSOLO",
+   "distanza_m": 28
+  },
+  "zona": "Medio Ovest",
+  "acquaiolo_zona": "PEVERADA",
+  "acquaiolo": null,
+  "operatore_riferimento": null,
+  "segnalante_cellulare": "+39 322 270 9018",
+  "duplicato_di": null,
+  "duplicati": [],
+  "foto": "https://picsum.photos/seed/gc4/640/420"
+ },
+ {
+  "id": 1046,
+  "codice": "GC-1046",
+  "ricevuta_il": "2026-09-23T20:27",
+  "canale_ingresso": "numero verde",
+  "stato": "Ricevuta",
+  "esito": null,
+  "priorita": "Alta",
+  "priorita_calcolata": "Alta",
+  "fattori": [
+   "categoria"
+  ],
+  "categoria": "argine",
+  "pericoli": {
+   "persone": "no",
+   "strada": "non so",
+   "edifici": "no"
+  },
+  "quantita": "gocce",
+  "durata": "adesso",
+  "confidenza": {
+   "categoria": 0.58,
+   "pericoli": 0.7,
+   "durata": 0.62,
+   "quantita": 0.82
+  },
+  "descrizione": "Si è aperta una crepa lungo l'argine vicino al ponticello",
+  "transcript": null,
+  "lat": 45.308577,
+  "lng": 10.537678,
+  "infrastruttura": {
+   "layer": "Reticolo principale",
+   "codice": "0095",
+   "nome": "Seriola MARCHIONALE",
+   "distanza_m": 48
+  },
+  "zona": "Medio Nord",
+  "acquaiolo_zona": "PEGORARO G",
+  "acquaiolo": null,
+  "operatore_riferimento": null,
+  "segnalante_cellulare": "+39 324 569 8151",
+  "duplicato_di": null,
+  "duplicati": [],
+  "foto": "https://picsum.photos/seed/gc5/640/420"
+ },
+ {
+  "id": 1047,
+  "codice": "GC-1047",
+  "ricevuta_il": "2026-09-24T10:18",
+  "canale_ingresso": "web app",
+  "stato": "Ricevuta",
+  "esito": null,
+  "priorita": "Alta",
+  "priorita_calcolata": "Alta",
+  "fattori": [
+   "molta acqua"
+  ],
+  "categoria": "ostruzione",
+  "pericoli": {
+   "persone": "non so",
+   "strada": "non so",
+   "edifici": "no"
+  },
+  "quantita": "molta acqua",
+  "durata": "non so",
+  "confidenza": {
+   "categoria": 0.83,
+   "pericoli": 0.81,
+   "durata": 0.91,
+   "quantita": 0.76
+  },
+  "descrizione": "Rami e plastica bloccano il passaggio sotto il ponte",
+  "transcript": "Allora… rami e plastica bloccano il passaggio sotto il ponte. Lo vedo non so, non mi sembra pericoloso.",
+  "lat": 45.386078,
+  "lng": 10.680917,
+  "infrastruttura": {
+   "layer": "Condotta",
+   "codice": null,
+   "nome": "Condotta COLOMBAROLA - SIGNORELLI BASSO",
+   "distanza_m": 69
+  },
+  "zona": "Colli Morenici",
+  "acquaiolo_zona": "SORIO D",
+  "acquaiolo": null,
+  "operatore_riferimento": null,
+  "segnalante_cellulare": "+39 329 545 5039",
+  "duplicato_di": null,
+  "duplicati": [],
+  "foto": "https://picsum.photos/seed/gc6/640/420"
+ },
+ {
+  "id": 1048,
+  "codice": "GC-1048",
+  "ricevuta_il": "2026-09-23T23:29",
+  "canale_ingresso": "web app",
+  "stato": "Ricevuta",
+  "esito": null,
+  "priorita": "Media",
+  "priorita_calcolata": "Media",
+  "fattori": [
+   "categoria"
+  ],
+  "categoria": "affiora",
+  "pericoli": {
+   "persone": "no",
+   "strada": "no",
+   "edifici": "non so"
+  },
+  "quantita": "non so",
+  "durata": "da meno di un’ora",
+  "confidenza": {
+   "categoria": 0.59,
+   "pericoli": 0.64,
+   "durata": 0.64,
+   "quantita": 0.59
+  },
+  "descrizione": "C'è acqua che affiora sul bordo della strada vicino al fosso",
+  "transcript": "Allora… c'è acqua che affiora sul bordo della strada vicino al fosso. Lo vedo da meno di un’ora, non mi sembra pericoloso.",
+  "lat": 45.396619,
+  "lng": 10.52944,
+  "infrastruttura": {
+   "layer": "Condotta",
+   "codice": null,
+   "nome": "Condotta CASTIGLIONE SOLFERINO-BRONZINO",
+   "distanza_m": 24
+  },
+  "zona": "Colli Morenici",
+  "acquaiolo_zona": "GUIDETTI",
+  "acquaiolo": null,
+  "operatore_riferimento": null,
+  "segnalante_cellulare": "+39 348 574 9559",
+  "duplicato_di": null,
+  "duplicati": [],
+  "foto": "https://picsum.photos/seed/gc7/640/420"
+ },
+ {
+  "id": 1049,
+  "codice": "GC-1049",
+  "ricevuta_il": "2026-09-23T13:10",
+  "canale_ingresso": "web app",
+  "stato": "Ricevuta",
+  "esito": null,
+  "priorita": "Alta",
+  "priorita_calcolata": "Alta",
+  "fattori": [
+   "categoria"
+  ],
+  "categoria": "paratoia",
+  "pericoli": {
+   "persone": "non so",
+   "strada": "no",
+   "edifici": "non so"
+  },
+  "quantita": "non so",
+  "durata": "da più di un giorno",
+  "confidenza": {
+   "categoria": 0.58,
+   "pericoli": 0.74,
+   "durata": 0.59,
+   "quantita": 0.57
+  },
+  "descrizione": "Il volantino della chiusa è stato divelto",
+  "transcript": "Allora… il volantino della chiusa è stato divelto. Lo vedo da più di un giorno, non mi sembra pericoloso.",
+  "lat": 45.325566,
+  "lng": 10.546905,
+  "infrastruttura": {
+   "layer": "Canale",
+   "codice": "3016",
+   "nome": "Dispensatore I",
+   "distanza_m": 33
+  },
+  "zona": "Alto Mantovano",
+  "acquaiolo_zona": "BIGNOTTI",
+  "acquaiolo": null,
+  "operatore_riferimento": null,
+  "segnalante_cellulare": "+39 331 567 7949",
+  "duplicato_di": null,
+  "duplicati": [],
+  "foto": "https://picsum.photos/seed/gc8/640/420"
+ },
+ {
+  "id": 1050,
+  "codice": "GC-1050",
+  "ricevuta_il": "2026-09-19T09:26",
+  "canale_ingresso": "web app",
+  "stato": "In verifica",
+  "esito": null,
+  "priorita": "Alta",
+  "priorita_calcolata": "Alta",
+  "fattori": [
+   "categoria",
+   "molta acqua"
+  ],
+  "categoria": "paratoia",
+  "pericoli": {
+   "persone": "no",
+   "strada": "non so",
+   "edifici": "non so"
+  },
+  "quantita": "molta acqua",
+  "durata": "da più di un giorno",
+  "confidenza": {
+   "categoria": 0.81,
+   "pericoli": 0.59,
+   "durata": 0.79,
+   "quantita": 0.71
+  },
+  "descrizione": "Il volantino della chiusa è stato divelto",
+  "transcript": "Allora… il volantino della chiusa è stato divelto. Lo vedo da più di un giorno, non mi sembra pericoloso.",
+  "lat": 45.232891,
+  "lng": 10.519092,
+  "infrastruttura": {
+   "layer": "Canale",
+   "codice": "0085",
+   "nome": "Vaso CORGOLO",
+   "distanza_m": 11
+  },
+  "zona": "Medio Ovest",
+  "acquaiolo_zona": "VIAPIANA",
+  "acquaiolo": null,
+  "operatore_riferimento": "Giulia Bertoni",
+  "segnalante_cellulare": "+39 339 525 2072",
+  "duplicato_di": null,
+  "duplicati": [
+   1069,
+   1072
+  ],
+  "foto": "https://picsum.photos/seed/gc9/640/420"
+ },
+ {
+  "id": 1051,
+  "codice": "GC-1051",
+  "ricevuta_il": "2026-09-23T20:52",
+  "canale_ingresso": "web app",
+  "stato": "In verifica",
+  "esito": null,
+  "priorita": "Bassa",
+  "priorita_calcolata": "Bassa",
+  "fattori": [
+   "nessun indicatore forte"
+  ],
+  "categoria": "sporca",
+  "pericoli": {
+   "persone": "no",
+   "strada": "no",
+   "edifici": "no"
+  },
+  "quantita": "gocce",
+  "durata": "non so",
+  "confidenza": {
+   "categoria": 0.8,
+   "pericoli": 0.58,
+   "durata": 0.74,
+   "quantita": 0.8
+  },
+  "descrizione": "Acqua marrone scuro con chiazze oleose",
+  "transcript": "Allora… acqua marrone scuro con chiazze oleose. Lo vedo non so, non mi sembra pericoloso.",
+  "lat": 45.315129,
+  "lng": 10.683059,
+  "infrastruttura": {
+   "layer": "Canale",
+   "codice": "8225",
+   "nome": "Fosso DUGALE SUD",
+   "distanza_m": 36
+  },
+  "zona": "Colli Morenici",
+  "acquaiolo_zona": "MARTELLI S",
+  "acquaiolo": null,
+  "operatore_riferimento": "Sara Lombardi",
+  "segnalante_cellulare": "+39 320 501 4298",
+  "duplicato_di": null,
+  "duplicati": [],
+  "foto": "https://picsum.photos/seed/gc10/640/420"
+ },
+ {
+  "id": 1052,
+  "codice": "GC-1052",
+  "ricevuta_il": "2026-09-20T07:30",
+  "canale_ingresso": "web app",
+  "stato": "In verifica",
+  "esito": null,
+  "priorita": "Bassa",
+  "priorita_calcolata": "Bassa",
+  "fattori": [
+   "nessun indicatore forte"
+  ],
+  "categoria": "altro",
+  "pericoli": {
+   "persone": "no",
+   "strada": "non so",
+   "edifici": "no"
+  },
+  "quantita": "gocce",
+  "durata": "non so",
+  "confidenza": {
+   "categoria": 0.69,
+   "pericoli": 0.83,
+   "durata": 0.89,
+   "quantita": 0.6
+  },
+  "descrizione": "C'è un animale morto incastrato vicino alla griglia",
+  "transcript": "Allora… c'è un animale morto incastrato vicino alla griglia. Lo vedo non so, non mi sembra pericoloso.",
+  "lat": 45.306439,
+  "lng": 10.69767,
+  "infrastruttura": {
+   "layer": "Canale",
+   "codice": "3104",
+   "nome": "Dispensatore \"C\" dei Mulini con sollevam",
+   "distanza_m": 14
+  },
+  "zona": "Medio Nord",
+  "acquaiolo_zona": "HALIUC & GORRIERI",
+  "acquaiolo": null,
+  "operatore_riferimento": "Giulia Bertoni",
+  "segnalante_cellulare": "+39 320 840 9793",
+  "duplicato_di": null,
+  "duplicati": [],
+  "foto": "https://picsum.photos/seed/gc11/640/420"
+ },
+ {
+  "id": 1053,
+  "codice": "GC-1053",
+  "ricevuta_il": "2026-09-19T15:46",
+  "canale_ingresso": "web app",
+  "stato": "In verifica",
+  "esito": null,
+  "priorita": "Media",
+  "priorita_calcolata": "Media",
+  "fattori": [
+   "categoria"
+  ],
+  "categoria": "affiora",
+  "pericoli": {
+   "persone": "no",
+   "strada": "non so",
+   "edifici": "no"
+  },
+  "quantita": "piccolo flusso",
+  "durata": "da alcune ore",
+  "confidenza": {
+   "categoria": 0.97,
+   "pericoli": 0.78,
+   "durata": 0.72,
+   "quantita": 0.59
+  },
+  "descrizione": "Pozza che si riforma sempre nello stesso punto del prato",
+  "transcript": "Allora… pozza che si riforma sempre nello stesso punto del prato. Lo vedo da alcune ore, non mi sembra pericoloso.",
+  "lat": 45.35513,
+  "lng": 10.586961,
+  "infrastruttura": {
+   "layer": "Condotta",
+   "codice": null,
+   "nome": "Condotta FORESTO - R1",
+   "distanza_m": 3
+  },
+  "zona": "Colli Morenici",
+  "acquaiolo_zona": "CAUZZI",
+  "acquaiolo": null,
+  "operatore_riferimento": "Giulia Bertoni",
+  "segnalante_cellulare": "+39 321 980 4071",
+  "duplicato_di": null,
+  "duplicati": [],
+  "foto": "https://picsum.photos/seed/gc12/640/420"
+ },
+ {
+  "id": 1054,
+  "codice": "GC-1054",
+  "ricevuta_il": "2026-09-22T11:10",
+  "canale_ingresso": "web app",
+  "stato": "In verifica",
+  "esito": null,
+  "priorita": "Alta",
+  "priorita_calcolata": "Alta",
+  "fattori": [
+   "categoria"
+  ],
+  "categoria": "argine",
+  "pericoli": {
+   "persone": "no",
+   "strada": "no",
+   "edifici": "no"
+  },
+  "quantita": "gocce",
+  "durata": "non so",
+  "confidenza": {
+   "categoria": 0.83,
+   "pericoli": 0.71,
+   "durata": 0.63,
+   "quantita": 0.97
+  },
+  "descrizione": "La sponda del canale è franata per qualche metro",
+  "transcript": "Allora… la sponda del canale è franata per qualche metro. Lo vedo non so, non mi sembra pericoloso.",
+  "lat": 45.2859,
+  "lng": 10.644831,
+  "infrastruttura": {
+   "layer": "Canale",
+   "codice": "3116",
+   "nome": "Dispensatore \"P\" di Cerlongo",
+   "distanza_m": 26
+  },
+  "zona": "Medio Nord",
+  "acquaiolo_zona": "HALIUC & GORRIERI",
+  "acquaiolo": null,
+  "operatore_riferimento": "Marco Zanetti",
+  "segnalante_cellulare": "+39 339 881 8024",
+  "duplicato_di": null,
+  "duplicati": [],
+  "foto": "https://picsum.photos/seed/gc13/640/420"
+ },
+ {
+  "id": 1055,
+  "codice": "GC-1055",
+  "ricevuta_il": "2026-09-19T16:34",
+  "canale_ingresso": "web app",
+  "stato": "In verifica",
+  "esito": null,
+  "priorita": "Media",
+  "priorita_calcolata": "Media",
+  "fattori": [
+   "categoria"
+  ],
+  "categoria": "ostruzione",
+  "pericoli": {
+   "persone": "no",
+   "strada": "no",
+   "edifici": "no"
+  },
+  "quantita": "piccolo flusso",
+  "durata": "non so",
+  "confidenza": {
+   "categoria": 0.78,
+   "pericoli": 0.94,
+   "durata": 0.72,
+   "quantita": 0.59
+  },
+  "descrizione": "Rami e plastica bloccano il passaggio sotto il ponte",
+  "transcript": "Allora… rami e plastica bloccano il passaggio sotto il ponte. Lo vedo non so, non mi sembra pericoloso.",
+  "lat": 45.168861,
+  "lng": 10.445248,
+  "infrastruttura": {
+   "layer": "Canale",
+   "codice": "2087",
+   "nome": "Colatore CORGOLA",
+   "distanza_m": 56
+  },
+  "zona": "Medio Ovest",
+  "acquaiolo_zona": "NEGRISOLI",
+  "acquaiolo": null,
+  "operatore_riferimento": "Giulia Bertoni",
+  "segnalante_cellulare": "+39 323 532 6092",
+  "duplicato_di": null,
+  "duplicati": [],
+  "foto": "https://picsum.photos/seed/gc14/640/420"
+ },
+ {
+  "id": 1056,
+  "codice": "GC-1056",
+  "ricevuta_il": "2026-09-21T20:55",
+  "canale_ingresso": "web app",
+  "stato": "Assegnata",
+  "esito": null,
+  "priorita": "Critica",
+  "priorita_calcolata": "Critica",
+  "fattori": [
+   "pericolo edifici"
+  ],
+  "categoria": "paratoia",
+  "pericoli": {
+   "persone": "non so",
+   "strada": "no",
+   "edifici": "sì"
+  },
+  "quantita": "piccolo flusso",
+  "durata": "da più di un giorno",
+  "confidenza": {
+   "categoria": 0.77,
+   "pericoli": 0.89,
+   "durata": 0.59,
+   "quantita": 0.95
+  },
+  "descrizione": "La paratoia è rotta e rimane mezza aperta",
+  "transcript": "Allora… la paratoia è rotta e rimane mezza aperta. Lo vedo da più di un giorno, mi sembra pericoloso.",
+  "lat": 45.394445,
+  "lng": 10.530987,
+  "infrastruttura": {
+   "layer": "Condotta",
+   "codice": null,
+   "nome": "Condotta CASTIGLIONE SOLFERINO-BRONZINO",
+   "distanza_m": 18
+  },
+  "zona": "Colli Morenici",
+  "acquaiolo_zona": "GUIDETTI",
+  "acquaiolo": "GUIDETTI",
+  "operatore_riferimento": "Marco Zanetti",
+  "segnalante_cellulare": "+39 331 171 4088",
+  "duplicato_di": null,
+  "duplicati": [],
+  "foto": "https://picsum.photos/seed/gc15/640/420"
+ },
+ {
+  "id": 1057,
+  "codice": "GC-1057",
+  "ricevuta_il": "2026-09-22T12:42",
+  "canale_ingresso": "web app",
+  "stato": "Assegnata",
+  "esito": null,
+  "priorita": "Alta",
+  "priorita_calcolata": "Alta",
+  "fattori": [
+   "molta acqua"
+  ],
+  "categoria": "affiora",
+  "pericoli": {
+   "persone": "no",
+   "strada": "no",
+   "edifici": "no"
+  },
+  "quantita": "molta acqua",
+  "durata": "da più di un giorno",
+  "confidenza": {
+   "categoria": 0.64,
+   "pericoli": 0.68,
+   "durata": 0.91,
+   "quantita": 0.66
+  },
+  "descrizione": "Esce acqua dal terreno in mezzo al campo, si sta allargando",
+  "transcript": "Allora… esce acqua dal terreno in mezzo al campo, si sta allargando. Lo vedo da più di un giorno, non mi sembra pericoloso.",
+  "lat": 45.389029,
+  "lng": 10.65651,
+  "infrastruttura": {
+   "layer": "Condotta",
+   "codice": null,
+   "nome": "Condotta COLOMBAROLA - SIGNORELLI BASSO",
+   "distanza_m": 69
+  },
+  "zona": "Colli Morenici",
+  "acquaiolo_zona": "SORIO D",
+  "acquaiolo": "SORIO D",
+  "operatore_riferimento": "Marco Zanetti",
+  "segnalante_cellulare": "+39 339 658 7860",
+  "duplicato_di": null,
+  "duplicati": [],
+  "foto": "https://picsum.photos/seed/gc16/640/420"
+ },
+ {
+  "id": 1058,
+  "codice": "GC-1058",
+  "ricevuta_il": "2026-09-19T12:55",
+  "canale_ingresso": "web app",
+  "stato": "Assegnata",
+  "esito": null,
+  "priorita": "Critica",
+  "priorita_calcolata": "Critica",
+  "fattori": [
+   "pericolo persone"
+  ],
+  "categoria": "altro",
+  "pericoli": {
+   "persone": "sì",
+   "strada": "no",
+   "edifici": "no"
+  },
+  "quantita": "gocce",
+  "durata": "adesso",
+  "confidenza": {
+   "categoria": 0.82,
+   "pericoli": 0.95,
+   "durata": 0.79,
+   "quantita": 0.57
+  },
+  "descrizione": "C'è un animale morto incastrato vicino alla griglia",
+  "transcript": "Allora… c'è un animale morto incastrato vicino alla griglia. Lo vedo adesso, mi sembra pericoloso.",
+  "lat": 45.311975,
+  "lng": 10.464014,
+  "infrastruttura": {
+   "layer": "Reticolo principale",
+   "codice": "8040",
+   "nome": "Seriola FUGA DELLA GRILLA",
+   "distanza_m": 118
+  },
+  "zona": "Medio Ovest",
+  "acquaiolo_zona": "BERTANI",
+  "acquaiolo": "BERTANI",
+  "operatore_riferimento": "Sara Lombardi",
+  "segnalante_cellulare": "+39 334 566 6501",
+  "duplicato_di": null,
+  "duplicati": [],
+  "foto": "https://picsum.photos/seed/gc17/640/420"
+ },
+ {
+  "id": 1059,
+  "codice": "GC-1059",
+  "ricevuta_il": "2026-09-22T17:29",
+  "canale_ingresso": "web app",
+  "stato": "Assegnata",
+  "esito": null,
+  "priorita": "Bassa",
+  "priorita_calcolata": "Bassa",
+  "fattori": [
+   "nessun indicatore forte"
+  ],
+  "categoria": "sporca",
+  "pericoli": {
+   "persone": "non so",
+   "strada": "no",
+   "edifici": "no"
+  },
+  "quantita": "non so",
+  "durata": "adesso",
+  "confidenza": {
+   "categoria": 0.58,
+   "pericoli": 0.78,
+   "durata": 0.61,
+   "quantita": 0.6
+  },
+  "descrizione": "L'acqua del canale è schiumosa e ha un cattivo odore",
+  "transcript": "Allora… l'acqua del canale è schiumosa e ha un cattivo odore. Lo vedo adesso, non mi sembra pericoloso.",
+  "lat": 45.297771,
+  "lng": 10.64796,
+  "infrastruttura": {
+   "layer": "Canale",
+   "codice": "8050",
+   "nome": "Fosso MADONNINA",
+   "distanza_m": 30
+  },
+  "zona": "Medio Nord",
+  "acquaiolo_zona": "HALIUC & GORRIERI",
+  "acquaiolo": "HALIUC & GORRIERI",
+  "operatore_riferimento": "Marco Zanetti",
+  "segnalante_cellulare": "+39 342 733 6482",
+  "duplicato_di": null,
+  "duplicati": [],
+  "foto": "https://picsum.photos/seed/gc18/640/420"
+ },
+ {
+  "id": 1060,
+  "codice": "GC-1060",
+  "ricevuta_il": "2026-09-24T07:26",
+  "canale_ingresso": "web app",
+  "stato": "Assegnata",
+  "esito": null,
+  "priorita": "Critica",
+  "priorita_calcolata": "Critica",
+  "fattori": [
+   "pericolo edifici"
+  ],
+  "categoria": "ostruzione",
+  "pericoli": {
+   "persone": "no",
+   "strada": "non so",
+   "edifici": "sì"
+  },
+  "quantita": "gocce",
+  "durata": "da meno di un’ora",
+  "confidenza": {
+   "categoria": 0.61,
+   "pericoli": 0.93,
+   "durata": 0.92,
+   "quantita": 0.62
+  },
+  "descrizione": "Rami e plastica bloccano il passaggio sotto il ponte",
+  "transcript": "Allora… rami e plastica bloccano il passaggio sotto il ponte. Lo vedo da meno di un’ora, mi sembra pericoloso.",
+  "lat": 45.271864,
+  "lng": 10.613471,
+  "infrastruttura": {
+   "layer": "Canale",
+   "codice": "8003",
+   "nome": "Canale SECONDARIO DEL QUAGLIA",
+   "distanza_m": 5
+  },
+  "zona": "Medio Nord",
+  "acquaiolo_zona": "CERINI",
+  "acquaiolo": "CERINI",
+  "operatore_riferimento": "Marco Zanetti",
+  "segnalante_cellulare": "+39 336 785 2893",
+  "duplicato_di": null,
+  "duplicati": [],
+  "foto": "https://picsum.photos/seed/gc19/640/420"
+ },
+ {
+  "id": 1061,
+  "codice": "GC-1061",
+  "ricevuta_il": "2026-09-19T03:16",
+  "canale_ingresso": "web app",
+  "stato": "Assegnata",
+  "esito": null,
+  "priorita": "Alta",
+  "priorita_calcolata": "Alta",
+  "fattori": [
+   "molta acqua"
+  ],
+  "categoria": "affiora",
+  "pericoli": {
+   "persone": "no",
+   "strada": "non so",
+   "edifici": "no"
+  },
+  "quantita": "molta acqua",
+  "durata": "non so",
+  "confidenza": {
+   "categoria": 0.57,
+   "pericoli": 0.81,
+   "durata": 0.62,
+   "quantita": 0.86
+  },
+  "descrizione": "Esce acqua dal terreno in mezzo al campo, si sta allargando",
+  "transcript": "Allora… esce acqua dal terreno in mezzo al campo, si sta allargando. Lo vedo non so, non mi sembra pericoloso.",
+  "lat": 45.405801,
+  "lng": 10.50958,
+  "infrastruttura": {
+   "layer": "Condotta",
+   "codice": null,
+   "nome": "Condotta CASTIGLIONE SOLFERINO - VALLE",
+   "distanza_m": 109
+  },
+  "zona": "Colli Morenici",
+  "acquaiolo_zona": "GUIDETTI",
+  "acquaiolo": "GUIDETTI",
+  "operatore_riferimento": "Marco Zanetti",
+  "segnalante_cellulare": "+39 336 461 7219",
+  "duplicato_di": null,
+  "duplicati": [],
+  "foto": "https://picsum.photos/seed/gc20/640/420"
+ },
+ {
+  "id": 1062,
+  "codice": "GC-1062",
+  "ricevuta_il": "2026-09-23T13:13",
+  "canale_ingresso": "web app",
+  "stato": "In intervento",
+  "esito": null,
+  "priorita": "Critica",
+  "priorita_calcolata": "Critica",
+  "fattori": [
+   "pericolo strada"
+  ],
+  "categoria": "argine",
+  "pericoli": {
+   "persone": "no",
+   "strada": "sì",
+   "edifici": "non so"
+  },
+  "quantita": "gocce",
+  "durata": "da più di un giorno",
+  "confidenza": {
+   "categoria": 0.61,
+   "pericoli": 0.99,
+   "durata": 0.96,
+   "quantita": 0.74
+  },
+  "descrizione": "Si è aperta una crepa lungo l'argine vicino al ponticello",
+  "transcript": "Allora… si è aperta una crepa lungo l'argine vicino al ponticello. Lo vedo da più di un giorno, mi sembra pericoloso.",
+  "lat": 45.170641,
+  "lng": 10.520614,
+  "infrastruttura": {
+   "layer": "Canale",
+   "codice": "8025",
+   "nome": "Fosso POZZO",
+   "distanza_m": 109
+  },
+  "zona": "Medio Ovest",
+  "acquaiolo_zona": "BELDUVINI",
+  "acquaiolo": "BELDUVINI",
+  "operatore_riferimento": "Sara Lombardi",
+  "segnalante_cellulare": "+39 349 777 2484",
+  "duplicato_di": null,
+  "duplicati": [],
+  "foto": "https://picsum.photos/seed/gc21/640/420"
+ },
+ {
+  "id": 1063,
+  "codice": "GC-1063",
+  "ricevuta_il": "2026-09-22T16:46",
+  "canale_ingresso": "web app",
+  "stato": "In intervento",
+  "esito": null,
+  "priorita": "Alta",
+  "priorita_calcolata": "Alta",
+  "fattori": [
+   "categoria"
+  ],
+  "categoria": "argine",
+  "pericoli": {
+   "persone": "no",
+   "strada": "no",
+   "edifici": "non so"
+  },
+  "quantita": "piccolo flusso",
+  "durata": "da meno di un’ora",
+  "confidenza": {
+   "categoria": 0.65,
+   "pericoli": 0.78,
+   "durata": 0.77,
+   "quantita": 0.92
+  },
+  "descrizione": "Si è aperta una crepa lungo l'argine vicino al ponticello",
+  "transcript": "Allora… si è aperta una crepa lungo l'argine vicino al ponticello. Lo vedo da meno di un’ora, non mi sembra pericoloso.",
+  "lat": 45.248983,
+  "lng": 10.462026,
+  "infrastruttura": {
+   "layer": "Canale",
+   "codice": "2058b",
+   "nome": "Fosso RABBIOSA",
+   "distanza_m": 28
+  },
+  "zona": "Medio Ovest",
+  "acquaiolo_zona": "PEVERADA",
+  "acquaiolo": "PEVERADA",
+  "operatore_riferimento": "Giulia Bertoni",
+  "segnalante_cellulare": "+39 322 648 3538",
+  "duplicato_di": null,
+  "duplicati": [],
+  "foto": "https://picsum.photos/seed/gc22/640/420"
+ },
+ {
+  "id": 1064,
+  "codice": "GC-1064",
+  "ricevuta_il": "2026-09-20T16:14",
+  "canale_ingresso": "web app",
+  "stato": "In intervento",
+  "esito": null,
+  "priorita": "Media",
+  "priorita_calcolata": "Media",
+  "fattori": [
+   "piccolo flusso"
+  ],
+  "categoria": "altro",
+  "pericoli": {
+   "persone": "no",
+   "strada": "non so",
+   "edifici": "no"
+  },
+  "quantita": "piccolo flusso",
+  "durata": "da meno di un’ora",
+  "confidenza": {
+   "categoria": 0.81,
+   "pericoli": 0.62,
+   "durata": 0.76,
+   "quantita": 0.71
+  },
+  "descrizione": "Una recinzione è caduta dentro il canale",
+  "transcript": "Allora… una recinzione è caduta dentro il canale. Lo vedo da meno di un’ora, non mi sembra pericoloso.",
+  "lat": 45.350829,
+  "lng": 10.485439,
+  "infrastruttura": {
+   "layer": "Reticolo principale",
+   "codice": "0095",
+   "nome": "Seriola MARCHIONALE",
+   "distanza_m": 24
+  },
+  "zona": "Medio Nord",
+  "acquaiolo_zona": "GABUSI",
+  "acquaiolo": "GABUSI",
+  "operatore_riferimento": "Marco Zanetti",
+  "segnalante_cellulare": "+39 341 400 9216",
+  "duplicato_di": null,
+  "duplicati": [],
+  "foto": "https://picsum.photos/seed/gc23/640/420"
+ },
+ {
+  "id": 1065,
+  "codice": "GC-1065",
+  "ricevuta_il": "2026-09-23T13:33",
+  "canale_ingresso": "web app",
+  "stato": "In intervento",
+  "esito": null,
+  "priorita": "Bassa",
+  "priorita_calcolata": "Bassa",
+  "fattori": [
+   "nessun indicatore forte"
+  ],
+  "categoria": "altro",
+  "pericoli": {
+   "persone": "no",
+   "strada": "no",
+   "edifici": "no"
+  },
+  "quantita": "gocce",
+  "durata": "da più di un giorno",
+  "confidenza": {
+   "categoria": 0.78,
+   "pericoli": 0.87,
+   "durata": 0.66,
+   "quantita": 0.76
+  },
+  "descrizione": "Una recinzione è caduta dentro il canale",
+  "transcript": "Allora… una recinzione è caduta dentro il canale. Lo vedo da più di un giorno, non mi sembra pericoloso.",
+  "lat": 45.313064,
+  "lng": 10.639342,
+  "infrastruttura": {
+   "layer": "Reticolo principale",
+   "codice": "2067",
+   "nome": "Scolo CALDONE",
+   "distanza_m": 47
+  },
+  "zona": "Medio Nord",
+  "acquaiolo_zona": "PEGORARO G",
+  "acquaiolo": "PEGORARO G",
+  "operatore_riferimento": "Marco Zanetti",
+  "segnalante_cellulare": "+39 323 871 7667",
+  "duplicato_di": null,
+  "duplicati": [],
+  "foto": "https://picsum.photos/seed/gc24/640/420"
+ },
+ {
+  "id": 1066,
+  "codice": "GC-1066",
+  "ricevuta_il": "2026-09-22T13:56",
+  "canale_ingresso": "web app",
+  "stato": "Chiusa",
+  "esito": "falsa",
+  "priorita": "Media",
+  "priorita_calcolata": "Media",
+  "fattori": [
+   "categoria"
+  ],
+  "categoria": "ostruzione",
+  "pericoli": {
+   "persone": "non so",
+   "strada": "no",
+   "edifici": "non so"
+  },
+  "quantita": "piccolo flusso",
+  "durata": "da più di un giorno",
+  "confidenza": {
+   "categoria": 0.77,
+   "pericoli": 0.76,
+   "durata": 0.68,
+   "quantita": 0.88
+  },
+  "descrizione": "Il canale è pieno di erba e l'acqua non scorre",
+  "transcript": "Allora… il canale è pieno di erba e l'acqua non scorre. Lo vedo da più di un giorno, non mi sembra pericoloso.",
+  "lat": 45.402311,
+  "lng": 10.520954,
+  "infrastruttura": {
+   "layer": "Canale",
+   "codice": "2127a",
+   "nome": "Fosso ALBANA",
+   "distanza_m": 12
+  },
+  "zona": "Colli Morenici",
+  "acquaiolo_zona": "GUIDETTI",
+  "acquaiolo": "GUIDETTI",
+  "operatore_riferimento": "Sara Lombardi",
+  "segnalante_cellulare": "+39 344 123 9204",
+  "duplicato_di": null,
+  "duplicati": [],
+  "foto": "https://picsum.photos/seed/gc25/640/420"
+ },
+ {
+  "id": 1067,
+  "codice": "GC-1067",
+  "ricevuta_il": "2026-09-24T02:35",
+  "canale_ingresso": "web app",
+  "stato": "Chiusa",
+  "esito": "risolta",
+  "priorita": "Alta",
+  "priorita_calcolata": "Alta",
+  "fattori": [
+   "categoria",
+   "molta acqua"
+  ],
+  "categoria": "tracima",
+  "pericoli": {
+   "persone": "no",
+   "strada": "non so",
+   "edifici": "no"
+  },
+  "quantita": "molta acqua",
+  "durata": "non so",
+  "confidenza": {
+   "categoria": 0.73,
+   "pericoli": 0.89,
+   "durata": 0.62,
+   "quantita": 0.64
+  },
+  "descrizione": "Il canale è pieno fino all'orlo e l'acqua va sulla strada",
+  "transcript": "Allora… il canale è pieno fino all'orlo e l'acqua va sulla strada. Lo vedo non so, non mi sembra pericoloso.",
+  "lat": 45.146392,
+  "lng": 10.52562,
+  "infrastruttura": {
+   "layer": "Reticolo principale",
+   "codice": "1041",
+   "nome": "Scolo CAVATA",
+   "distanza_m": 47
+  },
+  "zona": "Medio Sud",
+  "acquaiolo_zona": "MARCHINI",
+  "acquaiolo": "MARCHINI",
+  "operatore_riferimento": "Marco Zanetti",
+  "segnalante_cellulare": "+39 330 143 9259",
+  "duplicato_di": null,
+  "duplicati": [],
+  "foto": "https://picsum.photos/seed/gc26/640/420"
+ },
+ {
+  "id": 1068,
+  "codice": "GC-1068",
+  "ricevuta_il": "2026-09-22T20:57",
+  "canale_ingresso": "web app",
+  "stato": "Chiusa",
+  "esito": "risolta",
+  "priorita": "Alta",
+  "priorita_calcolata": "Alta",
+  "fattori": [
+   "molta acqua"
+  ],
+  "categoria": "altro",
+  "pericoli": {
+   "persone": "no",
+   "strada": "no",
+   "edifici": "no"
+  },
+  "quantita": "molta acqua",
+  "durata": "adesso",
+  "confidenza": {
+   "categoria": 0.78,
+   "pericoli": 0.98,
+   "durata": 0.76,
+   "quantita": 0.89
+  },
+  "descrizione": "C'è un animale morto incastrato vicino alla griglia",
+  "transcript": "Allora… c'è un animale morto incastrato vicino alla griglia. Lo vedo adesso, non mi sembra pericoloso.",
+  "lat": 45.244036,
+  "lng": 10.500647,
+  "infrastruttura": {
+   "layer": "Canale",
+   "codice": "0084",
+   "nome": "Vaso ZENERATO",
+   "distanza_m": 47
+  },
+  "zona": "Medio Ovest",
+  "acquaiolo_zona": "TONELLI",
+  "acquaiolo": "TONELLI",
+  "operatore_riferimento": "Marco Zanetti",
+  "segnalante_cellulare": "+39 337 536 6388",
+  "duplicato_di": null,
+  "duplicati": [],
+  "foto": "https://picsum.photos/seed/gc27/640/420"
+ },
+ {
+  "id": 1069,
+  "codice": "GC-1069",
+  "ricevuta_il": "2026-09-20T19:34",
+  "canale_ingresso": "web app",
+  "stato": "Chiusa",
+  "esito": "duplicata",
+  "priorita": "Media",
+  "priorita_calcolata": "Media",
+  "fattori": [
+   "piccolo flusso"
+  ],
+  "categoria": "sporca",
+  "pericoli": {
+   "persone": "non so",
+   "strada": "no",
+   "edifici": "non so"
+  },
+  "quantita": "piccolo flusso",
+  "durata": "non so",
+  "confidenza": {
+   "categoria": 0.55,
+   "pericoli": 0.87,
+   "durata": 0.74,
+   "quantita": 0.89
+  },
+  "descrizione": "L'acqua del canale è schiumosa e ha un cattivo odore",
+  "transcript": "Allora… l'acqua del canale è schiumosa e ha un cattivo odore. Lo vedo non so, non mi sembra pericoloso.",
+  "lat": 45.23301277093021,
+  "lng": 10.51912724877326,
+  "infrastruttura": {
+   "layer": "Canale",
+   "codice": "2128",
+   "nome": "Rio DUGALE",
+   "distanza_m": 50
+  },
+  "zona": "Colli Morenici",
+  "acquaiolo_zona": "SORIO D",
+  "acquaiolo": "SORIO D",
+  "operatore_riferimento": "Giulia Bertoni",
+  "segnalante_cellulare": "+39 345 594 6904",
+  "duplicato_di": 1050,
+  "duplicati": [],
+  "foto": "https://picsum.photos/seed/gc28/640/420"
+ },
+ {
+  "id": 1070,
+  "codice": "GC-1070",
+  "ricevuta_il": "2026-09-23T11:51",
+  "canale_ingresso": "web app",
+  "stato": "Chiusa",
+  "esito": "risolta",
+  "priorita": "Alta",
+  "priorita_calcolata": "Alta",
+  "fattori": [
+   "categoria"
+  ],
+  "categoria": "paratoia",
+  "pericoli": {
+   "persone": "no",
+   "strada": "no",
+   "edifici": "no"
+  },
+  "quantita": "non so",
+  "durata": "adesso",
+  "confidenza": {
+   "categoria": 0.62,
+   "pericoli": 0.73,
+   "durata": 0.86,
+   "quantita": 0.63
+  },
+  "descrizione": "Il volantino della chiusa è stato divelto",
+  "transcript": "Allora… il volantino della chiusa è stato divelto. Lo vedo adesso, non mi sembra pericoloso.",
+  "lat": 45.315217,
+  "lng": 10.589436,
+  "infrastruttura": {
+   "layer": "Canale",
+   "codice": "3221",
+   "nome": "Dispensatore XXI delle Cucche",
+   "distanza_m": 87
+  },
+  "zona": "Medio Nord",
+  "acquaiolo_zona": "PEGORARO G",
+  "acquaiolo": "PEGORARO G",
+  "operatore_riferimento": "Sara Lombardi",
+  "segnalante_cellulare": "+39 327 545 7779",
+  "duplicato_di": null,
+  "duplicati": [],
+  "foto": "https://picsum.photos/seed/gc29/640/420"
+ },
+ {
+  "id": 1071,
+  "codice": "GC-1071",
+  "ricevuta_il": "2026-09-22T08:32",
+  "canale_ingresso": "web app",
+  "stato": "Chiusa",
+  "esito": "risolta",
+  "priorita": "Media",
+  "priorita_calcolata": "Media",
+  "fattori": [
+   "categoria"
+  ],
+  "categoria": "ostruzione",
+  "pericoli": {
+   "persone": "no",
+   "strada": "no",
+   "edifici": "non so"
+  },
+  "quantita": "gocce",
+  "durata": "non so",
+  "confidenza": {
+   "categoria": 0.87,
+   "pericoli": 0.83,
+   "durata": 0.79,
+   "quantita": 0.82
+  },
+  "descrizione": "Rami e plastica bloccano il passaggio sotto il ponte",
+  "transcript": "Allora… rami e plastica bloccano il passaggio sotto il ponte. Lo vedo non so, non mi sembra pericoloso.",
+  "lat": 45.289799,
+  "lng": 10.643234,
+  "infrastruttura": {
+   "layer": "Canale",
+   "codice": "8053",
+   "nome": "Fosso BARILETTO",
+   "distanza_m": 30
+  },
+  "zona": "Medio Nord",
+  "acquaiolo_zona": "HALIUC & GORRIERI",
+  "acquaiolo": "HALIUC & GORRIERI",
+  "operatore_riferimento": "Sara Lombardi",
+  "segnalante_cellulare": "+39 342 681 6367",
+  "duplicato_di": null,
+  "duplicati": [],
+  "foto": "https://picsum.photos/seed/gc30/640/420"
+ },
+ {
+  "id": 1072,
+  "codice": "GC-1072",
+  "ricevuta_il": "2026-09-18T14:18",
+  "canale_ingresso": "web app",
+  "stato": "Chiusa",
+  "esito": "duplicata",
+  "priorita": "Alta",
+  "priorita_calcolata": "Alta",
+  "fattori": [
+   "categoria",
+   "molta acqua"
+  ],
+  "categoria": "tracima",
+  "pericoli": {
+   "persone": "no",
+   "strada": "no",
+   "edifici": "no"
+  },
+  "quantita": "molta acqua",
+  "durata": "da più di un giorno",
+  "confidenza": {
+   "categoria": 0.58,
+   "pericoli": 0.87,
+   "durata": 0.67,
+   "quantita": 0.67
+  },
+  "descrizione": "Il fosso esce e sta allagando il cortile della cascina",
+  "transcript": "Allora… il fosso esce e sta allagando il cortile della cascina. Lo vedo da più di un giorno, non mi sembra pericoloso.",
+  "lat": 45.23315627226084,
+  "lng": 10.519168047122673,
+  "infrastruttura": {
+   "layer": "Condotta",
+   "codice": null,
+   "nome": "Condotta CASTIGLIONE SOLFERINO-BRONZINO",
+   "distanza_m": 33
+  },
+  "zona": "Colli Morenici",
+  "acquaiolo_zona": "GUIDETTI",
+  "acquaiolo": "GUIDETTI",
+  "operatore_riferimento": "Marco Zanetti",
+  "segnalante_cellulare": "+39 337 477 3217",
+  "duplicato_di": 1050,
+  "duplicati": [],
+  "foto": "https://picsum.photos/seed/gc31/640/420"
+ },
+ {
+  "id": 1073,
+  "codice": "GC-1073",
+  "ricevuta_il": "2026-09-23T15:04",
+  "canale_ingresso": "web app",
+  "stato": "Ricevuta",
+  "esito": null,
+  "priorita": "Bassa",
+  "priorita_calcolata": "Bassa",
+  "fattori": [
+   "nessun indicatore forte"
+  ],
+  "categoria": "altro",
+  "pericoli": {
+   "persone": "no",
+   "strada": "no",
+   "edifici": "no"
+  },
+  "quantita": "gocce",
+  "durata": "da meno di un’ora",
+  "confidenza": {
+   "categoria": 0.73,
+   "pericoli": 0.76,
+   "durata": 0.58,
+   "quantita": 0.58
+  },
+  "descrizione": "C'è un animale morto incastrato vicino alla griglia",
+  "transcript": "Allora… c'è un animale morto incastrato vicino alla griglia. Lo vedo da meno di un’ora, non mi sembra pericoloso.",
+  "lat": 45.286803,
+  "lng": 10.676387,
+  "infrastruttura": {
+   "layer": "Canale",
+   "codice": "3110",
+   "nome": "Dispensatore \"H\" dell'Angelo Custode",
+   "distanza_m": 13
+  },
+  "zona": "Medio Nord",
+  "acquaiolo_zona": "HALIUC & GORRIERI",
+  "acquaiolo": null,
+  "operatore_riferimento": null,
+  "segnalante_cellulare": "+39 344 258 1936",
+  "duplicato_di": null,
+  "duplicati": [],
+  "foto": "https://picsum.photos/seed/gc32/640/420"
+ },
+ {
+  "id": 1074,
+  "codice": "GC-1074",
+  "ricevuta_il": "2026-09-23T15:44",
+  "canale_ingresso": "web app",
+  "stato": "Ricevuta",
+  "esito": null,
+  "priorita": "Alta",
+  "priorita_calcolata": "Alta",
+  "fattori": [
+   "molta acqua"
+  ],
+  "categoria": "sporca",
+  "pericoli": {
+   "persone": "no",
+   "strada": "non so",
+   "edifici": "non so"
+  },
+  "quantita": "molta acqua",
+  "durata": "non so",
+  "confidenza": {
+   "categoria": 0.68,
+   "pericoli": 0.61,
+   "durata": 0.87,
+   "quantita": 0.71
+  },
+  "descrizione": "Acqua marrone scuro con chiazze oleose",
+  "transcript": "Allora… acqua marrone scuro con chiazze oleose. Lo vedo non so, non mi sembra pericoloso.",
+  "lat": 45.332324,
+  "lng": 10.573156,
+  "infrastruttura": {
+   "layer": "Canale",
+   "codice": "9039",
+   "nome": "Canale GRONDA GUIDIZZOLO",
+   "distanza_m": 31
+  },
+  "zona": "Alto Mantovano",
+  "acquaiolo_zona": "BRIGNANI",
+  "acquaiolo": null,
+  "operatore_riferimento": null,
+  "segnalante_cellulare": "+39 342 399 6707",
+  "duplicato_di": null,
+  "duplicati": [],
+  "foto": "https://picsum.photos/seed/gc33/640/420"
+ }
+]

@@ -1,0 +1,21 @@
+{
+  "name": "prototipo-portale",
+  "private": true,
+  "version": "0.0.0",
+  "description": "PROTOTIPO usa-e-getta del layout del Portale operatore (ticket #10). Non va in main.",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "dati": "uv run --with shapely --with pyproj python script/genera_dati.py"
+  },
+  "dependencies": {
+    "leaflet": "^1.9.4",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.4",
+    "vite": "^5.4.11"
+  }
+}
