@@ -45,6 +45,12 @@ _Avoid_: alert, ticket, report
 **Priorità**:
 Livello operativo della Segnalazione (Bassa, Media, Alta o Critica) che indica entro quando deve essere presa in carico. Il livello è calcolato dal backend e può essere modificato dall'Operatore con una motivazione.
 
+**Evento**:
+Registrazione immutabile di un cambiamento della Segnalazione, come un passaggio di stato o una correzione dell'Operatore. Gli Eventi formano il registro storico della Segnalazione.
+
+**Foto**:
+Immagine allegata dal Segnalante come prova visiva della Criticità osservata.
+
 **Segnalante**:
 La persona che invia una segnalazione. Non ha un account.
 _Avoid_: utente, cliente, consumer
