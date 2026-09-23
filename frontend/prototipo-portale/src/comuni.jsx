@@ -19,6 +19,26 @@ export const Icona = ({ nome, piena, className = '' }) => (
   </span>
 )
 
+// I nomi nei KML sono in maiuscolo: "HALIUC & GORRIERI" → "Haliuc & Gorrieri".
+export const titoloNome = (n) => n.toLowerCase().replace(/(^|[\s&'])(\p{L})/gu, (_, a, b) => a + b.toUpperCase())
+
+// "Bertani" → "BE", "Sorio D" → "SD", "Haliuc & Gorrieri" → "HG"
+const iniziali = (nome) => {
+  const parti = nome.split(/[\s&]+/).filter(Boolean)
+  return (parti.length > 1 ? parti[0][0] + parti[1][0] : parti[0].slice(0, 2)).toUpperCase()
+}
+
+export const Avatar = ({ nome, piccolo }) =>
+  nome ? (
+    <span className={`avatar ${piccolo ? 'piccolo' : ''}`} title={titoloNome(nome)}>
+      {iniziali(nome)}
+    </span>
+  ) : (
+    <span className={`avatar vuoto ${piccolo ? 'piccolo' : ''}`} title="Non assegnata">
+      <Icona nome="person" />
+    </span>
+  )
+
 export const Pallino = ({ livello, grande }) => (
   <span className={`pallino-inline ${livello === 'Critica' ? 'critica' : ''} ${grande ? 'grande' : ''}`} style={{ background: COLORI[livello] }} />
 )
@@ -63,7 +83,8 @@ const icona = (s, sel) =>
 const popup = (s) =>
   `<b>${s.codice}</b> · ${s.priorita}<br>${CATEGORIE[s.categoria]}<br><small>${s.fattori.join(', ')} · ${s.stato} · ${eta(s.ricevuta_il)}</small>`
 
-export function Mappa({ segnalazioni, selezionata, onSeleziona, strati = ['zone', 'rip', 'canali', 'condotte'], centro, zoom, conLegenda = true }) {
+// volaPrima: al clic su un pallino la mappa ci vola sopra, poi chiama onSeleziona (per la transizione verso la scheda).
+export function Mappa({ segnalazioni, selezionata, onSeleziona, strati = ['zone', 'rip', 'canali', 'condotte'], centro, zoom, conLegenda = true, volaPrima, className = '' }) {
   const el = useRef(null)
   const mappa = useRef(null)
   const gruppo = useRef(null)
@@ -92,7 +113,11 @@ export function Mappa({ segnalazioni, selezionata, onSeleziona, strati = ['zone'
     gruppo.current = L.layerGroup().addTo(m)
     if (centro) m.setView(centro, zoom ?? 15)
     else m.setView([45.38, 10.5], 11)
-    const ro = new ResizeObserver(() => m.invalidateSize())
+    let raf = 0
+    const ro = new ResizeObserver(() => {
+      cancelAnimationFrame(raf)
+      raf = requestAnimationFrame(() => m.invalidateSize())
+    })
     ro.observe(el.current)
     return () => {
       ro.disconnect()
@@ -110,7 +135,12 @@ export function Mappa({ segnalazioni, selezionata, onSeleziona, strati = ['zone'
       .forEach((s) => {
         const mk = L.marker([s.lat, s.lng], { icon: icona(s, s.id === selezionata), zIndexOffset: s.id === selezionata ? 1000 : 0 })
         mk.bindTooltip(popup(s), { direction: 'top', offset: [0, -8] })
-        mk.on('click', () => onSel.current?.(s.id))
+        mk.on('click', () => {
+          if (!volaPrima) return onSel.current?.(s.id)
+          const m = mappa.current
+          m.flyTo([s.lat, s.lng], 16, { duration: 0.7 })
+          m.once('moveend', () => onSel.current?.(s.id))
+        })
         mk.addTo(g)
       })
     // la prima volta, senza un centro imposto, inquadra tutti i pallini
@@ -125,7 +155,7 @@ export function Mappa({ segnalazioni, selezionata, onSeleziona, strati = ['zone'
   }, [centro?.[0], centro?.[1]])
 
   return (
-    <div className="mappa-wrap">
+    <div className={`mappa-wrap ${className}`}>
       <div ref={el} className="mappa" />
       {conLegenda && (
         <div className="legenda">
@@ -142,25 +172,26 @@ export function Mappa({ segnalazioni, selezionata, onSeleziona, strati = ['zone'
 
 // ---------- blocchi della scheda
 
+// Una riga: perché ha questa priorità, entro quando va presa in carico, correzione con motivazione.
 export function PrioritaDettaglio({ s }) {
   const { fai } = usePortale()
   const [apri, setApri] = useState(false)
   const [livello, setLivello] = useState(s.priorita)
   const [motivo, setMotivo] = useState('')
   return (
-    <div className="prio-dettaglio" style={{ borderLeftColor: COLORI[s.priorita] }}>
-      <div>
-        <strong>{s.priorita}</strong> <span className="muto">· {TEMPI[s.priorita]}</span>
+    <div className="prio-dettaglio">
+      <div className="prio-riga">
+        <span>
+          Priorità <strong>{s.priorita.toLowerCase()}</strong>: {s.fattori.join(', ')} · {TEMPI[s.priorita]}
+          {s.override && ` · calcolata ${s.priorita_calcolata.toLowerCase()}, corretta: “${s.override.motivo}”`}
+        </span>
+        {!apri && (
+          <button className="btn-link" onClick={() => setApri(true)}>
+            <Icona nome="edit" /> Correggi
+          </button>
+        )}
       </div>
-      <div className="muto">
-        Perché: {s.fattori.join(', ')}
-        {s.override && ` · calcolata: ${s.priorita_calcolata} · corretta: “${s.override.motivo}”`}
-      </div>
-      {!apri ? (
-        <button className="btn-link" onClick={() => setApri(true)}>
-          <Icona nome="edit" /> Correggi priorità
-        </button>
-      ) : (
+      {apri && (
         <div className="riga-form">
           <select value={livello} onChange={(e) => setLivello(e.target.value)}>
             {LIVELLI.map((l) => (
@@ -192,35 +223,27 @@ export function Contatti({ s }) {
   const { st } = usePortale()
   const nomeAcq = s.acquaiolo ?? s.acquaiolo_zona
   const acq = st.rubrica.find((r) => r.nome === nomeAcq)
+  const riga = (etichetta, nome, tel, primario) => (
+    <div className="contatto">
+      <div className="contatto-testo">
+        <div className="etichetta">{etichetta}</div>
+        {nome && <strong>{nome}</strong>}
+        {tel && <div className="numero">{tel}</div>}
+      </div>
+      {tel && (
+        <div className="bottoni">
+          <a className={`btn btn-chiama ${primario ? '' : 'secondario'}`} href={`tel:${tel.replace(/\s/g, '')}`}>
+            <Icona nome="call" piena={primario} /> Chiama
+          </a>
+          <Copia testo={tel} />
+        </div>
+      )}
+    </div>
+  )
   return (
     <div className="contatti">
-      <div className="contatto">
-        <div>
-          <div className="etichetta">{s.acquaiolo ? 'Acquaiolo assegnato' : 'Acquaiolo di zona (proposto)'}</div>
-          <strong>{nomeAcq ?? 'Nessuno: zona non servita'}</strong>
-          {acq && <div className="numero">{acq.telefono}</div>}
-        </div>
-        {acq && (
-          <div className="bottoni">
-            <a className="btn btn-chiama" href={`tel:${acq.telefono.replace(/\s/g, '')}`}>
-              <Icona nome="call" piena /> Chiama acquaiolo
-            </a>
-            <Copia testo={acq.telefono} />
-          </div>
-        )}
-      </div>
-      <div className="contatto">
-        <div>
-          <div className="etichetta">Segnalante</div>
-          <div className="numero">{s.segnalante_cellulare}</div>
-        </div>
-        <div className="bottoni">
-          <a className="btn btn-chiama secondario" href={`tel:${s.segnalante_cellulare.replace(/\s/g, '')}`}>
-            <Icona nome="call" /> Chiama segnalante
-          </a>
-          <Copia testo={s.segnalante_cellulare} />
-        </div>
-      </div>
+      {riga(s.acquaiolo ? 'Acquaiolo assegnato' : 'Acquaiolo di zona, proposto', nomeAcq ? titoloNome(nomeAcq) : 'Nessuno: zona non servita', acq?.telefono, true)}
+      {riga('Segnalante', null, s.segnalante_cellulare, false)}
     </div>
   )
 }
@@ -425,7 +448,9 @@ export function Rubrica() {
       </tr>
     ) : (
       <tr key={r.id}>
-        <td><strong>{r.nome}</strong></td>
+        <td>
+          <span className="persona"><Avatar nome={r.nome} piccolo /> <strong>{titoloNome(r.nome)}</strong></span>
+        </td>
         <td>{r.zona}</td>
         <td className="telefono">
           <a href={`tel:${r.telefono.replace(/\s/g, '')}`}><Icona nome="call" /> {r.telefono}</a> <Copia testo={r.telefono} />

@@ -22,6 +22,14 @@ Poi apri `http://localhost:5173/` su un monitor desktop.
   - **Mappa**: il clic su un pallino riporta a Segnalazioni con la scheda già aperta e la riga evidenziata.
   - **Transizioni**: la scheda entra da destra, la lista si stringe, il cambio pagina è in dissolvenza, lo stepper è animato e dopo ogni azione compare un toast. Sono disattivate con `prefers-reduced-motion`.
   - **Icone**: Material Symbols Rounded (pacchetto `material-symbols`, locale), niente emoji.
+- **Terzo giro**:
+  - **Tema chiaro e scuro** (variabili CSS su `:root[data-tema]`, la mappa si scurisce con un filtro sulle tessere). Segue il sistema la prima volta, poi resta in `localStorage`.
+  - **Menu laterale flottante**: utente in alto, sezioni (Lavoro, Consorzio), voce attiva con bordo e barra a sinistra, in fondo tema e "Comprimi" (solo icone).
+  - **Assegnatario**: colonna "Assegnata a" con avatar e nome (o "Non assegnata" e l'acquaiolo proposto); in alto a destra nella scheda l'acquaiolo assegnato e l'operatore che l'ha in carico.
+  - **Niente vuoti**: priorità spostata nell'intestazione, contatti e infrastruttura in una colonna della stessa altezza di "Cosa è successo", contatti senza riquadri annidati.
+  - **Registro** chiuso di default, si apre con un'altezza animata.
+  - **Transizioni**: i blocchi della scheda entrano uno dopo l'altro; dalla Mappa la mappa vola sul pallino e si trasforma nella mappa della scheda (View Transitions API di Chrome, altrove cambio semplice).
+  - Corretto: foto e mappa che sbordavano sull'avanzamento negli schermi larghi.
 
 ## Dati
 

@@ -1,16 +1,19 @@
 // PROTOTIPO. Portale operatore: la coda di lavoro (variante B del primo giro su #10), rifinita.
+// - menu laterale flottante a sezioni, richiudibile, con il tema chiaro/scuro
 // - filtri in una barra sola, condivisa tra Segnalazioni e Mappa; il canale di ingresso va in "Altri filtri"
-// - righe su due livelli (titolo + dettaglio), icone Material Symbols e niente emoji, tempo di ricezione in evidenza
-// - scheda in ordine di lettura: titolo grande → pericolo → foto e mappa → avanzamento e azioni →
-//   cosa è successo (pericoli prima del transcript) → contatti e infrastruttura → registro
-// - clic su un pallino della Mappa: si torna a Segnalazioni con la scheda già aperta
-// - transizioni: scheda che entra da destra, lista che si stringe, cambio pagina in dissolvenza, toast
-import { useEffect, useRef, useState } from 'react'
-import { CATEGORIE, COLORI, FILTRI_INIZIALI, INGRESSI, LIVELLI, STATI, TEMPI, ZONE, dataOra, eta, filtra, ordina, ORA } from './dati.js'
-import { AzioniStato, Contatti, Duplicati, Icona, Mappa, Pallino, Portale, PrioritaDettaglio, Registro, Rubrica, usePortale } from './comuni.jsx'
+// - lista con la colonna "Assegnata a" (avatar e nome)
+// - scheda in ordine di lettura, senza vuoti: intestazione con assegnatario → pericolo → foto e mappa →
+//   avanzamento e azioni → cosa è successo | contatti e infrastruttura → registro (chiuso di default)
+// - transizioni: elementi della scheda che entrano uno dopo l'altro; dalla Mappa la mappa vola sul pallino
+//   e si trasforma nella mappa della scheda (View Transitions API, dove c'è)
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { flushSync } from 'react-dom'
+import { CATEGORIE, COLORI, FILTRI_INIZIALI, INGRESSI, LIVELLI, STATI, ZONE, dataOra, eta, filtra, ordina, ORA } from './dati.js'
+import { Avatar, AzioniStato, Contatti, Duplicati, Icona, Mappa, Pallino, Portale, PrioritaDettaglio, Registro, Rubrica, titoloNome, usePortale } from './comuni.jsx'
 
 const titolo = (s) => CATEGORIE[s.categoria]
 const pericoliSi = (s) => Object.entries(s.pericoli).filter(([, v]) => v === 'sì').map(([k]) => k)
+const movimentoRidotto = () => matchMedia('(prefers-reduced-motion: reduce)').matches
 
 // Oltre i tempi di presa in carico del ticket #8 (qui senza calendario lavorativo).
 const LIMITE_MIN = { Critica: 15, Alta: 240, Media: 1440, Bassa: 4320 }
@@ -27,12 +30,77 @@ const MESSAGGI = {
   rubrica_elimina: 'Acquaiolo eliminato',
 }
 
+// ---------- tema
+
+function useTema() {
+  const [tema, setTema] = useState(() => localStorage.getItem('tema') ?? (matchMedia('(prefers-color-scheme: dark)').matches ? 'scuro' : 'chiaro'))
+  useLayoutEffect(() => {
+    document.documentElement.dataset.tema = tema
+    localStorage.setItem('tema', tema)
+  }, [tema])
+  return [tema, setTema]
+}
+
+// ---------- menu laterale
+
+function Menu({ pagina, setPagina, nuove, tema, setTema }) {
+  const [compresso, setCompresso] = useState(false)
+  const [utente, setUtente] = useState(false)
+  const voce = (k, testo, icona, badge) => (
+    <button key={k} className={`voce ${pagina === k ? 'on' : ''}`} onClick={() => setPagina(k)} title={compresso ? testo : undefined}>
+      <Icona nome={icona} piena={pagina === k} />
+      <span className="testo">{testo}</span>
+      {badge ? <span className="badge">{badge}</span> : null}
+    </button>
+  )
+  return (
+    <nav className={`menu ${compresso ? 'compresso' : ''}`}>
+      <div className="menu-utente-box">
+        <button className="menu-utente" onClick={() => setUtente(!utente)}>
+          <span className="avatar accento">LC</span>
+          <span className="testo">
+            Lorenzo Cavallini
+            <small>Operatore centrale</small>
+          </span>
+          <Icona nome="unfold_more" className="testo" />
+        </button>
+        {utente && (
+          <div className="popover menu-popover">
+            <div className="muto">Consorzio di bonifica Garda Chiese</div>
+            <button className="voce">
+              <Icona nome="logout" /> <span className="testo">Esci</span>
+            </button>
+          </div>
+        )}
+      </div>
+
+      <div className="sezione">Lavoro</div>
+      {voce('coda', 'Segnalazioni', 'inbox', nuove)}
+      {voce('mappa', 'Mappa', 'map')}
+      <div className="sezione">Consorzio</div>
+      {voce('rubrica', 'Rubrica acquaioli', 'contacts')}
+
+      <span className="spazio" />
+      <div className="menu-piede">
+        <button className="voce" onClick={() => setTema(tema === 'scuro' ? 'chiaro' : 'scuro')} title={compresso ? 'Tema' : undefined}>
+          <Icona nome={tema === 'scuro' ? 'light_mode' : 'dark_mode'} />
+          <span className="testo">{tema === 'scuro' ? 'Tema chiaro' : 'Tema scuro'}</span>
+        </button>
+        <button className="voce" onClick={() => setCompresso(!compresso)} title={compresso ? 'Espandi' : undefined}>
+          <Icona nome={compresso ? 'left_panel_open' : 'left_panel_close'} />
+          <span className="testo">Comprimi</span>
+        </button>
+      </div>
+    </nav>
+  )
+}
+
 // ---------- barra dei filtri
 
 function Chips({ etichetta, tutti, scelti, onChange, render = (x) => x }) {
   return (
-    <div className="b2-chips">
-      <span className="b2-etichetta">{etichetta}</span>
+    <div className="chips">
+      <span className="etichetta">{etichetta}</span>
       {tutti.map((x) => (
         <button key={x} className={scelti.includes(x) ? 'on' : ''} onClick={() => onChange(scelti.includes(x) ? scelti.filter((y) => y !== x) : [...scelti, x])}>
           {render(x)}
@@ -46,27 +114,27 @@ function BarraFiltri({ f, set, conteggio }) {
   const [altri, setAltri] = useState(false)
   const nascosti = INGRESSI.length - f.ingressi.length
   return (
-    <div className="b2-filtri">
-      <div className="b2-filtri-riga">
-        <label className="b2-cerca">
+    <div className="filtri">
+      <div className="filtri-riga">
+        <label className="cerca">
           <Icona nome="search" />
           <input placeholder="Cerca per codice, descrizione, canale o acquaiolo" value={f.testo} onChange={(e) => set({ ...f, testo: e.target.value })} />
         </label>
-        <select className="b2-select" value={f.zona} onChange={(e) => set({ ...f, zona: e.target.value })}>
+        <select value={f.zona} onChange={(e) => set({ ...f, zona: e.target.value })}>
           <option value="">Tutte le zone</option>
           {ZONE.map((z) => (
             <option key={z}>{z}</option>
           ))}
         </select>
-        <div className="b2-altri">
-          <button className={`b2-btn ${altri || nascosti ? 'attivo' : ''}`} onClick={() => setAltri(!altri)}>
+        <div className="altri">
+          <button className={`btn ${altri || nascosti ? 'attivo' : ''}`} onClick={() => setAltri(!altri)}>
             <Icona nome="tune" /> Altri filtri{nascosti ? ` · ${nascosti}` : ''}
           </button>
           {altri && (
-            <div className="b2-popover">
-              <div className="b2-etichetta">Canale di ingresso</div>
+            <div className="popover">
+              <div className="etichetta">Canale di ingresso</div>
               {INGRESSI.map((i) => (
-                <label key={i} className="b2-check">
+                <label key={i} className="check">
                   <input
                     type="checkbox"
                     checked={f.ingressi.includes(i)}
@@ -78,11 +146,11 @@ function BarraFiltri({ f, set, conteggio }) {
             </div>
           )}
         </div>
-        <span className="b2-conteggio">
+        <span className="conteggio">
           <strong>{conteggio}</strong> segnalazioni
         </span>
       </div>
-      <div className="b2-filtri-riga">
+      <div className="filtri-riga">
         <Chips etichetta="Priorità" tutti={LIVELLI} scelti={f.livelli} onChange={(livelli) => set({ ...f, livelli })} render={(l) => (<><Pallino livello={l} /> {l}</>)} />
         <Chips etichetta="Stato" tutti={STATI} scelti={f.stati} onChange={(stati) => set({ ...f, stati })} />
       </div>
@@ -92,7 +160,19 @@ function BarraFiltri({ f, set, conteggio }) {
 
 // ---------- lista
 
-const StatoPill = ({ s }) => <span className={`b2-stato b2-st-${STATI.indexOf(s.stato)}`}>{s.stato}{s.esito ? ` · ${s.esito}` : ''}</span>
+const StatoPill = ({ s }) => <span className={`stato st-${STATI.indexOf(s.stato)}`}>{s.stato}{s.esito ? ` · ${s.esito}` : ''}</span>
+
+function Assegnatario({ s }) {
+  return (
+    <span className="persona">
+      <Avatar nome={s.acquaiolo} piccolo />
+      <span className="cella">
+        <span className={s.acquaiolo ? '' : 'muto'}>{s.acquaiolo ? titoloNome(s.acquaiolo) : 'Non assegnata'}</span>
+        <span className="sotto">{s.acquaiolo ? s.zona : s.acquaiolo_zona ? `proposto ${titoloNome(s.acquaiolo_zona)}` : 'zona non servita'}</span>
+      </span>
+    </span>
+  )
+}
 
 function Lista({ lista, sel, setSel, compatta, lampo }) {
   const box = useRef(null)
@@ -100,45 +180,42 @@ function Lista({ lista, sel, setSel, compatta, lampo }) {
     box.current?.querySelector(`[data-id="${sel}"]`)?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
   }, [sel])
   return (
-    <div ref={box} className={compatta ? 'b2-lista compatta' : 'b2-lista'}>
-      <div className="b2-riga b2-intestazione">
+    <div ref={box} className={compatta ? 'lista compatta' : 'lista'}>
+      <div className="riga intestazione">
         <span>Priorità</span>
         <span>Segnalazione</span>
         <span className="extra">Stato</span>
-        <span className="extra">Zona e acquaiolo</span>
-        <span>Ricevuta</span>
+        <span className="extra">Assegnata a</span>
+        <span className="destra">Ricevuta</span>
       </div>
-      {lista.map((s) => {
-        const per = pericoliSi(s)
-        return (
-          <button key={s.id} data-id={s.id} className={`b2-riga ${s.id === sel ? 'sel' : ''} ${s.id === lampo ? 'lampo' : ''}`} onClick={() => setSel(s.id)}>
-            <span className="b2-prio" style={{ '--c': COLORI[s.priorita] }}>
-              <Pallino livello={s.priorita} /> <span className="extra-testo">{s.priorita}</span>
+      {lista.map((s) => (
+        <button key={s.id} data-id={s.id} className={`riga ${s.id === sel ? 'sel' : ''} ${s.id === lampo ? 'lampo' : ''}`} onClick={() => setSel(s.id)}>
+          <span className="prio">
+            <Pallino livello={s.priorita} /> <span className="extra">{s.priorita}</span>
+          </span>
+          <span className="cella">
+            <span className="titolo-riga">
+              <span className="taglia">{titolo(s)}</span>
+              {pericoliSi(s).length > 0 && <span className="tag-pericolo">Pericolo</span>}
             </span>
-            <span className="b2-cella">
-              <span className="b2-titolo-riga">
-                {titolo(s)}
-                {per.length > 0 && <span className="b2-tag-pericolo">Pericolo</span>}
-              </span>
-              <span className="b2-sotto">
-                {s.codice} · {compatta ? s.stato : `${s.infrastruttura.layer} ${s.infrastruttura.nome?.replace(/^\S+ /, '') ?? ''}`}
-              </span>
+            <span className="sotto">
+              {s.codice} · {compatta ? s.stato : `${s.infrastruttura.layer} ${s.infrastruttura.nome?.replace(/^\S+ /, '') ?? ''}`}
             </span>
-            <span className="extra">
-              <StatoPill s={s} />
-            </span>
-            <span className="b2-cella extra">
-              <span>{s.zona ?? 'Fuori zona'}</span>
-              <span className="b2-sotto">{s.acquaiolo ?? (s.acquaiolo_zona ? `${s.acquaiolo_zona} (di zona)` : 'non servita')}</span>
-            </span>
-            <span className="b2-cella b2-tempo">
-              <span className={inRitardo(s) ? 'ritardo' : ''}>{eta(s.ricevuta_il)}</span>
-              <span className="b2-sotto">{inRitardo(s) ? 'oltre i tempi' : dataOra(s.ricevuta_il)}</span>
-            </span>
-          </button>
-        )
-      })}
-      {lista.length === 0 && <div className="b2-vuoto">Nessuna segnalazione con questi filtri.</div>}
+          </span>
+          <span className="extra">
+            <StatoPill s={s} />
+          </span>
+          <span className="extra">
+            <Assegnatario s={s} />
+          </span>
+          {compatta && <Avatar nome={s.acquaiolo} piccolo />}
+          <span className="cella tempo">
+            <span className={inRitardo(s) ? 'ritardo' : ''}>{eta(s.ricevuta_il)}</span>
+            <span className="sotto">{inRitardo(s) ? 'oltre i tempi' : dataOra(s.ricevuta_il)}</span>
+          </span>
+        </button>
+      ))}
+      {lista.length === 0 && <div className="lista-vuota">Nessuna segnalazione con questi filtri.</div>}
     </div>
   )
 }
@@ -148,73 +225,106 @@ function Lista({ lista, sel, setSel, compatta, lampo }) {
 function Avanzamento({ s }) {
   const i = STATI.indexOf(s.stato)
   return (
-    <div className="b2-avanzamento">
-      <div className="b2-stepper" style={{ '--p': i / (STATI.length - 1) }}>
-        <div className="b2-traccia" />
+    <div className="card avanzamento">
+      <div className="stepper" style={{ '--p': i / (STATI.length - 1) }}>
+        <div className="traccia" />
         {STATI.map((x, j) => (
-          <div key={x} className={`b2-passo ${j < i ? 'fatto' : ''} ${j === i ? 'qui' : ''}`}>
-            <span className="b2-nodo" />
-            <span className="b2-nome">{x}</span>
+          <div key={x} className={`passo ${j < i ? 'fatto' : ''} ${j === i ? 'qui' : ''}`}>
+            <span className="nodo">{j < i && <Icona nome="check" />}</span>
+            <span className="nome">{x}</span>
           </div>
         ))}
       </div>
-      <AzioniStato s={s} senzaPercorso />
+      <AzioniStato s={s} />
     </div>
   )
 }
 
 const Fatto = ({ nome, valore, conf, forte }) => (
-  <div className={`b2-fatto ${forte ? 'forte' : ''}`}>
+  <div className={`dato ${forte ? 'forte' : ''}`}>
     <dt>{nome}</dt>
     <dd>
       {valore}
-      {conf != null && conf < 0.7 && <span className="b2-da-verificare" title={`confidenza dell'AI ${Math.round(conf * 100)}%`}>da verificare</span>}
+      {conf != null && conf < 0.7 && <span className="da-verificare" title={`confidenza dell'AI ${Math.round(conf * 100)}%`}>da verificare</span>}
     </dd>
   </div>
 )
 
 function Trascrizione({ s }) {
   const [aperta, setAperta] = useState(false)
-  if (!s.transcript) return <p className="b2-muto">Nessun audio: segnalazione arrivata da {s.canale_ingresso}.</p>
+  if (!s.transcript) return <p className="muto trascrizione">Nessun audio: segnalazione arrivata da {s.canale_ingresso}.</p>
   return (
-    <div className={aperta ? 'b2-trascrizione aperta' : 'b2-trascrizione'}>
-      <div className="b2-etichetta">Trascrizione del vocale</div>
+    <div className={aperta ? 'trascrizione aperta' : 'trascrizione'}>
+      <div className="etichetta">Trascrizione del vocale</div>
       <p>“{s.transcript}”</p>
-      <div className="b2-trascrizione-azioni">
-        <button className="b2-link" onClick={() => setAperta(!aperta)}>{aperta ? 'Riduci' : 'Mostra tutto'}</button>
-        <button className="b2-link"><Icona nome="play_arrow" piena /> Ascolta</button>
+      <div className="trascrizione-azioni">
+        <button className="btn-link" onClick={() => setAperta(!aperta)}>{aperta ? 'Riduci' : 'Mostra tutto'}</button>
+        <button className="btn-link"><Icona nome="play_arrow" piena /> Ascolta</button>
       </div>
     </div>
   )
 }
 
-function Scheda({ s, onChiudi, onApri }) {
+// Contenuto che si apre e si chiude con un'altezza animata (grid 0fr → 1fr).
+function Richiudibile({ titolo, riassunto, children }) {
+  const [aperto, setAperto] = useState(false)
+  return (
+    <div className={`card richiudibile ${aperto ? 'aperto' : ''}`}>
+      <button className="richiudibile-testa" onClick={() => setAperto(!aperto)} aria-expanded={aperto}>
+        <h2>{titolo}</h2>
+        <span className="muto">{riassunto}</span>
+        <Icona nome="expand_more" className="freccia" />
+      </button>
+      <div className="richiudibile-corpo">
+        <div>{children}</div>
+      </div>
+    </div>
+  )
+}
+
+function Scheda({ s, onChiudi, onApri, daMappa }) {
   const per = pericoliSi(s)
   const i = s.infrastruttura
   const rottura = i.layer === 'Condotta' && s.categoria === 'affiora'
+  const ultimo = s.registro[s.registro.length - 1]
+  let n = 0
+  // ogni blocco entra dopo il precedente
+  const entra = (extra = '') => ({ className: `entra ${extra}`, style: { '--i': n++ } })
+
   return (
-    <section className="b2-scheda" key={s.id}>
-      <header className="b2-s-testa">
-        <div>
-          <div className="b2-s-sopra">
-            <span className="b2-prio-chip" style={{ '--c': COLORI[s.priorita] }}>
+    <section className="scheda">
+      <header {...entra('scheda-testa')}>
+        <div className="scheda-titolo">
+          <div className="sopra">
+            <span className="prio-chip" style={{ '--c': COLORI[s.priorita] }}>
               <Pallino livello={s.priorita} /> {s.priorita}
             </span>
             <StatoPill s={s} />
-            <span className="b2-codice">{s.codice}</span>
+            <span className="codice">{s.codice}</span>
           </div>
           <h1>{titolo(s)}</h1>
-          <div className="b2-s-quando">
+          <div className="quando">
             <strong className={inRitardo(s) ? 'ritardo' : ''}>Ricevuta {eta(s.ricevuta_il)}</strong>
             <span>{dataOra(s.ricevuta_il)}</span>
-            <span className="b2-muto">via {s.canale_ingresso}</span>
+            <span className="muto">via {s.canale_ingresso}</span>
+          </div>
+          <PrioritaDettaglio s={s} />
+        </div>
+        <div className="assegnatario">
+          <Avatar nome={s.acquaiolo} />
+          <div>
+            <div className="etichetta">{s.acquaiolo ? 'Assegnata a' : 'Non ancora assegnata'}</div>
+            <strong>{s.acquaiolo ? titoloNome(s.acquaiolo) : s.acquaiolo_zona ? `Proposto: ${titoloNome(s.acquaiolo_zona)}` : 'Zona non servita'}</strong>
+            <div className="muto">{s.operatore_riferimento ? `In carico a ${s.operatore_riferimento}` : 'Nessun operatore di riferimento'}</div>
           </div>
         </div>
-        <button className="b2-chiudi" onClick={onChiudi} aria-label="Chiudi scheda"><Icona nome="close" /></button>
+        <button className="btn-icona chiudi" onClick={onChiudi} aria-label="Chiudi scheda">
+          <Icona nome="close" />
+        </button>
       </header>
 
       {per.length > 0 && (
-        <div className="b2-banner pericolo">
+        <div {...entra('banner pericolo')}>
           <Icona nome="warning" piena />
           <div>
             <strong>Pericolo per {per.join(', ')}</strong>
@@ -223,7 +333,7 @@ function Scheda({ s, onChiudi, onApri }) {
         </div>
       )}
       {rottura && (
-        <div className="b2-banner avviso">
+        <div {...entra('banner avviso')}>
           <Icona nome="water_damage" />
           <div>
             <strong>Possibile rottura della condotta</strong>
@@ -231,24 +341,31 @@ function Scheda({ s, onChiudi, onApri }) {
           </div>
         </div>
       )}
-      <Duplicati s={s} onApri={onApri} />
+      {(s.duplicato_di || s.duplicati.length > 0) && (
+        <div {...entra()}>
+          <Duplicati s={s} onApri={onApri} />
+        </div>
+      )}
 
-      <div className="b2-media">
+      {/* dalla Mappa la mappa della scheda è la destinazione della transizione: niente animazione propria */}
+      <div {...entra(`media ${daMappa ? 'fermo' : ''}`)}>
         <img src={s.foto} alt="Foto della segnalazione" />
-        <div className="b2-media-mappa">
-          <Mappa key={s.id} segnalazioni={[s]} selezionata={s.id} centro={[s.lat, s.lng]} zoom={16} strati={['canali', 'condotte', 'rip']} conLegenda={false} />
+        <div className="media-mappa">
+          <Mappa key={s.id} className="vt-mappa" segnalazioni={[s]} selezionata={s.id} centro={[s.lat, s.lng]} zoom={16} strati={['canali', 'condotte', 'rip']} conLegenda={false} />
         </div>
       </div>
 
-      <Avanzamento s={s} />
+      <div {...entra()}>
+        <Avanzamento s={s} />
+      </div>
 
-      <div className="b2-griglia">
-        <div className="b2-card">
+      <div {...entra('griglia')}>
+        <div className="card">
           <h2>Cosa è successo</h2>
-          <p className="b2-descrizione">{s.descrizione}</p>
-          <dl className="b2-fatti">
+          <p className="descrizione">{s.descrizione}</p>
+          <dl className="fatti">
             {['persone', 'strada', 'edifici'].map((k) => (
-              <Fatto key={k} nome={`Pericolo ${k === 'strada' ? 'per la strada' : k === 'edifici' ? 'per edifici' : 'per persone'}`} valore={s.pericoli[k]} conf={s.confidenza.pericoli} forte={s.pericoli[k] === 'sì'} />
+              <Fatto key={k} nome={{ persone: 'Pericolo per persone', strada: 'Pericolo per la strada', edifici: 'Pericolo per edifici' }[k]} valore={s.pericoli[k]} conf={s.confidenza.pericoli} forte={s.pericoli[k] === 'sì'} />
             ))}
             <Fatto nome="Quanta acqua" valore={s.quantita} conf={s.confidenza.quantita} />
             <Fatto nome="Da quanto" valore={s.durata} conf={s.confidenza.durata} />
@@ -256,32 +373,24 @@ function Scheda({ s, onChiudi, onApri }) {
           </dl>
           <Trascrizione s={s} />
         </div>
-        <div className="b2-colonna">
-          <div className="b2-card">
-            <h2>Contatti</h2>
-            <Contatti s={s} />
+        <div className="card colonna">
+          <h2>Contatti</h2>
+          <Contatti s={s} />
+          <h2 className="separa">Infrastruttura</h2>
+          <div className="infra-nome">{i.nome}</div>
+          <div className="muto">
+            {i.layer} · codice {i.codice ?? '—'} · a {i.distanza_m} m
           </div>
-          <div className="b2-card">
-            <h2>Infrastruttura</h2>
-            <div className="b2-infra-nome">{i.nome}</div>
-            <div className="b2-muto">
-              {i.layer} · codice {i.codice ?? '—'} · a {i.distanza_m} m
-            </div>
-            <div className="b2-muto">
-              Zona {s.zona ?? '—'} · {s.lat.toFixed(5)}, {s.lng.toFixed(5)}
-            </div>
-          </div>
-          <div className="b2-card">
-            <h2>Priorità</h2>
-            <PrioritaDettaglio s={s} />
-            <div className="b2-muto">Tempo di presa in carico: {TEMPI[s.priorita]}.</div>
+          <div className="muto">
+            Zona {s.zona ?? '—'} · {s.lat.toFixed(5)}, {s.lng.toFixed(5)}
           </div>
         </div>
       </div>
 
-      <div className="b2-card">
-        <h2>Registro</h2>
-        <Registro s={s} />
+      <div {...entra()}>
+        <Richiudibile titolo="Registro" riassunto={`${s.registro.length} eventi · ultimo ${dataOra(ultimo.quando)}`}>
+          <Registro s={s} />
+        </Richiudibile>
       </div>
     </section>
   )
@@ -291,10 +400,12 @@ function Scheda({ s, onChiudi, onApri }) {
 
 export default function PortaleOperatore({ sel, setSel }) {
   const { st, fai } = usePortale()
+  const [tema, setTema] = useTema()
   const [pagina, setPagina] = useState('coda')
   const [f, setF] = useState(FILTRI_INIZIALI)
   const [toast, setToast] = useState(null)
   const [lampo, setLampo] = useState(null)
+  const [daMappa, setDaMappa] = useState(false)
   const lista = ordina(filtra(st.segnalazioni, f))
   const s = st.segnalazioni.find((x) => x.id === sel)
   const nuove = st.segnalazioni.filter((x) => x.stato === 'Ricevuta').length
@@ -310,67 +421,56 @@ export default function PortaleOperatore({ sel, setSel }) {
     return () => clearTimeout(t)
   }, [toast])
 
-  const daMappa = (id) => {
-    setPagina('coda')
+  const apri = (id) => {
+    setDaMappa(false)
     setSel(id)
-    setLampo(id)
-    setTimeout(() => setLampo(null), 1400)
+  }
+
+  // Dalla mappa: la mappa ha già volato sul pallino; la View Transition la trasforma nella mappa della scheda.
+  const apriDaMappa = (id) => {
+    const cambia = () => {
+      setDaMappa(true)
+      setPagina('coda')
+      setSel(id)
+      setLampo(id)
+    }
+    setTimeout(() => setLampo(null), 1600)
+    if (!document.startViewTransition || movimentoRidotto()) return cambia()
+    document.startViewTransition(async () => {
+      flushSync(cambia)
+      await new Promise((r) => setTimeout(r, 200)) // tempo per le tessere della mini-mappa
+    })
   }
 
   return (
     <Portale.Provider value={{ st, fai: faiConToast }}>
-      <div className="b2">
-        <nav className="b2-nav">
-          <div className="b2-logo">
-            <span className="b2-logo-segno" />
-            <div>
-              Garda Chiese
-              <small>Portale operatore</small>
-            </div>
-          </div>
-          {[
-            ['coda', 'Segnalazioni', 'inbox', nuove],
-            ['mappa', 'Mappa', 'map'],
-            ['rubrica', 'Rubrica acquaioli', 'contacts'],
-          ].map(([k, t, ic, n]) => (
-            <button key={k} className={pagina === k ? 'on' : ''} onClick={() => setPagina(k)}>
-              <Icona nome={ic} piena={pagina === k} />
-              <span className="b2-nav-testo">{t}</span>
-              {n ? <span className="b2-badge">{n}</span> : null}
-            </button>
-          ))}
-          <span className="spazio" />
-          <div className="b2-utente">
-            <span className="b2-avatar">L</span>
-            <div>
-              Lorenzo
-              <small>Operatore centrale</small>
-            </div>
-          </div>
-        </nav>
+      <div className="app">
+        <Menu pagina={pagina} setPagina={setPagina} nuove={nuove} tema={tema} setTema={setTema} />
 
-        <main className="b2-main">
+        <main className="principale">
           {pagina !== 'rubrica' && <BarraFiltri f={f} set={setF} conteggio={lista.length} />}
 
           {pagina === 'coda' && (
-            <div className="b2-pagina b2-split" key="coda">
-              <Lista lista={lista} sel={sel} setSel={setSel} compatta={!!s} lampo={lampo} />
-              {s && <Scheda key={s.id} s={s} onChiudi={() => setSel(null)} onApri={setSel} />}
+            <div className="pagina split" key="coda">
+              <Lista lista={lista} sel={sel} setSel={apri} compatta={!!s} lampo={lampo} />
+              {s && <Scheda key={s.id} s={s} onChiudi={() => setSel(null)} onApri={apri} daMappa={daMappa} />}
             </div>
           )}
 
           {pagina === 'mappa' && (
-            <div className="b2-pagina b2-pagina-mappa" key="mappa">
-              <Mappa segnalazioni={lista} selezionata={sel} onSeleziona={daMappa} />
-              <div className="b2-suggerimento">Clicca un pallino per aprire la segnalazione</div>
+            <div className="pagina pagina-mappa" key="mappa">
+              <Mappa className="vt-mappa" segnalazioni={lista} selezionata={sel} onSeleziona={apriDaMappa} volaPrima={!movimentoRidotto()} />
+              <div className="suggerimento">
+                <Icona nome="touch_app" /> Clicca un pallino per aprire la segnalazione
+              </div>
             </div>
           )}
 
           {pagina === 'rubrica' && (
-            <div className="b2-pagina b2-pagina-rubrica" key="rubrica">
+            <div className="pagina pagina-rubrica" key="rubrica">
               <h1>Rubrica acquaioli</h1>
-              <p className="b2-muto">I numeri che l’operatore usa per chiamare l’acquaiolo competente.</p>
-              <div className="b2-card">
+              <p className="muto">I numeri che l’operatore usa per chiamare l’acquaiolo competente.</p>
+              <div className="card">
                 <Rubrica />
               </div>
             </div>
@@ -378,7 +478,7 @@ export default function PortaleOperatore({ sel, setSel }) {
         </main>
 
         {toast && (
-          <div className="b2-toast" key={toast.n}>
+          <div className="toast" key={toast.n}>
             <Icona nome="check_circle" piena /> {toast.testo}
           </div>
         )}
