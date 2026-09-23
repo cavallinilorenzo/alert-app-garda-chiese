@@ -26,7 +26,7 @@
   -webkit-font-smoothing: antialiased;
 }
 .va * { box-sizing: border-box; }
-.va button { font: inherit; color: inherit; }
+:where(.va) button { font: inherit; color: inherit; }
 .va a { color: var(--primario); font-weight: 600; }
 
 .msym {
@@ -251,3 +251,29 @@
 .va-spinner.chiaro { border-color: rgba(255,255,255,.35); border-top-color: #fff; }
 .va-spinner.piccolo { width: 20px; height: 20px; border-width: 3px; }
 @keyframes va-gira { to { transform: rotate(360deg); } }
+
+/* Voce: argomenti da dire, microfono grande, capiti chiusi in una riga */
+.va-temi { list-style: none; margin: 0; padding: 4px 0; }
+.va-temi li { display: flex; align-items: flex-start; gap: 12px; padding: 5px 0; font-size: 18px; }
+.va-griglia { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.va-griglia .va-riga { min-height: 56px; justify-content: center; text-align: center; padding: 8px 10px; }
+.va-griglia .va-riga-testo { flex: none; font-size: 16px; }
+.va-temi-icona { color: var(--primario); font-size: 22px; margin-top: 2px; }
+.va-facolt { color: var(--testo-2); font-weight: 400; font-size: .85em; }
+.va .va-mic { width: 112px; height: 112px; }
+.va .va-mic .msym { font-size: 52px; }
+.va-temi + .va-rec { padding-top: 12px; }
+.va-capito { margin-top: 20px; background: var(--superficie); border: 1px solid var(--bordo); border-radius: var(--raggio); overflow: hidden; }
+.va-capito summary { display: flex; align-items: center; gap: 10px; min-height: 56px; padding: 0 14px; font-weight: 600; cursor: pointer; list-style: none; }
+.va-capito summary::-webkit-details-marker { display: none; }
+.va-freccia { margin-left: auto; transition: transform .2s; }
+.va-capito[open] .va-freccia { transform: rotate(180deg); }
+.va-capito.aperto { margin-top: 0; }
+.va-capito-riga { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 56px; padding: 8px 14px; border: 0; border-top: 1px solid var(--bordo); background: transparent; text-align: left; }
+.va-capito.aperto .va-capito-riga:first-child { border-top: 0; }
+.va-capito-etichetta { flex-shrink: 0; width: 38%; font-size: 14px; color: var(--testo-2); }
+.va-capito-valore { flex: 1; min-width: 0; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* A mano */
+.va-domanda { margin-bottom: 24px; }
+.va-domanda h2 { font-size: 19px; font-weight: 700; margin: 0 0 10px; }

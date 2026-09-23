@@ -205,11 +205,10 @@ function ListaCategorie({ valore, onChange }) {
 
 function ListaOpzioni({ opzioni, valore, onChange, affiancate }) {
   return (
-    <div className={affiancate ? 'va-segmenti' : 'va-lista'} role="radiogroup">
+    <div className={affiancate ? 'va-segmenti' : 'va-griglia'} role="radiogroup">
       {opzioni.map((o) => (
         <button key={o} role="radio" aria-checked={valore === o} className={`va-riga ${valore === o ? 'scelta' : ''}`} onClick={() => onChange(o)}>
           <span className="va-riga-testo">{o.charAt(0).toUpperCase() + o.slice(1)}</span>
-          {!affiancate && <Icona n={valore === o ? 'radio_button_checked' : 'radio_button_unchecked'} className="va-radio" />}
         </button>
       ))}
     </div>
@@ -272,13 +271,13 @@ export default function VarianteA({ scenario, onStato }) {
   const [emergenzaVista, setEmergenzaVista] = useState(false)
   const [domandaForm, setDomandaForm] = useState(0)
   const [ascoltato, setAscoltato] = useState(false)
-  const [inModifica, setInModifica] = useState(null)
+  const [manuale, setManuale] = useState(null) // campi da completare a mano dopo la voce
   const [copiato, setCopiato] = useState(false)
   const fotoInput = useRef(null)
 
   const vai = (p) => {
     setPasso(p)
-    setInModifica(null)
+    setManuale(null)
     window.scrollTo(0, 0)
   }
 
@@ -494,67 +493,87 @@ export default function VarianteA({ scenario, onStato }) {
       </>
     )
     azione = <button className="va-btn" disabled={!bozza.foto} onClick={() => vai(obbligatoriOk && bozza.cellulare ? 'riepilogo' : 'cosa')}>Continua</button>
+  } else if (passo === 'cosa' && bozza.modalita === 'voce' && manuale) {
+    // A mano: solo le opzioni dei campi da completare, niente microfono.
+    titolo = 'Completa a mano'
+    sotto = 'Scegli le risposte. Quelle facoltative puoi lasciarle vuote.'
+    corpo = manuale.map((campo) => {
+      const d = DOMANDE.find((x) => x.campo === campo)
+      return (
+        <div key={campo} className="va-domanda">
+          <h2>{d.testo}{!d.obbligatorio && <span className="va-facolt"> · facoltativo</span>}</h2>
+          <Controllo domanda={d} valore={bozza.campi[campo]} onChange={(x) => cambiaCampo(campo, x)} />
+        </div>
+      )
+    })
+    azione = (
+      <>
+        {!obbligatoriOk && <p className="va-azione-nota">Per continuare servono “Cosa hai visto” e una descrizione.</p>}
+        <button className="va-btn" disabled={!obbligatoriOk} onClick={() => vai('cellulare')}>Continua</button>
+      </>
+    )
   } else if (passo === 'cosa' && bozza.modalita === 'voce') {
-    if (!ascoltato) {
-      titolo = 'Raccontaci cosa vedi'
-      sotto = 'Tocca il microfono e parla con calma. Prova a dire:'
-      corpo = (
-        <>
-          <ol className="va-traccia">
-            {DOMANDE.map((d) => <li key={d.campo}>{d.testo}</li>)}
-          </ol>
-          <Registratore scenario={scenario} onTesto={messaggioVocale} etichetta="Tocca per parlare" />
-        </>
-      )
-      azione = <button className="va-btn testo" onClick={() => aggiorna({ modalita: 'form' })}><Icona n="keyboard" /> Preferisco rispondere alle domande</button>
-    } else {
-      const mancano = DOMANDE.filter((d) => bozza.campi[d.campo] == null)
-      titolo = mancano.length ? 'Ecco cosa abbiamo capito' : 'Abbiamo capito tutto'
-      sotto = mancano.length ? 'Controlla e completa quello che manca. Tocca una risposta per cambiarla.' : 'Controlla le risposte. Tocca una risposta per cambiarla.'
-      corpo = (
-        <>
-          <details className="va-trascritto">
-            <summary><Icona n="graphic_eq" /> Il tuo messaggio</summary>
-            <p>“{bozza.transcript}”</p>
+    // A voce: un microfono grande e gli argomenti ancora da dire, nient'altro.
+    const mancano = DOMANDE.filter((d) => bozza.campi[d.campo] == null)
+    const capiti = DOMANDE.filter((d) => bozza.campi[d.campo] != null)
+    titolo = !ascoltato ? 'Raccontaci cosa vedi' : mancano.length ? 'Ci manca qualche dettaglio' : 'Abbiamo capito tutto'
+    sotto = !ascoltato
+      ? 'Tocca il microfono e parla con calma. Prova a dire:'
+      : mancano.length
+        ? obbligatoriOk ? 'Se lo sai, tocca il microfono e dicci anche:' : 'Tocca il microfono e dicci:'
+        : 'Controlla le risposte. Toccane una per cambiarla.'
+    // Le tre domande sul pericolo diventano un solo argomento, per tenere la lista corta.
+    const PERICOLI = ['pericolo_persone', 'pericolo_strada', 'pericolo_edifici']
+    const temi = (ascoltato ? mancano : DOMANDE).filter((d) => !PERICOLI.includes(d.campo)).map((d) => [d.campo, d.testo])
+    if ((ascoltato ? mancano : DOMANDE).some((d) => PERICOLI.includes(d.campo))) temi.push(['pericolo', 'C’è pericolo per persone, strade o case?'])
+    const righeCapite = capiti.map((d) => (
+      <button key={d.campo} className="va-capito-riga" onClick={() => setManuale([d.campo])}>
+        <Icona n="check_circle" piena className="verde" />
+        <span className="va-capito-etichetta">{ETICHETTE[d.campo]}</span>
+        <span className="va-capito-valore">{mostraValore(d.campo, bozza.campi[d.campo])}</span>
+        <Icona n="edit" className="grigio" />
+      </button>
+    ))
+    corpo = (
+      <>
+        {(!ascoltato || mancano.length > 0) && (
+          <>
+            <ul className="va-temi">
+              {temi.map(([k, testo]) => (
+                <li key={k}>
+                  <Icona n="chat_bubble" className="va-temi-icona" />
+                  <span>{testo}</span>
+                </li>
+              ))}
+            </ul>
+            <Registratore scenario={scenario} onTesto={messaggioVocale} etichetta={ascoltato ? 'Tocca per aggiungere' : 'Tocca per parlare'} />
+          </>
+        )}
+        {ascoltato && mancano.length > 0 && (
+          <details className="va-capito">
+            <summary>
+              <Icona n="check_circle" piena className="verde" /> Abbiamo già capito {capiti.length} cose su {DOMANDE.length}
+              <Icona n="keyboard_arrow_down" className="grigio va-freccia" />
+            </summary>
+            {righeCapite}
           </details>
-          <div className="va-risposte">
-            {DOMANDE.map((d) => {
-              const v = bozza.campi[d.campo]
-              const aperta = v == null || inModifica === d.campo
-              return (
-                <div key={d.campo} className={`va-risposta ${v == null ? 'manca' : ''}`}>
-                  <button className="va-risposta-testa" onClick={() => setInModifica(inModifica === d.campo ? null : d.campo)} disabled={v == null}>
-                    <Icona n={v == null ? 'radio_button_unchecked' : 'check_circle'} piena={v != null} className={v == null ? 'grigio' : 'verde'} />
-                    <span>
-                      <span className="va-risposta-etichetta">{ETICHETTE[d.campo]}{d.obbligatorio ? '' : ' · facoltativo'}</span>
-                      <span className="va-risposta-valore">{v == null ? d.testo : mostraValore(d.campo, v)}</span>
-                    </span>
-                    {v != null && <Icona n={aperta ? 'keyboard_arrow_up' : 'edit'} className="grigio" />}
-                  </button>
-                  {aperta && (
-                    <div className="va-risposta-corpo">
-                      <Controllo domanda={d} valore={v} onChange={(x) => cambiaCampo(d.campo, x)} />
-                    </div>
-                  )}
-                </div>
-              )
-            })}
-          </div>
-          {mancano.length > 0 && (
-            <div className="va-card">
-              <p className="va-card-titolo">Puoi anche aggiungere a voce</p>
-              <Registratore scenario={scenario} onTesto={messaggioVocale} etichetta="Tocca per aggiungere" />
-            </div>
-          )}
-        </>
-      )
-      azione = (
-        <>
-          {!obbligatoriOk && <p className="va-azione-nota">Per continuare servono “Cosa hai visto” e una descrizione.</p>}
-          <button className="va-btn" disabled={!obbligatoriOk} onClick={() => vai('cellulare')}>Continua</button>
-        </>
-      )
-    }
+        )}
+        {ascoltato && mancano.length === 0 && <div className="va-capito aperto">{righeCapite}</div>}
+      </>
+    )
+    azione = (
+      <>
+        {ascoltato && obbligatoriOk && (
+          <button className="va-btn" onClick={() => vai('cellulare')}>{mancano.length ? 'Continua senza' : 'Continua'}</button>
+        )}
+        {ascoltato && !obbligatoriOk && <p className="va-azione-nota">Dicci almeno cosa hai visto e descrivilo in una frase.</p>}
+        {(!ascoltato || mancano.length > 0) && (
+          <button className="va-btn testo" onClick={() => (ascoltato ? setManuale(mancano.map((d) => d.campo)) : aggiorna({ modalita: 'form' }))}>
+            <Icona n="keyboard" /> {ascoltato ? 'No, inserisco a mano' : 'Preferisco rispondere a mano'}
+          </button>
+        )}
+      </>
+    )
   } else if (passo === 'cosa') {
     const d = DOMANDE[domandaForm]
     const v = bozza.campi[d.campo]
@@ -665,7 +684,7 @@ export default function VarianteA({ scenario, onStato }) {
     <div className="va">
       <header className="va-barra">
         {indietro && passo !== 'fine' ? (
-          <button className="va-icona-btn" onClick={() => vai(indietro)} aria-label="Indietro"><Icona n="arrow_back" /></button>
+          <button className="va-icona-btn" onClick={() => (manuale ? setManuale(null) : vai(indietro))} aria-label="Indietro"><Icona n="arrow_back" /></button>
         ) : (
           <span className="va-logo"><Icona n="water_drop" piena /></span>
         )}
