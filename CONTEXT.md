@@ -42,6 +42,9 @@ Fenomeno osservato dal Segnalante e descritto nella Segnalazione, scelto tra cat
 La comunicazione di una criticità sul reticolo consortile, con posizione, tipo di criticità, priorità, eventuali foto e stato.
 _Avoid_: alert, ticket, report
 
+**Priorità**:
+Livello operativo della Segnalazione (Bassa, Media, Alta o Critica) che indica entro quando deve essere presa in carico. Il livello è calcolato dal backend e può essere modificato dall'Operatore con una motivazione.
+
 **Segnalante**:
 La persona che invia una segnalazione. Non ha un account.
 _Avoid_: utente, cliente, consumer
