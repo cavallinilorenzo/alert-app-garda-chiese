@@ -10,7 +10,9 @@ npm install
 npm run dev
 ```
 
-Dal telefono, sulla stessa Wi‑Fi, apri l'indirizzo `Network:` che stampa Vite (es. `http://192.168.1.20:5173/?variant=A`). La fotocamera funziona anche su http; GPS e microfono sono simulati, perché su http il browser li blocca.
+Dal telefono, sulla stessa Wi‑Fi, apri l'indirizzo `Network:` che stampa Vite (es. `https://192.168.1.20:5173/?variant=A`). Il certificato è autofirmato: accetta l'avviso una volta ("Avanzate → Procedi"). Serve HTTPS perché il telefono consenta GPS e microfono.
+
+Nella variante A, con lo scenario predefinito, **GPS e dettatura sono veri**. La dettatura usa il riconoscimento vocale del browser, e i campi li estrae un estrattore a parole chiave che fa le veci di Gemini. Il controllo del perimetro resta finto: il nome del canale vero arriverà dal backend.
 
 ## Cosa confrontare
 
