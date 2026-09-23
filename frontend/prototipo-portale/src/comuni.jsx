@@ -1,9 +1,10 @@
-// PROTOTIPO. Pezzi condivisi tra le varianti: mappa, filtri, blocchi della scheda, rubrica.
-// Il layout (dove stanno e in che ordine) è di ogni variante.
+// PROTOTIPO. Pezzi del Portale operatore: mappa, blocchi della scheda, rubrica.
+// Icone: Material Symbols (rounded), niente emoji.
 import { createContext, useContext, useEffect, useRef, useState } from 'react'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
-import { AVANZA, CATEGORIE, COLORI, ESITI, INGRESSI, LIVELLI, STATI, TEMPI, ZONE, dataOra, eta, etichettaCategoria } from './dati.js'
+import 'material-symbols/rounded.css'
+import { AVANZA, CATEGORIE, COLORI, ESITI, LIVELLI, STATI, TEMPI, dataOra, eta } from './dati.js'
 
 // { st, fai } : stato in memoria e dispatch delle azioni dell'operatore.
 export const Portale = createContext(null)
@@ -11,38 +12,30 @@ export const usePortale = () => useContext(Portale)
 
 // ---------- piccoli pezzi
 
+// Nome dell'icona da https://fonts.google.com/icons
+export const Icona = ({ nome, piena, className = '' }) => (
+  <span className={`material-symbols-rounded icona ${piena ? 'piena' : ''} ${className}`} aria-hidden="true">
+    {nome}
+  </span>
+)
+
 export const Pallino = ({ livello, grande }) => (
   <span className={`pallino-inline ${livello === 'Critica' ? 'critica' : ''} ${grande ? 'grande' : ''}`} style={{ background: COLORI[livello] }} />
 )
-
-export const Priorita = ({ s }) => (
-  <span className="badge-prio" style={{ borderColor: COLORI[s.priorita] }}>
-    <Pallino livello={s.priorita} /> {s.priorita}
-    {s.override && <em title={s.override.motivo}> (corretta)</em>}
-  </span>
-)
-
-export const Stato = ({ s }) => (
-  <span className={`badge-stato st-${STATI.indexOf(s.stato)}`}>
-    {s.stato}
-    {s.esito && ` · ${s.esito}`}
-  </span>
-)
-
-export const Ingresso = ({ s }) => <span className="ingresso">{{ 'web app': '📱', 'numero verde': '☎️', email: '✉️' }[s.canale_ingresso]} {s.canale_ingresso}</span>
 
 export const Copia = ({ testo }) => {
   const [ok, setOk] = useState(false)
   return (
     <button
-      className="btn-mini"
+      className="btn-icona"
+      title={ok ? 'Copiato' : 'Copia il numero'}
       onClick={() => {
         navigator.clipboard?.writeText(testo)
         setOk(true)
         setTimeout(() => setOk(false), 1200)
       }}
     >
-      {ok ? 'Copiato' : 'Copia'}
+      <Icona nome={ok ? 'check' : 'content_copy'} />
     </button>
   )
 }
@@ -68,7 +61,7 @@ const icona = (s, sel) =>
   })
 
 const popup = (s) =>
-  `<b>${s.codice}</b> · ${s.priorita}<br>${etichettaCategoria(s.categoria)}<br><small>${s.fattori.join(', ')} · ${s.stato} · ${eta(s.ricevuta_il)}</small>`
+  `<b>${s.codice}</b> · ${s.priorita}<br>${CATEGORIE[s.categoria]}<br><small>${s.fattori.join(', ')} · ${s.stato} · ${eta(s.ricevuta_il)}</small>`
 
 export function Mappa({ segnalazioni, selezionata, onSeleziona, strati = ['zone', 'rip', 'canali', 'condotte'], centro, zoom, conLegenda = true }) {
   const el = useRef(null)
@@ -79,7 +72,7 @@ export function Mappa({ segnalazioni, selezionata, onSeleziona, strati = ['zone'
   onSel.current = onSeleziona
 
   useEffect(() => {
-    const m = L.map(el.current, { zoomControl: true, attributionControl: false, preferCanvas: false })
+    const m = L.map(el.current, { zoomControl: true, attributionControl: false })
     mappa.current = m
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, opacity: 0.8 }).addTo(m)
     const overlay = {}
@@ -147,107 +140,7 @@ export function Mappa({ segnalazioni, selezionata, onSeleziona, strati = ['zone'
   )
 }
 
-// ---------- filtri
-
-const Toggle = ({ tutti, scelti, onChange, render = (x) => x }) => (
-  <div className="toggle">
-    {tutti.map((x) => (
-      <button key={x} className={scelti.includes(x) ? 'on' : ''} onClick={() => onChange(scelti.includes(x) ? scelti.filter((y) => y !== x) : [...scelti, x])}>
-        {render(x)}
-      </button>
-    ))}
-  </div>
-)
-
-export function Filtri({ f, set, verticale, conteggio, senzaStato }) {
-  return (
-    <div className={verticale ? 'filtri verticale' : 'filtri'}>
-      <input className="cerca" placeholder="Cerca codice, testo, canale, acquaiolo…" value={f.testo} onChange={(e) => set({ ...f, testo: e.target.value })} />
-      <label>
-        <span>Priorità</span>
-        <Toggle tutti={LIVELLI} scelti={f.livelli} onChange={(livelli) => set({ ...f, livelli })} render={(l) => (<><Pallino livello={l} /> {l}</>)} />
-      </label>
-      {!senzaStato && (
-        <label>
-          <span>Stato</span>
-          <Toggle tutti={STATI} scelti={f.stati} onChange={(stati) => set({ ...f, stati })} />
-        </label>
-      )}
-      <label>
-        <span>Ingresso</span>
-        <Toggle tutti={INGRESSI} scelti={f.ingressi} onChange={(ingressi) => set({ ...f, ingressi })} />
-      </label>
-      <label>
-        <span>Zona</span>
-        <select value={f.zona} onChange={(e) => set({ ...f, zona: e.target.value })}>
-          <option value="">Tutte</option>
-          {ZONE.map((z) => (
-            <option key={z}>{z}</option>
-          ))}
-        </select>
-      </label>
-      {conteggio != null && <span className="conteggio">{conteggio} segnalazioni</span>}
-    </div>
-  )
-}
-
 // ---------- blocchi della scheda
-
-export const Blocco = ({ titolo, children, className = '', azioni }) => (
-  <section className={`blocco ${className}`}>
-    {titolo && (
-      <h3>
-        {titolo}
-        {azioni && <span className="blocco-azioni">{azioni}</span>}
-      </h3>
-    )}
-    {children}
-  </section>
-)
-
-export const Foto = ({ s, alta = 220 }) => <img className="foto" src={s.foto} alt="Foto della segnalazione" style={{ height: alta }} />
-
-export const Transcript = ({ s }) =>
-  s.transcript ? (
-    <blockquote className="transcript">
-      🎤 “{s.transcript}”
-      <button className="btn-mini">▶ Ascolta audio</button>
-    </blockquote>
-  ) : (
-    <p className="muto">Nessun audio: arrivata da {s.canale_ingresso}.</p>
-  )
-
-const Conf = ({ v }) => <span className={`conf ${v < 0.7 ? 'bassa' : ''}`} title="confidenza dell'AI">{Math.round(v * 100)}%</span>
-
-export function Cosa({ s }) {
-  return (
-    <dl className="campi">
-      <dt>Cosa</dt>
-      <dd>
-        {etichettaCategoria(s.categoria)} <Conf v={s.confidenza.categoria} />
-      </dd>
-      <dt>Descrizione</dt>
-      <dd>{s.descrizione}</dd>
-      <dt>Da quanto</dt>
-      <dd>
-        {s.durata} <Conf v={s.confidenza.durata} />
-      </dd>
-      <dt>Quanta acqua</dt>
-      <dd>
-        {s.quantita} <Conf v={s.confidenza.quantita} />
-      </dd>
-      <dt>Pericolo</dt>
-      <dd>
-        {Object.entries(s.pericoli).map(([k, v]) => (
-          <span key={k} className={v === 'sì' ? 'pericolo si' : 'pericolo'}>
-            {k}: {v}
-          </span>
-        ))}{' '}
-        <Conf v={s.confidenza.pericoli} />
-      </dd>
-    </dl>
-  )
-}
 
 export function PrioritaDettaglio({ s }) {
   const { fai } = usePortale()
@@ -257,7 +150,7 @@ export function PrioritaDettaglio({ s }) {
   return (
     <div className="prio-dettaglio" style={{ borderLeftColor: COLORI[s.priorita] }}>
       <div>
-        <Priorita s={s} /> <span className="muto">{TEMPI[s.priorita]}</span>
+        <strong>{s.priorita}</strong> <span className="muto">· {TEMPI[s.priorita]}</span>
       </div>
       <div className="muto">
         Perché: {s.fattori.join(', ')}
@@ -265,7 +158,7 @@ export function PrioritaDettaglio({ s }) {
       </div>
       {!apri ? (
         <button className="btn-link" onClick={() => setApri(true)}>
-          Correggi priorità
+          <Icona nome="edit" /> Correggi priorità
         </button>
       ) : (
         <div className="riga-form">
@@ -295,28 +188,12 @@ export function PrioritaDettaglio({ s }) {
   )
 }
 
-export function Infrastruttura({ s }) {
-  const i = s.infrastruttura
-  const sospetta = i.layer === 'Condotta' && s.categoria === 'affiora'
-  return (
-    <div>
-      <div>
-        <strong>{i.nome}</strong> <span className="muto">cod. {i.codice}</span>
-      </div>
-      <div className="muto">
-        {i.layer} · a {i.distanza_m} m · zona {s.zona ?? '—'} · {s.lat.toFixed(5)}, {s.lng.toFixed(5)}
-      </div>
-      {sospetta && <div className="avviso">⚠️ Acqua che affiora vicino a una condotta: possibile rottura.</div>}
-    </div>
-  )
-}
-
-export function Contatti({ s, compatto }) {
+export function Contatti({ s }) {
   const { st } = usePortale()
   const nomeAcq = s.acquaiolo ?? s.acquaiolo_zona
   const acq = st.rubrica.find((r) => r.nome === nomeAcq)
   return (
-    <div className={compatto ? 'contatti compatto' : 'contatti'}>
+    <div className="contatti">
       <div className="contatto">
         <div>
           <div className="etichetta">{s.acquaiolo ? 'Acquaiolo assegnato' : 'Acquaiolo di zona (proposto)'}</div>
@@ -326,7 +203,7 @@ export function Contatti({ s, compatto }) {
         {acq && (
           <div className="bottoni">
             <a className="btn btn-chiama" href={`tel:${acq.telefono.replace(/\s/g, '')}`}>
-              📞 Chiama acquaiolo
+              <Icona nome="call" piena /> Chiama acquaiolo
             </a>
             <Copia testo={acq.telefono} />
           </div>
@@ -339,7 +216,7 @@ export function Contatti({ s, compatto }) {
         </div>
         <div className="bottoni">
           <a className="btn btn-chiama secondario" href={`tel:${s.segnalante_cellulare.replace(/\s/g, '')}`}>
-            📞 Chiama segnalante
+            <Icona nome="call" /> Chiama segnalante
           </a>
           <Copia testo={s.segnalante_cellulare} />
         </div>
@@ -349,7 +226,7 @@ export function Contatti({ s, compatto }) {
 }
 
 // Tasti del ciclo di vita (ticket #6): un passo avanti, Chiudi da ogni stato, indietro/riapri con nota.
-export function AzioniStato({ s, verticale, senzaPercorso }) {
+export function AzioniStato({ s }) {
   const { st, fai } = usePortale()
   const [modo, setModo] = useState(null)
   const [acq, setAcq] = useState(s.acquaiolo_zona ?? '')
@@ -366,33 +243,27 @@ export function AzioniStato({ s, verticale, senzaPercorso }) {
   const i = STATI.indexOf(s.stato)
   const avanti = AVANZA[s.stato]
   return (
-    <div className={verticale ? 'azioni verticale' : 'azioni'}>
-      {!senzaPercorso && <div className="percorso">
-        {STATI.map((x, j) => (
-          <span key={x} className={j < i ? 'fatto' : j === i ? 'qui' : ''}>
-            {x}
-          </span>
-        ))}
-      </div>}
+    <div className="azioni">
       {!modo && (
         <div className="bottoni">
           {s.stato === 'Chiusa' ? (
             <button className="btn" onClick={() => setModo('riapri')}>
-              Riapri
+              <Icona nome="replay" /> Riapri
             </button>
           ) : (
             <>
               {avanti && (
                 <button className="btn btn-primario" onClick={() => (s.stato === 'In verifica' ? setModo('assegna') : fai({ tipo: 'avanza', id: s.id }))}>
                   {avanti}
+                  <Icona nome="arrow_forward" />
                 </button>
               )}
               <button className="btn" onClick={() => setModo('chiudi')}>
-                Chiudi…
+                <Icona nome="task_alt" /> Chiudi…
               </button>
               {i > 0 && (
                 <button className="btn-link" onClick={() => setModo('indietro')}>
-                  ↩ Torna a {STATI[i - 1]}
+                  <Icona nome="undo" /> Torna a {STATI[i - 1]}
                 </button>
               )}
             </>
@@ -433,7 +304,7 @@ export function AzioniStato({ s, verticale, senzaPercorso }) {
                 .filter((x) => x.id !== s.id && x.stato !== 'Chiusa')
                 .map((x) => (
                   <option key={x.id} value={x.id}>
-                    {x.codice} · {CATEGORIE[x.categoria][1]}
+                    {x.codice} · {CATEGORIE[x.categoria]}
                   </option>
                 ))}
             </select>
@@ -466,10 +337,12 @@ export function AzioniStato({ s, verticale, senzaPercorso }) {
   )
 }
 
-export function Registro({ s, inverso = true }) {
+const ICONE_EVENTO = { cambio_stato: 'swap_horiz', nota: 'sticky_note_2', correzione_campo: 'edit', duplicato_collegato: 'link' }
+
+export function Registro({ s }) {
   const { fai } = usePortale()
   const [nota, setNota] = useState('')
-  const ev = inverso ? [...s.registro].reverse() : s.registro
+  const ev = [...s.registro].reverse()
   return (
     <div className="registro">
       <div className="riga-form">
@@ -490,9 +363,8 @@ export function Registro({ s, inverso = true }) {
           <li key={j} className={`ev-${e.tipo}`}>
             <span className="quando">{dataOra(e.quando)}</span>
             <span className="cosa">
-              {e.tipo === 'cambio_stato' && <>→ <strong>{e.a}</strong></>}
-              {e.tipo === 'nota' && '📝'}
-              {e.tipo === 'correzione_campo' && '✏️'} {e.nota}
+              <Icona nome={ICONE_EVENTO[e.tipo]} />
+              {e.tipo === 'cambio_stato' && <strong>{e.a}</strong>} {e.nota}
             </span>
             <span className="chi">{e.chi}</span>
           </li>
@@ -508,7 +380,7 @@ export function Duplicati({ s, onApri }) {
     const o = st.segnalazioni.find((x) => x.id === s.duplicato_di)
     return (
       <div className="avviso">
-        Duplicato di <button className="btn-link" onClick={() => onApri?.(o.id)}>{o?.codice}</button>
+        <Icona nome="link" /> Duplicato di <button className="btn-link" onClick={() => onApri?.(o.id)}>{o?.codice}</button>
       </div>
     )
   }
@@ -516,7 +388,9 @@ export function Duplicati({ s, onApri }) {
   const dup = st.segnalazioni.filter((x) => s.duplicati.includes(x.id))
   return (
     <div className="avviso">
-      <strong>Segnalata anche da {dup.length} persone</strong>
+      <strong>
+        <Icona nome="group" /> Segnalata anche da {dup.length} persone
+      </strong>
       <div className="dup-lista">
         {dup.map((d) => (
           <div key={d.id} className="dup">
@@ -532,7 +406,7 @@ export function Duplicati({ s, onApri }) {
 
 // ---------- rubrica acquaioli
 
-export function Rubrica({ compatta }) {
+export function Rubrica() {
   const { st, fai } = usePortale()
   const [modifica, setModifica] = useState(null)
   const [cerca, setCerca] = useState('')
@@ -543,32 +417,35 @@ export function Rubrica({ compatta }) {
         <td><input value={modifica.nome} onChange={(e) => setModifica({ ...modifica, nome: e.target.value })} /></td>
         <td><input value={modifica.zona} onChange={(e) => setModifica({ ...modifica, zona: e.target.value })} /></td>
         <td><input value={modifica.telefono} onChange={(e) => setModifica({ ...modifica, telefono: e.target.value })} /></td>
-        {!compatta && <td><input value={modifica.note} onChange={(e) => setModifica({ ...modifica, note: e.target.value })} /></td>}
-        <td>
-          <button className="btn-mini" onClick={() => { fai({ tipo: 'rubrica_salva', voce: modifica }); setModifica(null) }}>Salva</button>
-          <button className="btn-mini" onClick={() => setModifica(null)}>✕</button>
+        <td><input value={modifica.note} onChange={(e) => setModifica({ ...modifica, note: e.target.value })} /></td>
+        <td className="azioni-riga">
+          <button className="btn-icona" title="Salva" onClick={() => { fai({ tipo: 'rubrica_salva', voce: modifica }); setModifica(null) }}><Icona nome="check" /></button>
+          <button className="btn-icona" title="Annulla" onClick={() => setModifica(null)}><Icona nome="close" /></button>
         </td>
       </tr>
     ) : (
       <tr key={r.id}>
         <td><strong>{r.nome}</strong></td>
         <td>{r.zona}</td>
-        <td>
-          <a href={`tel:${r.telefono.replace(/\s/g, '')}`}>{r.telefono}</a> <Copia testo={r.telefono} />
+        <td className="telefono">
+          <a href={`tel:${r.telefono.replace(/\s/g, '')}`}><Icona nome="call" /> {r.telefono}</a> <Copia testo={r.telefono} />
         </td>
-        {!compatta && <td className="muto">{r.note}</td>}
-        <td>
-          <button className="btn-mini" onClick={() => setModifica(r)}>Modifica</button>
-          <button className="btn-mini" onClick={() => confirm(`Eliminare ${r.nome}?`) && fai({ tipo: 'rubrica_elimina', id: r.id })}>🗑</button>
+        <td className="muto">{r.note}</td>
+        <td className="azioni-riga">
+          <button className="btn-icona" title="Modifica" onClick={() => setModifica(r)}><Icona nome="edit" /></button>
+          <button className="btn-icona" title="Elimina" onClick={() => confirm(`Eliminare ${r.nome}?`) && fai({ tipo: 'rubrica_elimina', id: r.id })}><Icona nome="delete" /></button>
         </td>
       </tr>
     )
   return (
     <div className="rubrica">
       <div className="riga-form">
-        <input className="cerca" placeholder="Cerca acquaiolo o zona…" value={cerca} onChange={(e) => setCerca(e.target.value)} />
+        <label className="b2-cerca">
+          <Icona nome="search" />
+          <input placeholder="Cerca acquaiolo o zona" value={cerca} onChange={(e) => setCerca(e.target.value)} />
+        </label>
         <button className="btn btn-primario" onClick={() => setModifica({ id: 0, nome: '', zona: '', telefono: '+39 ', note: '' })}>
-          + Nuovo acquaiolo
+          <Icona nome="person_add" /> Nuovo acquaiolo
         </button>
       </div>
       <table className="tabella">
@@ -577,7 +454,7 @@ export function Rubrica({ compatta }) {
             <th>Nome</th>
             <th>Zona</th>
             <th>Telefono</th>
-            {!compatta && <th>Note</th>}
+            <th>Note</th>
             <th />
           </tr>
         </thead>

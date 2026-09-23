@@ -1,17 +1,15 @@
-// Variante B2: la coda di lavoro di B, rifinita dopo il primo giro di feedback su #10.
+// PROTOTIPO. Portale operatore: la coda di lavoro (variante B del primo giro su #10), rifinita.
 // - filtri in una barra sola, condivisa tra Segnalazioni e Mappa; il canale di ingresso va in "Altri filtri"
-// - righe su due livelli (titolo + dettaglio), niente emoji, tempo di ricezione in evidenza
+// - righe su due livelli (titolo + dettaglio), icone Material Symbols e niente emoji, tempo di ricezione in evidenza
 // - scheda in ordine di lettura: titolo grande → pericolo → foto e mappa → avanzamento e azioni →
 //   cosa è successo (pericoli prima del transcript) → contatti e infrastruttura → registro
 // - clic su un pallino della Mappa: si torna a Segnalazioni con la scheda già aperta
 // - transizioni: scheda che entra da destra, lista che si stringe, cambio pagina in dissolvenza, toast
 import { useEffect, useRef, useState } from 'react'
 import { CATEGORIE, COLORI, FILTRI_INIZIALI, INGRESSI, LIVELLI, STATI, TEMPI, ZONE, dataOra, eta, filtra, ordina, ORA } from './dati.js'
-import { AzioniStato, Contatti, Duplicati, Mappa, Pallino, Portale, PrioritaDettaglio, Registro, Rubrica, usePortale } from './comuni.jsx'
+import { AzioniStato, Contatti, Duplicati, Icona, Mappa, Pallino, Portale, PrioritaDettaglio, Registro, Rubrica, usePortale } from './comuni.jsx'
 
-export const nome = 'Coda rifinita'
-
-const titolo = (s) => CATEGORIE[s.categoria][1]
+const titolo = (s) => CATEGORIE[s.categoria]
 const pericoliSi = (s) => Object.entries(s.pericoli).filter(([, v]) => v === 'sì').map(([k]) => k)
 
 // Oltre i tempi di presa in carico del ticket #8 (qui senza calendario lavorativo).
@@ -51,7 +49,7 @@ function BarraFiltri({ f, set, conteggio }) {
     <div className="b2-filtri">
       <div className="b2-filtri-riga">
         <label className="b2-cerca">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>
+          <Icona nome="search" />
           <input placeholder="Cerca per codice, descrizione, canale o acquaiolo" value={f.testo} onChange={(e) => set({ ...f, testo: e.target.value })} />
         </label>
         <select className="b2-select" value={f.zona} onChange={(e) => set({ ...f, zona: e.target.value })}>
@@ -62,7 +60,7 @@ function BarraFiltri({ f, set, conteggio }) {
         </select>
         <div className="b2-altri">
           <button className={`b2-btn ${altri || nascosti ? 'attivo' : ''}`} onClick={() => setAltri(!altri)}>
-            Altri filtri{nascosti ? ` · ${nascosti}` : ''}
+            <Icona nome="tune" /> Altri filtri{nascosti ? ` · ${nascosti}` : ''}
           </button>
           {altri && (
             <div className="b2-popover">
@@ -184,7 +182,7 @@ function Trascrizione({ s }) {
       <p>“{s.transcript}”</p>
       <div className="b2-trascrizione-azioni">
         <button className="b2-link" onClick={() => setAperta(!aperta)}>{aperta ? 'Riduci' : 'Mostra tutto'}</button>
-        <button className="b2-link">▶ Ascolta</button>
+        <button className="b2-link"><Icona nome="play_arrow" piena /> Ascolta</button>
       </div>
     </div>
   )
@@ -212,19 +210,25 @@ function Scheda({ s, onChiudi, onApri }) {
             <span className="b2-muto">via {s.canale_ingresso}</span>
           </div>
         </div>
-        <button className="b2-chiudi" onClick={onChiudi} aria-label="Chiudi scheda">✕</button>
+        <button className="b2-chiudi" onClick={onChiudi} aria-label="Chiudi scheda"><Icona nome="close" /></button>
       </header>
 
       {per.length > 0 && (
         <div className="b2-banner pericolo">
-          <strong>Pericolo per {per.join(', ')}</strong>
-          <span>Il segnalante ha indicato un pericolo: verifica subito.</span>
+          <Icona nome="warning" piena />
+          <div>
+            <strong>Pericolo per {per.join(', ')}</strong>
+            <span>Il segnalante ha indicato un pericolo: verifica subito.</span>
+          </div>
         </div>
       )}
       {rottura && (
         <div className="b2-banner avviso">
-          <strong>Possibile rottura della condotta</strong>
-          <span>Acqua che affiora a {i.distanza_m} m da una condotta in pressione.</span>
+          <Icona nome="water_damage" />
+          <div>
+            <strong>Possibile rottura della condotta</strong>
+            <span>Acqua che affiora a {i.distanza_m} m da una condotta in pressione.</span>
+          </div>
         </div>
       )}
       <Duplicati s={s} onApri={onApri} />
@@ -285,7 +289,7 @@ function Scheda({ s, onChiudi, onApri }) {
 
 // ---------- pagina
 
-export default function VarianteB2({ sel, setSel }) {
+export default function PortaleOperatore({ sel, setSel }) {
   const { st, fai } = usePortale()
   const [pagina, setPagina] = useState('coda')
   const [f, setF] = useState(FILTRI_INIZIALI)
@@ -325,12 +329,13 @@ export default function VarianteB2({ sel, setSel }) {
             </div>
           </div>
           {[
-            ['coda', 'Segnalazioni', nuove],
-            ['mappa', 'Mappa'],
-            ['rubrica', 'Rubrica acquaioli'],
-          ].map(([k, t, n]) => (
+            ['coda', 'Segnalazioni', 'inbox', nuove],
+            ['mappa', 'Mappa', 'map'],
+            ['rubrica', 'Rubrica acquaioli', 'contacts'],
+          ].map(([k, t, ic, n]) => (
             <button key={k} className={pagina === k ? 'on' : ''} onClick={() => setPagina(k)}>
-              {t}
+              <Icona nome={ic} piena={pagina === k} />
+              <span className="b2-nav-testo">{t}</span>
               {n ? <span className="b2-badge">{n}</span> : null}
             </button>
           ))}
@@ -374,7 +379,7 @@ export default function VarianteB2({ sel, setSel }) {
 
         {toast && (
           <div className="b2-toast" key={toast.n}>
-            ✓ {toast.testo}
+            <Icona nome="check_circle" piena /> {toast.testo}
           </div>
         )}
       </div>

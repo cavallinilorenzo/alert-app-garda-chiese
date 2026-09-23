@@ -7,15 +7,14 @@ export const ORA = new Date('2026-09-24T11:30')
 export const IO = 'Lorenzo (tu)'
 
 export const CATEGORIE = {
-  affiora: ['💧', 'Acqua che affiora o perdita'],
-  tracima: ['🌊', 'Canale che tracima o allagamento'],
-  argine: ['⛰️', 'Argine o sponda danneggiata/franata'],
-  ostruzione: ['🪵', 'Ostruzione o accumulo'],
-  paratoia: ['⚙️', 'Paratoia o impianto danneggiato'],
-  sporca: ['🧪', 'Acqua sporca o cattivo odore'],
-  altro: ['❔', 'Altro'],
+  affiora: 'Acqua che affiora o perdita',
+  tracima: 'Canale che tracima o allagamento',
+  argine: 'Argine o sponda danneggiata/franata',
+  ostruzione: 'Ostruzione o accumulo',
+  paratoia: 'Paratoia o impianto danneggiato',
+  sporca: 'Acqua sporca o cattivo odore',
+  altro: 'Altro',
 }
-export const etichettaCategoria = (c) => CATEGORIE[c]?.join(' ') ?? c
 
 export const STATI = ['Ricevuta', 'In verifica', 'Assegnata', 'In intervento', 'Chiusa']
 export const ESITI = ['risolta', 'duplicata', 'non di competenza', 'non riscontrata', 'falsa']
