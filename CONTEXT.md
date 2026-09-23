@@ -35,6 +35,9 @@ Addetto del Consorzio responsabile sul campo di una zona acquaiolo.
 
 ### Segnalazioni
 
+**Criticità**:
+Fenomeno osservato dal Segnalante e descritto nella Segnalazione, scelto tra categorie come acqua che affiora, tracimazione, danno all'argine, ostruzione, impianto danneggiato, acqua sporca o altro. La criticità è distinta dal layer geografico (Canale, Condotta o Reticolo principale) individuato dal controllo della posizione.
+
 **Segnalazione**:
 La comunicazione di una criticità sul reticolo consortile, con posizione, tipo di criticità, priorità, eventuali foto e stato.
 _Avoid_: alert, ticket, report
