@@ -56,7 +56,7 @@ const STILI_STRATI = {
   zone: { nome: 'Zone acquaiolo', stile: { color: '#777', weight: 1, dashArray: '4 4', fillOpacity: 0.03 } },
   rip: { nome: 'Reticolo principale', stile: { color: '#0a5c5c', weight: 3, opacity: 0.7 } },
   canali: { nome: 'Canali', stile: { color: '#1f77d0', weight: 2, opacity: 0.7 } },
-  condotte: { nome: 'Condotte', stile: { color: '#8e44ad', weight: 2, dashArray: '6 4', opacity: 0.7 } },
+  condotte: { nome: 'Condotte', stile: { color: '#8e44ad', weight: 1.2, dashArray: '5 4', opacity: 0.4 } },
 }
 
 const icona = (s, sel) =>
@@ -74,6 +74,7 @@ export function Mappa({ segnalazioni, selezionata, onSeleziona, strati = ['zone'
   const el = useRef(null)
   const mappa = useRef(null)
   const gruppo = useRef(null)
+  const adattata = useRef(false)
   const onSel = useRef(onSeleziona)
   onSel.current = onSeleziona
 
@@ -90,7 +91,7 @@ export function Mappa({ segnalazioni, selezionata, onSeleziona, strati = ['zone'
         L.geoJSON(dati, {
           style: stile,
           onEachFeature: (f, l) =>
-            l.bindTooltip(k === 'zone' ? `${f.properties.NOME} · ${f.properties.ZONA}` : `${f.properties.NOME_COMPL} (${f.properties.CODICE_CAN})`, { sticky: true }),
+            l.bindTooltip(k === 'zone' ? `${f.properties.NOME} · ${f.properties.ZONA}` : f.properties.NOME_COMPL + (f.properties.CODICE_CAN ? ` (${f.properties.CODICE_CAN})` : ''), { sticky: true }),
         }).addTo(g),
       )
     })
@@ -119,6 +120,11 @@ export function Mappa({ segnalazioni, selezionata, onSeleziona, strati = ['zone'
         mk.on('click', () => onSel.current?.(s.id))
         mk.addTo(g)
       })
+    // la prima volta, senza un centro imposto, inquadra tutti i pallini
+    if (!centro && !adattata.current && segnalazioni.length > 1) {
+      mappa.current.fitBounds(L.latLngBounds(segnalazioni.map((s) => [s.lat, s.lng])), { padding: [40, 40] })
+      adattata.current = true
+    }
   }, [segnalazioni, selezionata])
 
   useEffect(() => {
@@ -343,7 +349,7 @@ export function Contatti({ s, compatto }) {
 }
 
 // Tasti del ciclo di vita (ticket #6): un passo avanti, Chiudi da ogni stato, indietro/riapri con nota.
-export function AzioniStato({ s, verticale }) {
+export function AzioniStato({ s, verticale, senzaPercorso }) {
   const { st, fai } = usePortale()
   const [modo, setModo] = useState(null)
   const [acq, setAcq] = useState(s.acquaiolo_zona ?? '')
@@ -361,13 +367,13 @@ export function AzioniStato({ s, verticale }) {
   const avanti = AVANZA[s.stato]
   return (
     <div className={verticale ? 'azioni verticale' : 'azioni'}>
-      <div className="percorso">
+      {!senzaPercorso && <div className="percorso">
         {STATI.map((x, j) => (
           <span key={x} className={j < i ? 'fatto' : j === i ? 'qui' : ''}>
             {x}
           </span>
         ))}
-      </div>
+      </div>}
       {!modo && (
         <div className="bottoni">
           {s.stato === 'Chiusa' ? (

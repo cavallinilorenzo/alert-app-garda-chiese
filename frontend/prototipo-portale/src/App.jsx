@@ -1,15 +1,18 @@
 // PROTOTIPO usa-e-getta (ticket #10 "Layout del portale operatore").
-// Tre varianti del Portale operatore, switchabili con ?variant=A|B|C e la barra in basso.
+// Varianti del Portale operatore, switchabili con ?variant=B2|A|B|C e la barra in basso.
+// B2 è la rifinitura di B dopo il primo giro di feedback (scelta B); A, B e C restano per confronto.
 // Dati finti in memoria, condivisi tra le varianti: un'azione fatta in A si vede anche in B e C.
 // Il pannello {} mostra la segnalazione aperta; ↺ riporta i dati all'inizio.
 import { useEffect, useReducer, useState } from 'react'
 import VarianteA, { nome as nomeA } from './VarianteA.jsx'
 import VarianteB, { nome as nomeB } from './VarianteB.jsx'
 import VarianteC, { nome as nomeC } from './VarianteC.jsx'
+import VarianteB2, { nome as nomeB2 } from './VarianteB2.jsx'
 import { Portale } from './comuni.jsx'
 import { riduttore, statoIniziale } from './dati.js'
 
 const VARIANTI = {
+  B2: [VarianteB2, nomeB2],
   A: [VarianteA, nomeA],
   B: [VarianteB, nomeB],
   C: [VarianteC, nomeC],
@@ -18,7 +21,7 @@ const CHIAVI = Object.keys(VARIANTI)
 
 const leggiVariante = () => {
   const v = new URLSearchParams(location.search).get('variant')
-  return CHIAVI.includes(v) ? v : 'A'
+  return CHIAVI.includes(v) ? v : 'B2'
 }
 
 export default function App() {
