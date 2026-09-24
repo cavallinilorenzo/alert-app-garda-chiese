@@ -18,6 +18,7 @@ export function proxyApi(): Record<string, ProxyOptions> {
     }
   }
 
+  // Anche /media: le foto arrivano come percorsi relativi, in produzione le serve nginx.
   const target = api === 'backend' ? 'http://localhost:8000' : api
-  return { '/api': { target, changeOrigin: true } }
+  return { '/api': { target, changeOrigin: true }, '/media': { target, changeOrigin: true } }
 }
