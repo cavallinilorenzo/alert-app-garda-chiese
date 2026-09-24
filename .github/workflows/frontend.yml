@@ -1,0 +1,34 @@
+# CI solo informativa: non è un check obbligatorio per il merge.
+name: frontend
+
+on:
+  pull_request:
+    paths:
+      - "frontend/**"
+      - "api/openapi.yaml"
+      - ".github/workflows/frontend.yml"
+  push:
+    branches: [main]
+    paths:
+      - "frontend/**"
+      - "api/openapi.yaml"
+      - ".github/workflows/frontend.yml"
+
+jobs:
+  tsc-build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: frontend/.nvmrc
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      # Il client generato è committato: se il contratto è cambiato senza `npm run gen:api`, fallisce qui.
+      - run: npm run gen:api && git diff --exit-code -- shared/src/api/schema.d.ts
+      - run: npm run typecheck
+      - run: npm run build
