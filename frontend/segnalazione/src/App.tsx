@@ -4,9 +4,13 @@ import { ProceduraProvider, useProcedura, type Passo } from './procedura'
 import { Inizio } from './passi/Inizio'
 import { Posizione } from './passi/Posizione'
 import { FuoriPerimetro } from './passi/FuoriPerimetro'
-import { InArrivo } from './passi/InArrivo'
 import { Foto } from './passi/Foto'
 import { Descrizione } from './passi/Descrizione'
+import { Contatto } from './passi/Contatto'
+import { Riepilogo } from './passi/Riepilogo'
+import { Conferma } from './passi/Conferma'
+import { PaginaStato } from './PaginaStato'
+import { tokenDallIndirizzo } from './stato'
 
 const SCHERMATE: Record<Passo, ComponentType> = {
   inizio: Inizio,
@@ -14,9 +18,9 @@ const SCHERMATE: Record<Passo, ComponentType> = {
   fuori_perimetro: FuoriPerimetro,
   foto: Foto,
   descrizione: Descrizione,
-  contatto: InArrivo,
-  riepilogo: InArrivo,
-  conferma: InArrivo,
+  contatto: Contatto,
+  riepilogo: Riepilogo,
+  conferma: Conferma,
 }
 
 function SchermataCorrente() {
@@ -26,6 +30,9 @@ function SchermataCorrente() {
 }
 
 export function App() {
+  const token = tokenDallIndirizzo()
+  if (token) return <PaginaStato token={token} />
+
   return (
     <BozzaProvider>
       <ProceduraProvider>
