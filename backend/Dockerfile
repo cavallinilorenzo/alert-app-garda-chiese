@@ -14,6 +14,8 @@ WORKDIR /app/backend
 RUN uv sync --frozen --no-dev
 
 COPY backend/ /app/backend/
+# geo legge i KML da REPO_DIR / "mappe", cioè /app/mappe.
+COPY mappe/ /app/mappe/
 COPY deploy/backend-entrypoint.sh /usr/local/bin/backend-entrypoint
 RUN chmod +x /usr/local/bin/backend-entrypoint
 
