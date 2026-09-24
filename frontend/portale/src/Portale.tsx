@@ -29,10 +29,26 @@ import {
 } from './dominio'
 import { Rubrica } from './Rubrica'
 import { Scheda, StatoPill } from './Scheda'
-import { movimentoRidotto, ondaTema, transizione } from './transizioni'
+import { allontana, movimentoRidotto, ondaTema, transizione } from './transizioni'
 
 type Pagina = 'coda' | 'mappa' | 'rubrica'
 type Tema = 'chiaro' | 'scuro'
+/** Come si è aperta la scheda: decide quando entrano i suoi blocchi. */
+type Ingresso = 'apri' | 'cambio' | 'mappa'
+
+// Ritardo dei blocchi della scheda: dopo che la lista si è stretta, oppure mentre la pagina si allontana dalla mappa.
+const RITARDO: Record<Ingresso, number> = { apri: 380, cambio: 0, mappa: 450 }
+
+// Quante volte la mappa della pagina Mappa è più grande della mini-mappa della scheda.
+// Stima dalle misure di stile.css (lista compatta 380px, padding della scheda 20px, colonne 1.1fr 1fr, altezza clamp(240px, 32vh, 360px)).
+function scalaMiniMappa() {
+  const grande = document.querySelector('.pagina-mappa')?.getBoundingClientRect()
+  const principale = document.querySelector('.principale')?.getBoundingClientRect()
+  if (!grande || !principale) return 1
+  const larga = (principale.width - 2 - 380 - 1 - 40 - 12) / 2.1 - 2
+  const alta = Math.min(Math.max(240, innerHeight * 0.32), 360) - 2
+  return Math.min(Math.max(grande.width / larga, grande.height / alta, 1), 8)
+}
 
 // ---------- tema
 
@@ -262,17 +278,22 @@ export function Portale({ operatore, onEsci }: { operatore: Operatore | null; on
   const [f, setF] = useState<Filtri>(FILTRI_INIZIALI)
   const [sel, setSel] = useState<number | null>(null)
   const [lampo, setLampo] = useState<number | null>(null)
-  const [daMappa, setDaMappa] = useState(false)
+  const [ingresso, setIngresso] = useState<Ingresso>('apri')
   const lista = ordina(filtra(segnalazioni, f, portale))
   const s = segnalazioni.find((x) => x.id === sel)
   const nuove = segnalazioni.filter((x) => x.stato_corrente === 'ricevuta').length
 
-  // Aprire dalla lista: la lista si stringe a colonna e la scheda entra da destra.
-  // Con una scheda già aperta si passa all'altra senza transizione della pagina: entrano solo i blocchi.
+  const vai = (p: Pagina) => {
+    setIngresso('apri')
+    setPagina(p)
+  }
+
+  // Aprire dalla lista: la lista si stringe a colonna, poi i blocchi della scheda entrano uno alla volta.
+  // Con una scheda già aperta si passa all'altra senza transizione della pagina; cliccare quella aperta la chiude.
   const apri = (id: number) => {
-    if (id === sel) return
+    if (id === sel) return chiudi()
     const cambia = () => {
-      setDaMappa(false)
+      setIngresso(s ? 'cambio' : 'apri')
       setSel(id)
     }
     if (s) cambia()
@@ -294,36 +315,50 @@ export function Portale({ operatore, onEsci }: { operatore: Operatore | null; on
     return () => window.removeEventListener('keydown', tasto)
   }, [])
 
-  // Dalla mappa: la mappa ha già volato sul pallino; la View Transition la trasforma nella mappa della scheda,
-  // dopo aver aspettato le tessere della mini-mappa (sono le stesse, già in cache).
+  // Dalla mappa: la mappa è già volata sul pallino a uno zoom più alto (zoomVolo). La nuova pagina parte
+  // ingrandita, con la mini-mappa della scheda esattamente sopra la mappa grande, e si allontana fino al Portale intero.
+  const scalaVolo = useRef(1)
+  const zoomVolo = () => {
+    scalaVolo.current = scalaMiniMappa()
+    return Math.min(16 + Math.log2(scalaVolo.current), 19)
+  }
   const apriDaMappa = (id: number) => {
+    const grande = document.querySelector('.pagina-mappa')?.getBoundingClientRect()
+    let piccola: DOMRect | undefined
     const cambia = () => {
-      setDaMappa(true)
+      setIngresso('mappa')
       setPagina('coda')
       setSel(id)
       setLampo(id)
     }
-    setTimeout(() => setLampo(null), 1600)
-    transizione('mappa', cambia, () => tessereCaricate(document.querySelector('.scheda .media-mappa') ?? document, 400))
+    setTimeout(() => setLampo(null), 2200)
+    const t = transizione('mappa', cambia, () => {
+      const mini = document.querySelector('.scheda .media-mappa')
+      piccola = mini?.getBoundingClientRect()
+      return tessereCaricate(mini ?? document, 400) // sono le stesse tessere della mappa grande, già in cache
+    })
+    t?.ready.then(() => {
+      if (grande && piccola) allontana(grande, piccola, scalaVolo.current)
+    })
   }
 
   return (
     <div className="app">
-      <Menu pagina={pagina} setPagina={setPagina} nuove={nuove} tema={tema} setTema={setTema} operatore={operatore} onEsci={onEsci} />
+      <Menu pagina={pagina} setPagina={vai} nuove={nuove} tema={tema} setTema={setTema} operatore={operatore} onEsci={onEsci} />
 
       <main className="principale">
         {pagina !== 'rubrica' && <BarraFiltri f={f} set={setF} conteggio={lista.length} />}
 
         {pagina === 'coda' && (
-          <div className="pagina split" key="coda">
+          <div className={`pagina split ${ingresso === 'mappa' ? 'fermo' : ''}`} key="coda">
             <Lista lista={lista} sel={sel} setSel={apri} compatta={!!s} lampo={lampo} />
-            {s && <Scheda key={s.id} s={s} onChiudi={chiudi} onApri={apri} daMappa={daMappa} />}
+            {s && <Scheda key={s.id} s={s} onChiudi={chiudi} onApri={apri} daMappa={ingresso === 'mappa'} ritardo={RITARDO[ingresso]} />}
           </div>
         )}
 
         {pagina === 'mappa' && (
           <div className="pagina pagina-mappa" key="mappa">
-            <Mappa className="vt-mappa" segnalazioni={lista} selezionata={sel} onSeleziona={apriDaMappa} volaPrima={!movimentoRidotto()} />
+            <Mappa segnalazioni={lista} selezionata={sel} onSeleziona={apriDaMappa} volaPrima={!movimentoRidotto()} zoomVolo={zoomVolo} />
             <div className="suggerimento">
               <Icona nome="touch_app" /> Clicca un pallino per aprire la segnalazione
             </div>

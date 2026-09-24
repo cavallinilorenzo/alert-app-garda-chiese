@@ -114,6 +114,8 @@ type PropsMappa = {
   conLegenda?: boolean
   /** Al clic su un pallino la mappa ci vola sopra, poi chiama onSeleziona (per la transizione verso la scheda). */
   volaPrima?: boolean
+  /** Zoom del volo, anche frazionario; di base 16, lo zoom della mappa della scheda. */
+  zoomVolo?: () => number
   className?: string
 }
 
@@ -126,6 +128,7 @@ export function Mappa({
   zoom,
   conLegenda = true,
   volaPrima,
+  zoomVolo,
   className = '',
 }: PropsMappa) {
   const el = useRef<HTMLDivElement>(null)
@@ -135,6 +138,8 @@ export function Mappa({
   const inVolo = useRef(false)
   const onSel = useRef(onSeleziona)
   onSel.current = onSeleziona
+  const zoomDelVolo = useRef(zoomVolo)
+  zoomDelVolo.current = zoomVolo
 
   useEffect(() => {
     const m = L.map(el.current!, { zoomControl: true, attributionControl: false })
@@ -196,7 +201,8 @@ export function Mappa({
             inVolo.current = false
             onSel.current?.(s.id)
           })
-          m.flyTo([s.lat, s.lng], 16, { duration: 0.9 })
+          m.options.zoomSnap = 0 // lo zoom del volo può essere frazionario
+          m.flyTo([s.lat, s.lng], zoomDelVolo.current?.() ?? 16, { duration: 1.1 })
         })
         mk.addTo(g)
       })

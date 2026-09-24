@@ -405,9 +405,16 @@ function Foto({ src }: { src?: string }) {
   )
 }
 
-type PropsScheda = { s: Segnalazione; onChiudi: () => void; onApri: (id: number) => void; daMappa: boolean }
+type PropsScheda = {
+  s: Segnalazione
+  onChiudi: () => void
+  onApri: (id: number) => void
+  daMappa: boolean
+  /** Dopo quanti ms entra il primo blocco (per aspettare la transizione della pagina). */
+  ritardo: number
+}
 
-export function Scheda({ s, onChiudi, onApri, daMappa }: PropsScheda) {
+export function Scheda({ s, onChiudi, onApri, daMappa, ritardo }: PropsScheda) {
   const { acquaiolo, zona } = usePortale()
   const per = pericoliSi(s)
   const rottura = s.layer === 'condotta' && s.categoria === 'acqua_che_affiora'
@@ -419,7 +426,7 @@ export function Scheda({ s, onChiudi, onApri, daMappa }: PropsScheda) {
   const entra = (extra = '') => ({ className: `entra ${extra}`, style: { '--i': n++ } as React.CSSProperties })
 
   return (
-    <section className="scheda">
+    <section className="scheda" style={{ '--ritardo': `${ritardo}ms` } as React.CSSProperties}>
       <header {...entra('scheda-testa')}>
         <div className="scheda-titolo">
           <div className="sopra">
@@ -484,13 +491,12 @@ export function Scheda({ s, onChiudi, onApri, daMappa }: PropsScheda) {
         </div>
       )}
 
-      {/* dalla Mappa la mappa della scheda è la destinazione della transizione: niente animazione propria */}
+      {/* dalla Mappa la pagina si allontana partendo da questa mappa: deve esserci subito */}
       <div {...entra(`media ${daMappa ? 'fermo' : ''}`)}>
         <Foto key={s.id} src={s.foto[0]} />
         <div className="media-mappa">
           <Mappa
             key={s.id}
-            className="vt-mappa"
             segnalazioni={[s]}
             selezionata={s.id}
             centro={[s.lat, s.lng]}

@@ -193,7 +193,7 @@ button:active:not(:disabled) { transform: scale(.97); }
 /* ---------- lista */
 .pagina { animation: pagina .4s var(--ease-enfasi); }
 .split { flex: 1; min-height: 0; display: flex; }
-.lista { flex: 1 1 auto; min-width: 0; overflow: auto; padding-bottom: 70px; }
+.lista { flex: 1 1 auto; min-width: 0; overflow: auto; padding-bottom: 70px; background: var(--superficie); }
 .lista.compatta { flex: 0 0 380px; border-right: 1px solid var(--linea); }
 .riga > * { min-width: 0; }
 .riga { display: grid; grid-template-columns: 104px minmax(220px, 2.4fr) 140px minmax(170px, 1.4fr) 104px; gap: 14px; align-items: center; width: 100%; text-align: left; background: none; border: 0; border-bottom: 1px solid var(--linea-2); padding: 11px 16px; position: relative; transition: background .15s; }
@@ -220,7 +220,7 @@ button:active:not(:disabled) { transform: scale(.97); }
 
 /* ---------- scheda: blocchi che entrano uno dopo l'altro */
 .scheda { flex: 1; min-width: 0; overflow: auto; padding: 18px 20px 80px; display: flex; flex-direction: column; gap: 12px; background: var(--superficie-2); }
-.entra { animation: entra .6s var(--ease-enfasi) both; animation-delay: calc(60ms + var(--i) * 45ms); }
+.entra { animation: entra .55s var(--ease-enfasi) both; animation-delay: calc(var(--ritardo, 0ms) + 40ms + var(--i) * 65ms); }
 .entra.fermo { animation: none; }
 .scheda-testa { display: flex; gap: 16px; align-items: flex-start; }
 .scheda-titolo { flex: 1; min-width: 0; }
@@ -335,41 +335,36 @@ button:active:not(:disabled) { transform: scale(.97); }
 .suggerimento .icona { font-size: 17px; }
 
 /* ---------- transizioni (transizioni.ts): <html data-vt> dice quale coreografia è in corso */
+:root[data-vt]::view-transition-old(root), :root[data-vt]::view-transition-new(root) { mix-blend-mode: normal; }
 
-/* aprire e chiudere la scheda: la lista si stringe (o si allarga) e la scheda scorre da destra.
-   Il resto della pagina non cambia, quindi niente dissolvenza sulla radice. */
+/* aprire la scheda: prima la lista si stringe a colonna e scopre la scheda, poi i blocchi entrano uno alla volta
+   (ritardo in Portale.tsx). Chiudere: la lista si riallarga sopra la scheda. Il resto della pagina resta fermo. */
 :root[data-vt='apri'] .lista, :root[data-vt='chiudi'] .lista { view-transition-name: lista; }
-:root[data-vt='apri'] .scheda, :root[data-vt='chiudi'] .scheda { view-transition-name: scheda; }
 :root[data-vt='apri']::view-transition-old(root), :root[data-vt='apri']::view-transition-new(root),
-:root[data-vt='chiudi']::view-transition-old(root), :root[data-vt='chiudi']::view-transition-new(root) { animation: none; }
-::view-transition-group(lista) { animation-duration: .5s; animation-timing-function: var(--ease-enfasi); overflow: clip; }
-/* le due liste restano alla loro misura, ancorate in alto a sinistra: il riquadro le ritaglia, niente testo stirato */
-::view-transition-old(lista), ::view-transition-new(lista) { width: auto; height: auto; inset: 0 auto auto 0; object-fit: none; object-position: left top; }
-::view-transition-old(lista) { animation: vt-sparisci .2s linear both; }
-::view-transition-new(lista) { animation: vt-appari .3s linear .12s both; }
-::view-transition-new(scheda) { animation: vt-scheda-entra .55s var(--ease-enfasi) both; }
-::view-transition-old(scheda) { animation: vt-scheda-esce .3s cubic-bezier(.4, 0, 1, 1) both; }
+:root[data-vt='chiudi']::view-transition-old(root) { animation: none; }
+:root[data-vt='chiudi']::view-transition-new(root) { animation: vt-appari 0s .42s both; }
+::view-transition-group(lista) { animation-duration: .42s; animation-timing-function: cubic-bezier(.65, 0, .25, 1); overflow: clip; }
+/* si vede sempre la lista larga, alla sua misura e ancorata a sinistra: il riquadro la ritaglia, niente testo stirato.
+   Aprendo si scambia con la lista compatta alla fine; chiudendo la lista larga c'è da subito e si scopre man mano. */
+::view-transition-old(lista), ::view-transition-new(lista) { width: auto; height: auto; }
+:root[data-vt='apri']::view-transition-old(lista) { animation: vt-sparisci .12s linear .3s both; }
+:root[data-vt='apri']::view-transition-new(lista) { animation: vt-appari .12s linear .3s both; }
+:root[data-vt='chiudi']::view-transition-old(lista) { animation: none; opacity: 0; }
+:root[data-vt='chiudi']::view-transition-new(lista) { animation: none; }
 
-/* Mappa → scheda: la mappa grande si ritaglia attorno al pallino fino a diventare la mappa della scheda.
-   Stessa posizione e stesso zoom, quindi nessuna scalatura: solo il riquadro che si chiude. */
-:root[data-vt='mappa'] .vt-mappa { view-transition-name: mappa-segnalazione; }
-::view-transition-group(mappa-segnalazione) { animation-duration: .7s; animation-timing-function: var(--ease-enfasi); overflow: clip; }
-::view-transition-old(mappa-segnalazione), ::view-transition-new(mappa-segnalazione) { width: 100%; height: 100%; object-fit: none; object-position: center; }
-::view-transition-old(mappa-segnalazione) { animation: vt-sparisci .45s ease .2s both; }
-::view-transition-new(mappa-segnalazione) { animation: vt-appari .35s ease .15s both; }
-:root[data-vt='mappa']::view-transition-old(root) { animation: vt-sparisci .25s ease both; }
-:root[data-vt='mappa']::view-transition-new(root) { animation: vt-appari .4s ease .15s both; }
+/* Mappa → scheda: la nuova pagina parte ingrandita sulla mini-mappa e si allontana (allontana() in transizioni.ts) */
+:root[data-vt='mappa']::view-transition-old(root) { animation: none; }
+:root[data-vt='mappa']::view-transition-new(root) { animation: none; transform-origin: 0 0; }
+.pagina.fermo { animation: none; }
 
 /* tema: l'onda è disegnata con clip-path in transizioni.ts; qui solo il colore della cresta tra i due temi */
-:root[data-vt='tema']::view-transition-old(root), :root[data-vt='tema']::view-transition-new(root) { animation: none; mix-blend-mode: normal; }
+:root[data-vt='tema']::view-transition-old(root), :root[data-vt='tema']::view-transition-new(root) { animation: none; }
 :root[data-vt='tema']::view-transition-image-pair(root) { isolation: auto; }
 :root[data-vt='tema']::view-transition-group(root) { background: linear-gradient(180deg, #7fd6fb, #00a3e8 45%, #0075b3); }
 :root[data-vt='tema'] *, :root[data-vt='tema'] *::before, :root[data-vt='tema'] *::after { transition: none !important; }
 
 @keyframes vt-sparisci { to { opacity: 0; } }
 @keyframes vt-appari { from { opacity: 0; } }
-@keyframes vt-scheda-entra { from { opacity: 0; transform: translateX(48px); } 40% { opacity: 1; } }
-@keyframes vt-scheda-esce { to { opacity: 0; transform: translateX(32px); } }
 
 /* ---------- rubrica */
 .pagina-rubrica { padding: 24px 28px 80px; overflow: auto; }
