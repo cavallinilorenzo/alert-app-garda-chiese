@@ -1,0 +1,29 @@
+{
+  "name": "garda-chiese-frontend",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "shared",
+    "segnalazione",
+    "portale"
+  ],
+  "scripts": {
+    "dev:segnalazione": "npm run dev -w segnalazione",
+    "dev:portale": "npm run dev -w portale",
+    "build": "npm run build -w segnalazione -w portale",
+    "typecheck": "tsc",
+    "gen:api": "openapi-typescript ../api/openapi.yaml -o shared/src/api/schema.d.ts",
+    "mock": "prism mock ../api/openapi.yaml --port 4010"
+  },
+  "devDependencies": {
+    "@stoplight/prism-cli": "^5.14.2",
+    "@types/leaflet": "^1.9.22",
+    "@types/node": "^22.20.4",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.1",
+    "openapi-typescript": "^7.13.0",
+    "typescript": "^5.9.3",
+    "vite": "^8.3.0"
+  }
+}
