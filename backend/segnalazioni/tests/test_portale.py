@@ -1,10 +1,11 @@
 import pytest
 from django.contrib.auth.models import User
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from segnalazioni.models import Evento, Segnalazione
+from segnalazioni.models import Evento, Foto, Segnalazione
 
 pytestmark = pytest.mark.django_db
 
@@ -88,6 +89,17 @@ def test_dettaglio_segnalazione(auth_client):
     response = auth_client.get(url)
     assert response.status_code == 200
     assert response.data["descrizione"] == "Test"
+
+
+def test_foto_con_percorso_relativo(auth_client):
+    # dietro Nginx un URL assoluto perde porta e schema: il frontend usa /media/...
+    s = Segnalazione.objects.create(
+        lat=45.0, lng=10.0, descrizione="Test", priorita="bassa", cellulare="123"
+    )
+    Foto.objects.create(segnalazione=s, immagine=SimpleUploadedFile("f.jpg", b"x"))
+    url = reverse("segnalazioni-detail", kwargs={"pk": s.id})
+    foto = auth_client.get(url, HTTP_HOST="localhost:8080").data["foto"]
+    assert foto[0].startswith("/media/segnalazioni/")
 
 
 def test_azioni_segnalazione(auth_client):
