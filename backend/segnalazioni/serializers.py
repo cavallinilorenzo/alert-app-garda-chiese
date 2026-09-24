@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import Segnalazione
+from .models import Segnalazione, Evento
 
 
 class SegnalazioneCreateSerializer(serializers.ModelSerializer):
@@ -34,6 +34,20 @@ class SegnalazioneCreateSerializer(serializers.ModelSerializer):
             "estratti_confidenza": {"required": False},
         }
 
+class SegnalazioneListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Segnalazione
+        fields = [
+            "id",
+            "codice_pratica",
+            "stato_corrente",
+            "priorita",
+            "lat",
+            "lng",
+            "created_at",
+            "categoria",
+            "is_duplicato",
+        ]
 
 class SegnalazioneStatoSerializer(serializers.ModelSerializer):
     timeline = serializers.SerializerMethodField()
@@ -47,3 +61,27 @@ class SegnalazioneStatoSerializer(serializers.ModelSerializer):
             {"stato": evento.stato, "data": evento.created_at}
             for evento in obj.timeline.all().order_by("-created_at")
         ]
+
+
+class EventoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Evento
+        fields = ['id', 'stato', 'nota', 'created_at']
+
+class SegnalazioneDetailSerializer(serializers.ModelSerializer):
+    registro = EventoSerializer(source='timeline', many=True, read_only=True)
+    class Meta:
+        model = Segnalazione
+        fields = [
+            'id', 'codice_pratica', 'stato_corrente', 'priorita', 'lat', 'lng', 
+            'descrizione', 'cellulare', 'categoria', 'is_duplicato', 'registro',
+            'messaggio_al_segnalante'
+        ]
+
+
+
+class SegnalazioneUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Segnalazione
+        fields = ['lat', 'lng', 'categoria', 'priorita', 'acquaiolo_competente_id']
+

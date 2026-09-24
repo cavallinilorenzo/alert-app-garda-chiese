@@ -1,12 +1,9 @@
 from django.urls import path
-
-from .views import SegnalazioneCreateView, SegnalazioneStatoView
+from .views import SegnalazioneListCreateView, SegnalazioneStatoView, SegnalazioneDetailView, SegnalazioneAzioniView
 
 urlpatterns = [
-    path("segnalazioni", SegnalazioneCreateView.as_view(), name="segnalazioni-create"),
-    path(
-        "segnalazioni/stato/<uuid:token>",
-        SegnalazioneStatoView.as_view(),
-        name="segnalazioni-stato",
-    ),
+    path("segnalazioni", SegnalazioneListCreateView.as_view(), name="segnalazioni-list"),
+    path("segnalazioni/<int:pk>", SegnalazioneDetailView.as_view(), name="segnalazioni-detail"),
+    path("segnalazioni/<int:pk>/azioni", SegnalazioneAzioniView.as_view(), name="segnalazioni-azioni"),
+    path("segnalazioni/stato/<uuid:token>", SegnalazioneStatoView.as_view(), name="segnalazioni-stato"),
 ]
