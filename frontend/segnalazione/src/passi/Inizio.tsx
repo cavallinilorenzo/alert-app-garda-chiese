@@ -2,6 +2,8 @@ import { useBozza, type Modalita } from '../bozza'
 import { Icona, NUMERO_VERDE, TEL_NUMERO_VERDE } from '../comuni'
 import { Schermata, useProcedura } from '../procedura'
 
+// Variante A del prototipo del ticket #102: il numero verde è la cosa più grande della schermata,
+// sopra i due modi di raccontare. Tutto deve stare senza scorrere su un telefono da 667px.
 export function Inizio() {
   const { aggiorna } = useBozza()
   const { vai } = useProcedura()
@@ -14,45 +16,28 @@ export function Inizio() {
   return (
     <Schermata>
       <div className="inizio">
-        <span className="tondo">
-          <Icona n="water_drop" piena />
-        </span>
-        <h1>Segnala un problema su canali e condotte</h1>
-        <p className="lead">
-          Acqua che esce dal terreno, un canale che tracima, un argine franato: avvisa il Consorzio in pochi minuti.
-        </p>
-        <div className="card">
-          <p className="card-titolo">Ti chiederemo</p>
-          <ul className="elenco">
-            <li><Icona n="location_on" /> La posizione del problema</li>
-            <li><Icona n="photo_camera" /> Una foto</li>
-            <li><Icona n="chat" /> Cosa hai visto</li>
-            <li><Icona n="call" /> Il tuo numero di cellulare</li>
-          </ul>
-        </div>
-        <p className="card-titolo">Come preferisci raccontarlo?</p>
-        <button className="scelta" onClick={() => scegli('voce')}>
-          <span className="riga-icona forte"><Icona n="mic" piena /></span>
-          <span className="scelta-testo">
-            <strong>A voce</strong>
-            <span>Parli come al telefono, al resto pensiamo noi</span>
+        <h1>Segnala un problema</h1>
+        <a className="chiama-grande" href={TEL_NUMERO_VERDE}>
+          <span className="chiama-icona">
+            <Icona n="call" piena />
           </span>
-          <Icona n="chevron_right" />
-        </button>
-        <button className="scelta" onClick={() => scegli('domande')}>
-          <span className="riga-icona"><Icona n="edit_note" /></span>
-          <span className="scelta-testo">
-            <strong>Rispondendo alle domande</strong>
-            <span>Scegli tra poche risposte già pronte</span>
-          </span>
-          <Icona n="chevron_right" />
-        </button>
-        <p className="avviso-emergenza">
-          <Icona n="emergency" />
           <span>
-            Se qualcuno è in pericolo chiama il numero verde <a href={TEL_NUMERO_VERDE}>{NUMERO_VERDE}</a>.
+            <small>Qualcuno è in pericolo?</small>
+            <strong>Chiama il numero verde</strong>
+            <b>{NUMERO_VERDE}</b>
           </span>
-        </p>
+        </a>
+        <p className="etichetta">Come vuoi raccontarlo?</p>
+        <div className="due">
+          <button className="tessera primaria" onClick={() => scegli('voce')}>
+            <Icona n="mic" piena />
+            <strong>A voce</strong>
+          </button>
+          <button className="tessera" onClick={() => scegli('domande')}>
+            <Icona n="checklist" />
+            <strong>Con domande</strong>
+          </button>
+        </div>
       </div>
     </Schermata>
   )

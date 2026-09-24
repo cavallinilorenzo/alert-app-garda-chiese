@@ -174,24 +174,42 @@ picture { display: block; }
 .btn.rosso, .btn.rosso:active { background: var(--rosso); }
 .btn + .btn { margin-top: 8px; }
 
-/* Inizio */
-.inizio { padding-top: 12px; }
-.inizio h1 { margin-top: 16px; }
-.scelta {
-  display: flex; align-items: center; gap: 14px; width: 100%;
-  min-height: 84px; padding: 14px 16px; margin: 0 0 10px;
-  background: var(--superficie); border: 1.5px solid var(--bordo); border-radius: var(--raggio);
-  text-align: left;
+/* Inizio. Senza azione fissa in basso il corpo non ha bisogno del suo spazio: niente scorrimento. */
+.corpo:has(> .inizio) { padding-bottom: 24px; }
+.inizio h1 { text-align: center; font-size: 30px; margin: 12px 0 20px; }
+.chiama-grande {
+  display: flex; align-items: center; gap: 16px; min-height: 116px; padding: 18px 20px;
+  border-radius: calc(var(--raggio) + 4px); background: var(--rosso); color: #fff; text-decoration: none;
+  box-shadow: 0 6px 22px color-mix(in srgb, var(--rosso) 30%, transparent);
+  transition: transform .1s ease-out, filter .1s;
 }
-.scelta:active { border-color: var(--primario); background: var(--primario-tenue); }
-.scelta > .msym { color: var(--testo-2); }
-.scelta-testo { flex: 1; display: flex; flex-direction: column; }
-.scelta-testo strong { font-size: 18px; }
-.scelta-testo span { font-size: 15px; color: var(--testo-2); }
+.chiama-grande:active { transform: scale(.98); filter: brightness(.92); }
+.chiama-grande > span:last-child { display: flex; flex-direction: column; line-height: 1.2; }
+.chiama-grande small { font-size: 15px; opacity: .9; }
+.chiama-grande strong { font-size: 20px; }
+.chiama-grande b { font-size: 30px; letter-spacing: .01em; margin-top: 2px; white-space: nowrap; }
+.chiama-icona { display: grid; place-items: center; width: 60px; height: 60px; border-radius: 50%; background: rgba(255, 255, 255, .18); flex-shrink: 0; }
+.chiama-icona .msym { font-size: 32px; }
+@media (max-width: 359px) {
+  .chiama-grande { gap: 12px; padding: 16px; }
+  .chiama-grande b { font-size: 25px; }
+  .chiama-icona { width: 48px; height: 48px; }
+}
+.etichetta { text-align: center; font-weight: 650; color: var(--testo-2); margin: 24px 0 12px; }
+.due { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.tessera {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
+  min-height: 128px; border: 0; border-radius: calc(var(--raggio) + 4px);
+  background: var(--superficie); color: var(--testo); box-shadow: var(--ombra), inset 0 0 0 1.5px var(--bordo);
+  transition: transform .1s ease-out, background .15s;
+}
+.tessera:active { transform: scale(.98); background: var(--primario-tenue); }
+.tessera .msym { font-size: 40px; color: var(--link); }
+.tessera strong { font-size: 19px; }
+.tessera.primaria { background: var(--primario); color: #fff; box-shadow: var(--ombra); }
+.tessera.primaria:active { background: var(--primario-scuro); }
+.tessera.primaria .msym { color: #fff; }
 .riga-icona { display: inline-grid; place-items: center; width: 40px; height: 40px; border-radius: 10px; background: var(--primario-tenue); color: var(--link); flex-shrink: 0; }
-.riga-icona.forte { background: var(--primario); color: #fff; }
-.avviso-emergenza { display: flex; align-items: center; gap: 8px; margin-top: 20px; padding: 12px 14px; border-radius: 12px; background: var(--rosso-tenue); color: var(--rosso-testo); font-size: 15px; }
-.avviso-emergenza a { color: var(--rosso-testo); white-space: nowrap; }
 
 /* Posizione. isolation tiene gli z-index di Leaflet dentro la mappa, sotto barra e azioni. */
 .mappa-box { position: relative; isolation: isolate; border-radius: var(--raggio); overflow: hidden; border: 1px solid var(--bordo); }
