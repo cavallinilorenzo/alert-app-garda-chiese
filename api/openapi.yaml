@@ -211,6 +211,19 @@ paths:
                     distanza_m: 12.5
                     zona_id: 4
                     messaggio: "Punto valido nel comune di Mantova."
+        '400':
+          description: Coordinate mancanti, non numeriche o fuori range (`lat` tra -90 e 90, `lng` tra -180 e 180)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                dati_non_validi:
+                  value:
+                    code: "dati_non_validi"
+                    message: "I dati inviati non sono validi."
+                    fields:
+                      lng: ["Questo campo è obbligatorio."]
 
   /layer/{layer}.geojson:
     get:
@@ -320,9 +333,16 @@ paths:
                 audio:
                   type: string
                   format: binary
+                  description: |
+                    Registrazione di MediaRecorder o file audio, al massimo 10 MB. Formati:
+                    `audio/webm`, `audio/ogg`, `audio/mp4`, `audio/m4a`, `audio/x-m4a`, `audio/aac`,
+                    `audio/mpeg`, `audio/mp3`, `audio/wav`, `audio/x-wav`, `audio/flac`
+                    (parametri come `;codecs=opus` ammessi).
       responses:
         '200':
-          description: Dati estratti
+          description: |
+            Dati estratti. In `campi` ci sono solo i campi detti dal Segnalante; quelli non
+            detti sono in `mancanti`, da compilare a mano nel form.
           content:
             application/json:
               schema:
@@ -333,17 +353,81 @@ paths:
                     type: string
                   campi:
                     type: object
+                    properties:
+                      categoria:
+                        type: string
+                        enum: [acqua_che_affiora, canale_che_tracima, argine_danneggiato, ostruzione, paratoia_danneggiata, acqua_sporca, altro]
+                      descrizione:
+                        type: string
+                        maxLength: 500
+                      durata:
+                        type: string
+                        enum: [adesso, meno_di_un_ora, alcune_ore, piu_di_un_giorno, non_so, non_applicabile]
+                      quantita_acqua:
+                        type: string
+                        enum: [gocce, piccolo_flusso, molta_acqua, non_so, non_applicabile]
+                      pericolo_persone:
+                        type: string
+                        enum: ["si", "no", "non_so"]
+                      pericolo_strada:
+                        type: string
+                        enum: ["si", "no", "non_so"]
+                      pericolo_edifici:
+                        type: string
+                        enum: ["si", "no", "non_so"]
                   mancanti:
                     type: array
                     items:
                       type: string
+                      enum: [categoria, descrizione, durata, quantita_acqua, pericolo_persone, pericolo_strada, pericolo_edifici]
               examples:
                 success:
                   value:
-                    transcript: "C'è un canale rotto in via Brescia a Mantova"
+                    transcript: "Il canale in via Brescia sta uscendo sulla strada, adesso."
                     campi:
-                      categoria: "canale"
-                    mancanti: ["tipo_danno"]
+                      categoria: "canale_che_tracima"
+                      descrizione: "Il canale esce sulla strada in via Brescia"
+                      durata: "adesso"
+                      pericolo_strada: "si"
+                    mancanti: ["quantita_acqua", "pericolo_persone", "pericolo_edifici"]
+        '400':
+          description: Audio mancante, vuoto o in un formato non supportato
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                audio_non_valido:
+                  value:
+                    code: "audio_non_valido"
+                    message: "Formato audio non supportato."
+                    fields:
+                      audio: ["Formato audio non supportato."]
+        '413':
+          description: Audio oltre i 10 MB
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                audio_troppo_grande:
+                  value:
+                    code: "audio_troppo_grande"
+                    message: "La registrazione è troppo lunga."
+                    fields:
+                      audio: ["La registrazione supera i 10 MB."]
+        '503':
+          description: Assistente vocale non disponibile (provider che non risponde o non configurato); il Segnalante compila il form a mano
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                estrazione_non_disponibile:
+                  value:
+                    code: "estrazione_non_disponibile"
+                    message: "L'assistente vocale non è disponibile: compila il modulo a mano."
+                    fields: {}
 
   /segnalazioni:
     post:

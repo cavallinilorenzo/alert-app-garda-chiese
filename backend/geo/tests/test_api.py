@@ -30,9 +30,8 @@ def test_check_di_un_punto_fuori_perimetro(client_contratto):
     "dati, campo",
     [({"lat": 45.39}, "lng"), ({"lat": 95, "lng": 10.48}, "lat"), ({"lat": "x", "lng": 1}, "lat")],
 )
-def test_check_con_dati_non_validi(client, dati, campo):
-    # Senza `client_contratto` finché il contratto non documenta il 400 di questo endpoint.
-    response = client.post(URL_CHECK, dati, format="json")
+def test_check_con_dati_non_validi(client_contratto, dati, campo):
+    response = client_contratto.post(URL_CHECK, dati, format="json")
 
     assert response.status_code == 400
     body = response.json()
