@@ -1,9 +1,11 @@
 """
-Servizi della app `estrazione`: dall'audio del Segnalante ai campi della Segnalazione.
+Servizi della app `estrazione`: dall'audio e dalla foto del Segnalante ai campi della
+Segnalazione.
 
-I tipi (`Estrattore`, `RisultatoEstrazione`, `CampoEstratto`) stanno in `contratti.py`.
-L'implementazione è Gemini, con audio e schema JSON in una sola chiamata (ticket
-"Speech-to-text e LLM di estrazione per la demo", #3).
+I tipi (`Estrattore`, `RisultatoEstrazione`, `RisultatoAnalisiFoto`, `CampoEstratto`)
+stanno in `contratti.py`. L'implementazione è Gemini, con il file e lo schema JSON in una
+sola chiamata (ticket "Speech-to-text e LLM di estrazione per la demo", #3; analisi della
+foto nel ticket #92).
 """
 
 import json
@@ -15,9 +17,11 @@ from google.genai import types
 
 from contratti import (
     CAMPI_ESTRAZIONE,
+    CAMPI_FOTO,
     CampoEstratto,
     Estrattore,
     EstrazioneNonDisponibile,
+    RisultatoAnalisiFoto,
     RisultatoEstrazione,
 )
 
@@ -64,6 +68,39 @@ edifici): si, no, non_so.
 """
 
 
+ISTRUZIONI_FOTO = """\
+Sei l'assistente dell'app con cui i cittadini segnalano problemi sui canali e sulle \
+condotte del Consorzio di bonifica Garda Chiese (provincia di Mantova e Brescia). \
+Guarda la foto allegata alla segnalazione e restituisci:
+
+- pertinente: true se la foto mostra qualcosa che può riguardare il reticolo del \
+Consorzio: un canale, un fosso, un argine o una sponda, una paratoia, una chiusa o un \
+impianto, acqua che affiora dal terreno, un campo o una strada allagati, rifiuti o rami \
+nell'acqua. false se non c'entra (persone in primo piano, interni, animali, oggetti, \
+schermate, documenti) o se non si capisce cosa mostra (foto nera, mossa, sfocata, dito \
+sull'obiettivo). Nel dubbio, se si vede acqua o un corso d'acqua, è pertinente.
+- motivo: se non è pertinente, una frase breve e gentile, rivolta alla persona con il tu, \
+che dice cosa si vede e cosa fotografare invece. Se è pertinente, null.
+- campi: solo se è pertinente, per ogni campo il valore che si vede nella foto e la tua \
+confidenza da 0 a 1. Se la foto non è pertinente, tutti i valori sono null.
+
+Descrivi solo quello che si vede. Se un campo non si capisce dalla foto usa null, con \
+confidenza 0. Non inventare.
+
+Campi:
+- categoria, cosa mostra: acqua_che_affiora (acqua che esce dal terreno, perdita), \
+canale_che_tracima (canale che esce dagli argini, allagamento), argine_danneggiato \
+(argine o sponda rotta o franata), ostruzione (rami, rifiuti, accumuli che bloccano \
+l'acqua), paratoia_danneggiata (paratoia, chiusa o impianto rotto), acqua_sporca (acqua \
+sporca, schiuma, chiazze), altro (un problema diverso da questi).
+- descrizione: una frase breve, tra 10 e 500 caratteri, che descrive il problema che si \
+vede, senza dire che è una foto.
+- quantita_acqua: gocce, piccolo_flusso, molta_acqua.
+- pericolo_strada: si se si vede acqua o un cedimento sulla strada; altrimenti null.
+- pericolo_edifici: si se si vede acqua che raggiunge case o altri edifici; altrimenti null.
+"""
+
+
 def _schema_campo(valori):
     if valori is None:
         valore = {"type": ["string", "null"]}
@@ -94,6 +131,26 @@ SCHEMA = {
     "required": ["transcript", "campi"],
 }
 
+SCHEMA_FOTO = {
+    "type": "object",
+    "properties": {
+        "pertinente": {"type": "boolean"},
+        "motivo": {"type": ["string", "null"]},
+        "campi": {
+            "type": "object",
+            "properties": {nome: _schema_campo(valori) for nome, valori in CAMPI_FOTO.items()},
+            "required": list(CAMPI_FOTO),
+        },
+    },
+    "required": ["pertinente", "motivo", "campi"],
+}
+
+# Il motivo di Gemini manca o è troppo lungo per un banner: si usa questo.
+MOTIVO_PREDEFINITO = (
+    "La foto non sembra mostrare il problema. Inquadra il canale, l'argine o il punto "
+    "dove vedi l'acqua."
+)
+
 
 class EstrattoreGemini:
     """Adattatore Gemini dell'`Estrattore`. `client` è un `google.genai.Client`."""
@@ -111,35 +168,51 @@ class EstrattoreGemini:
             logger.exception("Estrazione con Gemini fallita")
             raise EstrazioneNonDisponibile(str(e)) from e
 
+    def analizza_foto(self, foto: bytes, mime_type: str) -> RisultatoAnalisiFoto:
+        try:
+            return self._analizza_foto(foto, mime_type)
+        except Exception as e:
+            logger.exception("Analisi della foto con Gemini fallita")
+            raise EstrazioneNonDisponibile(str(e)) from e
+
     def _estrai(self, audio, mime_type):
+        dati = self._genera(audio, MIME_PER_GEMINI.get(mime_type, mime_type), ISTRUZIONI, SCHEMA)
+        return RisultatoEstrazione(
+            transcript=dati["transcript"],
+            campi=_campi(CAMPI_ESTRAZIONE, dati["campi"]),
+        )
+
+    def _analizza_foto(self, foto, mime_type):
+        dati = self._genera(foto, mime_type, ISTRUZIONI_FOTO, SCHEMA_FOTO)
+        if not dati["pertinente"]:
+            motivo = (dati["motivo"] or "").strip()
+            if not motivo or len(motivo) > 300:
+                motivo = MOTIVO_PREDEFINITO
+            return RisultatoAnalisiFoto(pertinente=False, motivo=motivo, campi={})
+        return RisultatoAnalisiFoto(
+            pertinente=True, motivo=None, campi=_campi(CAMPI_FOTO, dati["campi"])
+        )
+
+    def _genera(self, dati: bytes, mime_type: str, istruzioni: str, schema: dict) -> dict:
         risposta = self.client.models.generate_content(
             model=self.modello,
-            contents=[
-                types.Part.from_bytes(
-                    data=audio, mime_type=MIME_PER_GEMINI.get(mime_type, mime_type)
-                ),
-                ISTRUZIONI,
-            ],
+            contents=[types.Part.from_bytes(data=dati, mime_type=mime_type), istruzioni],
             config=types.GenerateContentConfig(
                 response_mime_type="application/json",
-                response_json_schema=SCHEMA,
+                response_json_schema=schema,
                 temperature=0,
             ),
         )
-        dati = json.loads(risposta.text)
-        return RisultatoEstrazione(
-            transcript=dati["transcript"],
-            campi={
-                nome: _campo(nome, dati["campi"][nome])
-                for nome in CAMPI_ESTRAZIONE
-                if nome in dati["campi"]
-            },
-        )
+        return json.loads(risposta.text)
 
 
-def _campo(nome, dati) -> CampoEstratto:
+def _campi(tassonomia, dati) -> dict[str, CampoEstratto]:
+    return {nome: _campo(tassonomia[nome], dati[nome]) for nome in tassonomia if nome in dati}
+
+
+def _campo(valori, dati) -> CampoEstratto:
     """Lo schema non basta: un valore fuori dalla tassonomia vale come non detto."""
-    valori, valore = CAMPI_ESTRAZIONE[nome], dati["valore"]
+    valore = dati["valore"]
     if valori is None and valore is not None:
         valore = str(valore)[:500]
     elif valori is not None and valore not in valori:

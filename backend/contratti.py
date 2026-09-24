@@ -143,7 +143,31 @@ class RisultatoEstrazione:
         ]
 
 
+# Campi che si possono vedere in una foto: la durata no, e un pericolo si vede solo
+# quando c'è (una foto non basta a dire che non c'è).
+CAMPI_FOTO: Mapping[str, tuple[str, ...] | None] = {
+    "categoria": CAMPI_ESTRAZIONE["categoria"],
+    "descrizione": None,
+    "quantita_acqua": ("gocce", "piccolo_flusso", "molta_acqua"),
+    "pericolo_strada": ("si",),
+    "pericolo_edifici": ("si",),
+}
+
+
+@dataclass(frozen=True, slots=True)
+class RisultatoAnalisiFoto:
+    """Se la foto non è pertinente `motivo` spiega al Segnalante perché e `campi` è vuoto."""
+
+    pertinente: bool
+    motivo: str | None
+    campi: Mapping[str, CampoEstratto]
+
+
 class Estrattore(Protocol):
     def estrai(self, audio: bytes, mime_type: str) -> RisultatoEstrazione:
         """Solleva EstrazioneNonDisponibile se il provider non risponde."""
+        ...
+
+    def analizza_foto(self, foto: bytes, mime_type: str) -> RisultatoAnalisiFoto:
+        """Pertinenza della foto e campi che si vedono. Solleva EstrazioneNonDisponibile."""
         ...
