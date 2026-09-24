@@ -29,11 +29,30 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    ports:
-      - "127.0.0.1:5050:8000"
     volumes:
-      - ./var/static:/app/backend/staticfiles
-      - ./var/media:/app/backend/media
+      - static_data:/app/backend/staticfiles
+      - media_data:/app/backend/media
+
+  caddy:
+    build:
+      context: .
+      dockerfile: deploy/Dockerfile.caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - backend
+    volumes:
+      # Condividiamo i file statici e media creati dal backend con caddy per poterli servire
+      - static_data:/srv/backend/static:ro
+      - media_data:/srv/backend/media:ro
+      - caddy_data:/data
+      - caddy_config:/config
 
 volumes:
   postgres_data:
+  static_data:
+  media_data:
+  caddy_data:
+  caddy_config:

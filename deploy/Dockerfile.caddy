@@ -1,0 +1,28 @@
+# Stage 1: Build Frontend workspaces
+FROM node:22-alpine AS builder
+
+WORKDIR /app
+# Copiamo il file openapi per la generazione dei tipi
+COPY api/openapi.yaml /api/openapi.yaml
+
+# Prima le dipendenze per sfruttare la cache di Docker
+COPY frontend/package*.json ./
+COPY frontend/shared/package*.json ./shared/
+COPY frontend/segnalazione/package*.json ./segnalazione/
+COPY frontend/portale/package*.json ./portale/
+RUN npm ci
+
+# Poi il resto del codice
+COPY frontend/ ./
+
+# Compila entrambe le app (segnalazione e portale)
+RUN npm run build
+
+# Stage 2: Caddy server
+FROM caddy:2.8-alpine
+
+COPY deploy/Caddyfile /etc/caddy/Caddyfile
+
+# Copia i file statici compilati dalle due app
+COPY --from=builder /app/segnalazione/dist /srv/segnalazione
+COPY --from=builder /app/portale/dist /srv/portale
