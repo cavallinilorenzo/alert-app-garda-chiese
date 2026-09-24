@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useBozza } from '../bozza'
 import { Icona, Spinner } from '../comuni'
+import { caricaEsempio, FOTO_ESEMPIO, urlEsempio, type FotoEsempio } from '../esempi'
 import { analizzaFoto, conCampiFoto } from '../foto'
 import { Schermata, useProcedura } from '../procedura'
 import { CATEGORIE } from '../tassonomia'
@@ -40,6 +41,8 @@ export function Foto() {
   // Perché l'ultima foto è stata scartata.
   const [scartata, setScartata] = useState<string | null>(null)
   const [anteprima, setAnteprima] = useState<string | null>(null)
+  // Le foto d'esempio al posto dell'anteprima, per cambiare la foto già scelta.
+  const [galleria, setGalleria] = useState(false)
 
   useEffect(() => {
     if (!bozza.foto) return setAnteprima(null)
@@ -48,38 +51,56 @@ export function Foto() {
     return () => URL.revokeObjectURL(url)
   }, [bozza.foto])
 
-  async function scelta(file: File | undefined) {
+  // Una foto d'esempio mostra sempre un problema: l'analisi serve solo a prenderne i campi.
+  async function scelta(file: File | undefined, esempio = false) {
     if (!file) return
     setScartata(null)
+    setGalleria(false)
     setAttesa('Preparo la foto…')
     const foto = await riduci(file)
     setAttesa('Controllo la foto…')
     const analisi = await analizzaFoto(foto)
     setAttesa(null)
     // Una foto che non c'entra non si tiene: si chiede subito di rifarla.
-    if (analisi && !analisi.pertinente) {
+    if (analisi && !analisi.pertinente && !esempio) {
       aggiorna({ foto: null, campi: conCampiFoto(bozza.campi, bozza.campiFoto, {}), campiFoto: {} })
       return setScartata(analisi.motivo ?? 'La foto non sembra mostrare il problema.')
     }
-    const campiFoto = analisi?.campi ?? {}
+    const campiFoto = (analisi?.pertinente && analisi.campi) || {}
     aggiorna({ foto, campi: conCampiFoto(bozza.campi, bozza.campiFoto, campiFoto), campiFoto })
   }
 
+  async function usaEsempio(esempio: FotoEsempio) {
+    setAttesa('Preparo la foto…')
+    try {
+      await scelta(await caricaEsempio(esempio), true)
+    } catch {
+      setAttesa(null)
+      setScartata('Foto d’esempio non disponibile. Verifica la connessione e riprova.')
+    }
+  }
+
   const apriFotocamera = () => input.current?.click()
+  const conAnteprima = !!anteprima && !attesa && !galleria
   const vista = CATEGORIE.find((c) => c.valore === bozza.campiFoto.categoria)
 
   return (
     <Schermata
-      titolo={anteprima && !attesa ? 'Va bene questa?' : 'Scatta una foto'}
+      titolo={conAnteprima ? 'Va bene questa?' : 'Scatta una foto'}
       azione={
         <>
           <button className="btn" disabled={!bozza.foto || !!attesa} onClick={() => vai('descrizione')}>
             Continua
           </button>
-          {anteprima && !attesa && (
-            <button className="btn testo" onClick={apriFotocamera}>
-              <Icona n="replay" /> Rifai la foto
-            </button>
+          {conAnteprima && (
+            <>
+              <button className="btn testo" onClick={apriFotocamera}>
+                <Icona n="replay" /> Rifai la foto
+              </button>
+              <button className="btn testo" onClick={() => setGalleria(true)}>
+                <Icona n="photo_library" /> Usa una foto d’esempio
+              </button>
+            </>
           )}
         </>
       }
@@ -95,7 +116,7 @@ export function Foto() {
           <Spinner />
           <p>{attesa}</p>
         </div>
-      ) : anteprima ? (
+      ) : conAnteprima ? (
         <div className="foto">
           <img src={anteprima} alt="Foto del problema" />
           {vista && (
@@ -105,10 +126,25 @@ export function Foto() {
           )}
         </div>
       ) : (
-        <button className="scatta" onClick={apriFotocamera}>
-          <Icona n="photo_camera" />
-          <strong>{scartata ? 'Scatta un’altra foto' : 'Apri la fotocamera'}</strong>
-        </button>
+        <>
+          <button className="scatta compatta" onClick={apriFotocamera}>
+            <Icona n="photo_camera" />
+            <strong>{scartata ? 'Scatta un’altra foto' : 'Apri la fotocamera'}</strong>
+          </button>
+          <h2 className="sezione">Oppure scegli una foto d’esempio</h2>
+          <div className="esempi">
+            {FOTO_ESEMPIO.map((esempio) => (
+              <button key={esempio.file} className="esempio" onClick={() => usaEsempio(esempio)}>
+                <img src={urlEsempio(esempio)} alt="" loading="lazy" />
+                <span>{esempio.etichetta}</span>
+              </button>
+            ))}
+          </div>
+          <p className="nota">
+            <Icona n="info" />
+            <span>Foto da Wikimedia Commons, licenze CC BY-SA.</span>
+          </p>
+        </>
       )}
       <input
         ref={input}
