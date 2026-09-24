@@ -1,0 +1,103 @@
+import random
+import string
+import uuid
+
+from django.db import models
+from django.utils.translation import gettext_lazy as _
+
+
+def generate_codice_pratica():
+    suffix = "".join(random.choices(string.ascii_uppercase + string.digits, k=4))
+    return f"GCH-{suffix}"
+
+
+class Segnalazione(models.Model):
+    class Stato(models.TextChoices):
+        RICEVUTA = "ricevuta", _("Ricevuta")
+        IN_VERIFICA = "in_verifica", _("In verifica")
+        ASSEGNATA = "assegnata", _("Assegnata")
+        IN_INTERVENTO = "in_intervento", _("In intervento")
+        CHIUSA = "chiusa", _("Chiusa")
+
+    class Priorita(models.TextChoices):
+        BASSA = "bassa", _("Bassa")
+        MEDIA = "media", _("Media")
+        ALTA = "alta", _("Alta")
+        CRITICA = "critica", _("Critica")
+
+    class Layer(models.TextChoices):
+        CANALE = "canale", _("Canale")
+        CONDOTTA = "condotta", _("Condotta")
+        RIP = "reticolo_principale", _("Reticolo Idrico Principale")
+
+    codice_pratica = models.CharField(max_length=15, default=generate_codice_pratica, unique=True)
+    token_stato = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+
+    stato_corrente = models.CharField(max_length=20, choices=Stato.choices, default=Stato.RICEVUTA)
+    priorita = models.CharField(max_length=10, choices=Priorita.choices, default=Priorita.BASSA)
+    priorita_calcolata = models.CharField(
+        max_length=10, choices=Priorita.choices, default=Priorita.BASSA
+    )
+    override_motivazione = models.TextField(blank=True)
+
+    lat = models.FloatField()
+    lng = models.FloatField()
+    descrizione = models.TextField()
+    cellulare = models.CharField(max_length=20)
+
+    is_duplicato = models.BooleanField(default=False)
+    messaggio_al_segnalante = models.TextField(blank=True)
+
+    # Dati estratti
+    transcript_ai = models.TextField(blank=True)
+    categoria = models.CharField(max_length=100, blank=True)
+    durata = models.CharField(max_length=100, blank=True)
+    quantita_acqua = models.CharField(max_length=100, blank=True)
+    pericolo_persone = models.CharField(max_length=20, blank=True, default="")
+    pericolo_strada = models.CharField(max_length=20, blank=True, default="")
+    pericolo_edifici = models.CharField(max_length=20, blank=True, default="")
+
+    # Confidenze (potremmo usare JSONField o campi separati)
+    estratti_confidenza = models.JSONField(default=dict, blank=True)
+
+    # Dati geografici calcolati al momento dell'invio
+    layer = models.CharField(max_length=20, choices=Layer.choices, blank=True, default="")
+    id_placemark = models.CharField(max_length=50, blank=True, default="")
+    nome_tracciato = models.CharField(max_length=255, blank=True, default="")
+    nome_completo_tracciato = models.CharField(max_length=255, blank=True, default="")
+    tipo_tracciato = models.CharField(max_length=100, blank=True, default="")
+    distanza_m = models.FloatField(null=True, blank=True)
+    zona_id = models.IntegerField(null=True, blank=True)
+    acquaiolo_competente_id = models.IntegerField(null=True, blank=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.codice_pratica} - {self.stato_corrente}"
+
+    def save(self, *args, **kwargs):
+        if not self.pk and not self.priorita_calcolata:
+            self.priorita_calcolata = self.priorita
+        super().save(*args, **kwargs)
+
+
+class Foto(models.Model):
+    segnalazione = models.ForeignKey(Segnalazione, on_delete=models.CASCADE, related_name="foto")
+    immagine = models.ImageField(upload_to="segnalazioni/")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Foto di {self.segnalazione.codice_pratica}"
+
+
+class Evento(models.Model):
+    segnalazione = models.ForeignKey(
+        Segnalazione, on_delete=models.CASCADE, related_name="timeline"
+    )
+    stato = models.CharField(max_length=20, choices=Segnalazione.Stato.choices)
+    nota = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Evento {self.stato} per {self.segnalazione.codice_pratica}"
