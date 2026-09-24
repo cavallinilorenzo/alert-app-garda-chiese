@@ -148,11 +148,44 @@ components:
 
     SegnalazioneStatoPubblico:
       type: object
+      description: |
+        Quello che vede chi ha il link della Pagina di stato, senza login. Oltre allo Stato
+        c'è un riassunto della Segnalazione (codice, foto, categoria, luogo, data d'invio)
+        per riconoscerla quando si riapre il link. Il cellulare e la descrizione non ci sono.
       required:
+        - codice_pratica
+        - created_at
+        - foto
+        - categoria
+        - comune
+        - nome_completo_tracciato
         - stato_corrente
         - is_duplicato
         - timeline
       properties:
+        codice_pratica:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+          description: Data d'invio.
+        foto:
+          type: array
+          description: |
+            Le foto inviate. Chiunque abbia il token le può vedere: gli URL si aprono senza JWT.
+          items:
+            type: string
+            description: URL dell'immagine.
+        categoria:
+          type: string
+          enum: [acqua_che_affiora, canale_che_tracima, argine_danneggiato, ostruzione, paratoia_danneggiata, acqua_sporca, altro, ""]
+          description: La categoria attuale, anche se l'Operatore l'ha corretta. Vuota se non indicata.
+        comune:
+          type: string
+          description: Il comune del punto segnalato. Vuoto se non si riesce a ricavarlo.
+        nome_completo_tracciato:
+          type: string
+          description: Il tracciato più vicino, come nella scheda del Portale operatore.
         stato_corrente:
           type: string
           enum: [ricevuta, in_verifica, assegnata, in_intervento, chiusa]
@@ -1222,11 +1255,20 @@ paths:
               examples:
                 success:
                   value:
-                    stato_corrente: "ricevuta"
+                    codice_pratica: "GCH-9K2M"
+                    created_at: "2026-09-24T09:12:00Z"
+                    foto: ["/media/segnalazioni/gch-9k2m.jpg"]
+                    categoria: "acqua_che_affiora"
+                    comune: "Castiglione delle Stiviere"
+                    nome_completo_tracciato: "Dispensatore III ramo C"
+                    stato_corrente: "in_verifica"
                     is_duplicato: false
+                    messaggio_al_segnalante: "Abbiamo mandato l'acquaiolo a vedere. Grazie!"
                     timeline:
                       - stato: "ricevuta"
-                        data: "2026-09-24T10:00:00Z"
+                        data: "2026-09-24T09:12:00Z"
+                      - stato: "in_verifica"
+                        data: "2026-09-24T09:40:00Z"
 
   /auth/token:
     post:
