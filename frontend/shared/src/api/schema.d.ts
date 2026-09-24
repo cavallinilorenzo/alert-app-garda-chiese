@@ -228,6 +228,20 @@ export interface paths {
                         descrizione: string;
                         cellulare: string;
                         transcript_ai?: string;
+                        /** @enum {string} */
+                        categoria?: "acqua_che_affiora" | "canale_che_tracima" | "argine_danneggiato" | "ostruzione" | "paratoia_danneggiata" | "acqua_sporca" | "altro";
+                        /** @enum {string} */
+                        durata?: "adesso" | "meno_di_un_ora" | "alcune_ore" | "piu_di_un_giorno" | "non_so" | "non_applicabile";
+                        /** @enum {string} */
+                        quantita_acqua?: "gocce" | "piccolo_flusso" | "molta_acqua" | "non_so" | "non_applicabile";
+                        /** @enum {string} */
+                        pericolo_persone?: "si" | "no" | "non_so";
+                        /** @enum {string} */
+                        pericolo_strada?: "si" | "no" | "non_so";
+                        /** @enum {string} */
+                        pericolo_edifici?: "si" | "no" | "non_so";
+                        /** @description Confidenza dell'estrazione vocale per campo (JSON string) */
+                        estratti_confidenza?: string;
                     };
                 };
             };

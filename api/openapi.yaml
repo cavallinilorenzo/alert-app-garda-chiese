@@ -790,6 +790,27 @@ paths:
                   type: string
                 transcript_ai:
                   type: string
+                categoria:
+                  type: string
+                  enum: [acqua_che_affiora, canale_che_tracima, argine_danneggiato, ostruzione, paratoia_danneggiata, acqua_sporca, altro]
+                durata:
+                  type: string
+                  enum: [adesso, meno_di_un_ora, alcune_ore, piu_di_un_giorno, non_so, non_applicabile]
+                quantita_acqua:
+                  type: string
+                  enum: [gocce, piccolo_flusso, molta_acqua, non_so, non_applicabile]
+                pericolo_persone:
+                  type: string
+                  enum: ["si", "no", "non_so"]
+                pericolo_strada:
+                  type: string
+                  enum: ["si", "no", "non_so"]
+                pericolo_edifici:
+                  type: string
+                  enum: ["si", "no", "non_so"]
+                estratti_confidenza:
+                  type: string
+                  description: Confidenza dell'estrazione vocale per campo (JSON string)
       responses:
         '201':
           description: Segnalazione creata
