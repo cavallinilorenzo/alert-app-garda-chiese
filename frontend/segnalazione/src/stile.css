@@ -157,3 +157,76 @@ a { color: var(--primario); font-weight: 600; }
 .spinner.chiaro { border-color: rgba(255,255,255,.35); border-top-color: #fff; }
 .spinner.piccolo { width: 20px; height: 20px; border-width: 3px; }
 @keyframes gira { to { transform: rotate(360deg); } }
+
+.msym.verde { color: var(--verde); }
+.msym.grigio { color: var(--testo-2); }
+.azione-nota { font-size: 14px; color: var(--testo-2); text-align: center; margin: 0 0 6px; }
+
+/* Foto */
+.scatta { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; width: 100%; min-height: 240px; border: 2px dashed #9fb3c8; border-radius: var(--raggio); background: var(--superficie); color: var(--primario); font-size: 18px; }
+.scatta .msym { font-size: 56px; }
+.foto img { display: block; width: 100%; max-height: 52vh; object-fit: cover; border-radius: var(--raggio); margin-bottom: 12px; }
+
+/* Risposte: categorie in lista, opzioni in griglia o affiancate */
+.lista { display: flex; flex-direction: column; gap: 8px; }
+.griglia { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.segmenti { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.riga {
+  display: flex; align-items: center; gap: 14px; width: 100%;
+  min-height: 60px; padding: 10px 14px;
+  background: var(--superficie); border: 1.5px solid var(--bordo); border-radius: 12px;
+  text-align: left;
+}
+.riga.scelta { border-color: var(--primario); background: var(--primario-tenue); box-shadow: inset 0 0 0 1px var(--primario); }
+.riga-testo { flex: 1; font-size: 17px; }
+.riga.scelta .riga-testo { font-weight: 600; }
+.griglia .riga, .segmenti .riga { justify-content: center; text-align: center; padding: 8px 10px; }
+.griglia .riga-testo, .segmenti .riga-testo { flex: none; font-size: 16px; }
+.radio { color: var(--testo-2); }
+.riga.scelta .radio { color: var(--primario); }
+.campo { display: block; }
+.campo textarea {
+  width: 100%; font: inherit; font-size: 18px; color: var(--testo);
+  padding: 14px 16px; background: var(--superficie);
+  border: 1.5px solid var(--bordo); border-radius: 12px; outline: none; resize: vertical;
+}
+.campo textarea:focus { border-color: var(--primario); box-shadow: 0 0 0 3px var(--primario-tenue); }
+.contatore { display: block; text-align: right; font-size: 14px; color: var(--testo-2); margin-top: 4px; }
+.contatore.errore { color: var(--rosso); }
+.contadomande { font-size: 14px; font-weight: 600; color: var(--testo-2); margin: 0 0 12px; }
+.domanda { margin-bottom: 24px; }
+.domanda h2 { font-size: 19px; font-weight: 700; margin: 0 0 10px; }
+.facoltativo { color: var(--testo-2); font-weight: 400; font-size: .85em; }
+
+/* A voce: argomenti da dire, microfono grande, capiti chiusi in una riga */
+.temi { list-style: none; margin: 0; padding: 4px 0; }
+.temi li { display: flex; align-items: flex-start; gap: 12px; padding: 5px 0; font-size: 18px; }
+.temi .msym { color: var(--primario); font-size: 22px; margin-top: 2px; }
+.registratore { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 20px 0 8px; text-align: center; }
+.microfono { display: grid; place-items: center; width: 112px; height: 112px; border-radius: 50%; border: 0; background: var(--primario); color: #fff; box-shadow: 0 6px 18px rgba(11,79,138,.35); transition: transform .1s; }
+.microfono:active { transform: scale(.96); }
+.microfono .msym { font-size: 52px; }
+.microfono.ascolto { background: var(--rosso); box-shadow: 0 0 0 0 rgba(180,35,24,.45); animation: pulsa 1.6s infinite; }
+.microfono.analizzo { background: var(--primario-scuro); }
+@keyframes pulsa { 70% { box-shadow: 0 0 0 18px rgba(180,35,24,0); } 100% { box-shadow: 0 0 0 0 rgba(180,35,24,0); } }
+.registratore-testo { font-size: 18px; font-weight: 600; }
+.registratore-sotto { display: block; font-size: 14px; font-weight: 400; color: var(--testo-2); }
+.in-onda { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: var(--rosso); margin-right: 4px; animation: lampeggia 1s infinite; }
+@keyframes lampeggia { 50% { opacity: .2; } }
+.capito { margin: 0 0 24px; background: var(--superficie); border: 1px solid var(--bordo); border-radius: var(--raggio); overflow: hidden; }
+.capito summary { display: flex; align-items: center; gap: 10px; min-height: 56px; padding: 0 14px; font-weight: 600; cursor: pointer; list-style: none; }
+.capito summary::-webkit-details-marker { display: none; }
+.freccia { margin-left: auto; transition: transform .2s; }
+.capito[open] .freccia { transform: rotate(180deg); }
+.capito-riga { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 56px; padding: 8px 14px; border: 0; border-top: 1px solid var(--bordo); background: transparent; text-align: left; }
+.capito.aperto > div:first-child .capito-riga { border-top: 0; }
+.capito-etichetta { flex-shrink: 0; width: 38%; font-size: 14px; color: var(--testo-2); }
+.capito-valore { flex: 1; min-width: 0; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.capito-correzione { padding: 4px 14px 14px; }
+
+/* Finestra del 112, sopra barra e azioni */
+.velo { position: fixed; inset: 0; z-index: 1500; display: flex; align-items: flex-end; justify-content: center; background: rgba(16,24,32,.55); }
+.dialogo { width: 100%; max-width: 560px; padding: 28px 20px calc(24px + env(safe-area-inset-bottom)); background: var(--superficie); border-radius: 20px 20px 0 0; text-align: center; }
+.dialogo h2 { font-size: 22px; margin: 14px 0 8px; }
+.dialogo p { color: var(--testo-2); margin: 0 0 20px; }
+.dialogo .btn + .btn { margin-top: 8px; }
