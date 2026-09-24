@@ -116,8 +116,18 @@ type PropsMappa = {
   volaPrima?: boolean
   /** Zoom del volo, anche frazionario; di base 16, lo zoom della mappa della scheda. */
   zoomVolo?: () => number
+  /** Punto scelto a mano (Nuova segnalazione): un segnaposto; il clic sulla mappa chiama onPunto. */
+  punto?: [number, number] | null
+  onPunto?: (p: [number, number]) => void
   className?: string
 }
+
+const segnaposto = L.divIcon({
+  className: '',
+  iconSize: [32, 32],
+  iconAnchor: [16, 30],
+  html: '<span class="material-symbols-rounded icona piena segnaposto">location_on</span>',
+})
 
 export function Mappa({
   segnalazioni,
@@ -129,6 +139,8 @@ export function Mappa({
   conLegenda = true,
   volaPrima,
   zoomVolo,
+  punto,
+  onPunto,
   className = '',
 }: PropsMappa) {
   const el = useRef<HTMLDivElement>(null)
@@ -140,10 +152,14 @@ export function Mappa({
   onSel.current = onSeleziona
   const zoomDelVolo = useRef(zoomVolo)
   zoomDelVolo.current = zoomVolo
+  const onPun = useRef(onPunto)
+  onPun.current = onPunto
+  const pin = useRef<L.Marker | null>(null)
 
   useEffect(() => {
     const m = L.map(el.current!, { zoomControl: true, attributionControl: false })
     mappa.current = m
+    m.on('click', (e) => onPun.current?.([e.latlng.lat, e.latlng.lng]))
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, opacity: 0.8 }).addTo(m)
     const overlay: Record<string, L.LayerGroup> = {}
     let vivo = true
@@ -213,6 +229,12 @@ export function Mappa({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [segnalazioni, selezionata])
+
+  useEffect(() => {
+    pin.current?.remove()
+    pin.current = punto ? L.marker(punto, { icon: segnaposto, zIndexOffset: 2000 }).addTo(mappa.current!) : null
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [punto?.[0], punto?.[1]])
 
   useEffect(() => {
     if (centro) mappa.current!.setView(centro, Math.max(mappa.current!.getZoom(), zoom ?? 15))
