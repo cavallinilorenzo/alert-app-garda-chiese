@@ -46,7 +46,8 @@ function PrioritaDettaglio({ s }: { s: Segnalazione }) {
     <div className="prio-dettaglio">
       <div className="prio-riga">
         <span>
-          Priorità <strong>{NOME_LIVELLO[s.priorita].toLowerCase()}</strong> · {TEMPI[s.priorita]}
+          {/* il livello è già nella label in alto: qui solo i tempi */}
+          {TEMPI[s.priorita][0].toUpperCase() + TEMPI[s.priorita].slice(1)}
           {corretta && ` · calcolata ${NOME_LIVELLO[s.priorita_calcolata].toLowerCase()}, corretta: “${s.override_motivazione}”`}
         </span>
         {!apri && (

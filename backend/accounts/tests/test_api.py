@@ -56,7 +56,8 @@ def test_operatore_crea_legge_e_modifica_un_acquaiolo():
 
     listed = client.get("/api/acquaioli")
     assert listed.status_code == 200
-    assert listed.json()[0]["zona_id"] == 21
+    creato = next(a for a in listed.json() if a["id"] == acquaiolo_id)
+    assert creato["zona_id"] == 21
 
     updated = client.patch(
         f"/api/acquaioli/{acquaiolo_id}", {"telefono": "+39 333 7654321"}, format="json"
@@ -64,6 +65,13 @@ def test_operatore_crea_legge_e_modifica_un_acquaiolo():
     assert updated.status_code == 200
     assert updated.json()["telefono"] == "+39 333 7654321"
     assert Acquaiolo.objects.get(pk=acquaiolo_id).telefono == "+39 333 7654321"
+
+
+def test_la_rubrica_parte_dagli_acquaioli_della_mappa():
+    # un acquaiolo per ogni zona servita del KML; le zone 2 e 21 non sono servite
+    zone = set(Acquaiolo.objects.values_list("zona_id", flat=True))
+    assert zone == set(range(1, 25)) - {2, 21}
+    assert Acquaiolo.objects.get(zona_id=1).nome == "Sorio Davide"
 
 
 def test_logout_invalida_il_refresh_token():

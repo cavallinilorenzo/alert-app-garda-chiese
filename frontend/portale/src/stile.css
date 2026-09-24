@@ -232,7 +232,10 @@ button:active:not(:disabled) { transform: scale(.97); }
 .quando .muto { font-size: 12.5px; }
 .prio-dettaglio { margin-top: 4px; font-size: 13px; color: var(--testo-2); }
 .prio-riga { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; }
-.assegnatario { display: flex; gap: 10px; align-items: center; background: var(--superficie); border: 1px solid var(--linea); border-radius: 12px; padding: 10px 14px 10px 10px; min-width: 220px; }
+/* riquadro basso e allungato, con l'icona in proporzione al testo */
+.assegnatario { display: flex; gap: 12px; align-items: center; background: var(--superficie); border: 1px solid var(--linea); border-radius: 12px; padding: 7px 20px 7px 8px; min-width: 320px; }
+.assegnatario .avatar { width: 40px; height: 40px; }
+.assegnatario .avatar.vuoto .icona { font-size: 22px; }
 .assegnatario strong { display: block; font-size: 14.5px; }
 .assegnatario .muto { font-size: 12px; }
 .chiudi { border: 1px solid var(--linea); background: var(--superficie); width: 36px; height: 36px; }

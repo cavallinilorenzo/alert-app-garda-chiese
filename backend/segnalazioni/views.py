@@ -7,6 +7,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from accounts.models import Acquaiolo
 from geo.services import check_perimetro
 
 from .models import Evento, Foto, Segnalazione
@@ -18,6 +19,13 @@ from .serializers import (
     SegnalazioneStatoSerializer,
     SegnalazioneUpdateSerializer,
 )
+
+
+def acquaiolo_di_zona(zona) -> int | None:
+    """Id nella Rubrica acquaioli dell'Acquaiolo della Zona, se la zona è servita."""
+    if zona is None:
+        return None
+    return Acquaiolo.objects.filter(zona_id=zona.id).values_list("id", flat=True).first()
 
 
 class PortalePagination(PageNumberPagination):
@@ -126,7 +134,7 @@ class SegnalazioneListCreateView(generics.ListCreateAPIView):
             tipo_tracciato=geo_data.tracciato.tipo if geo_data.tracciato else "",
             distanza_m=geo_data.distanza_m,
             zona_id=geo_data.zona.id if geo_data.zona else None,
-            acquaiolo_competente_id=None,  # Da implementare quando si ha la rubrica acquaioli
+            acquaiolo_competente_id=acquaiolo_di_zona(geo_data.zona),
         )
         segnalazione.save()
 
@@ -188,8 +196,8 @@ class SegnalazioneDetailView(generics.RetrieveUpdateAPIView):
             instance.zona_id = geo_data.zona.id if geo_data.zona else None
 
             # Non sovrascrivere l'acquaiolo se giA  assegnato
-            if not instance.acquaiolo_competente_id and geo_data.zona:
-                instance.acquaiolo_competente_id = geo_data.zona.id  # o l'ID dell'acquaiolo
+            if not instance.acquaiolo_competente_id:
+                instance.acquaiolo_competente_id = acquaiolo_di_zona(geo_data.zona)
 
             campi_modificati.append("posizione")
 
