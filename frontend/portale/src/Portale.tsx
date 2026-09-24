@@ -8,6 +8,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Avatar, Icona, Mappa, Pallino, tessereCaricate, titoloNome } from './comuni'
 import { usePortale } from './dati'
 import {
+  CATEGORIE,
   FILTRI_INIZIALI,
   LIVELLI,
   NOME_LAYER,
@@ -162,6 +163,14 @@ function BarraFiltri({ f, set, conteggio }: { f: Filtri; set: (f: Filtri) => voi
           <option value="">Tutte le zone</option>
           {nomiZone.map((z) => (
             <option key={z}>{z}</option>
+          ))}
+        </select>
+        <select value={f.categoria} onChange={(e) => set({ ...f, categoria: e.target.value as Filtri['categoria'] })}>
+          <option value="">Tutte le categorie</option>
+          {CATEGORIE.map((c) => (
+            <option key={c.valore} value={c.valore}>
+              {c.etichetta}
+            </option>
           ))}
         </select>
         <button className="btn" onClick={() => ricarica()} disabled={caricamento} title="Aggiorna le segnalazioni">

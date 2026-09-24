@@ -39,29 +39,38 @@ export const ESITI: { valore: Esito; etichetta: string }[] = [
 ]
 export const nomeEsito = (e: string) => ESITI.find((x) => x.valore === e)?.etichetta ?? e
 
-const CATEGORIE: Record<string, string> = {
-  acqua_che_affiora: 'Acqua che affiora o perdita',
-  canale_che_tracima: 'Canale che tracima o allagamento',
-  argine_danneggiato: 'Argine o sponda danneggiata/franata',
-  ostruzione: 'Ostruzione o accumulo',
-  paratoia_danneggiata: 'Paratoia o impianto danneggiato',
-  acqua_sporca: 'Acqua sporca o cattivo odore',
-  altro: 'Altro',
-}
-export const titolo = (s: Pick<Segnalazione, 'categoria'>) => CATEGORIE[s.categoria] ?? 'Categoria da definire'
+export type Categoria = Exclude<Segnalazione['categoria'], ''>
 
+// Le 9 categorie della revisione delle opzioni (ticket #100), con le icone dell'App di segnalazione.
+export const CATEGORIE: { valore: Categoria; etichetta: string; icona: string }[] = [
+  { valore: 'acqua_che_affiora', etichetta: 'Acqua che esce dal terreno', icona: 'water_drop' },
+  { valore: 'perdita_dal_canale', etichetta: 'Canale che perde', icona: 'water_damage' },
+  { valore: 'canale_che_tracima', etichetta: 'Canale che esonda o allaga', icona: 'flood' },
+  { valore: 'argine_danneggiato', etichetta: 'Argine o sponda franata', icona: 'landslide' },
+  { valore: 'ostruzione', etichetta: 'Qualcosa blocca l’acqua', icona: 'block' },
+  { valore: 'canale_asciutto', etichetta: 'Canale senz’acqua', icona: 'water_loss' },
+  { valore: 'paratoia_danneggiata', etichetta: 'Paratoia o impianto rotto', icona: 'valve' },
+  { valore: 'acqua_sporca', etichetta: 'Acqua sporca o rifiuti', icona: 'water_ec' },
+  { valore: 'altro', etichetta: 'Altro', icona: 'more_horiz' },
+]
+export const nomeCategoria = (c: string) => CATEGORIE.find((x) => x.valore === c)?.etichetta ?? 'Categoria da definire'
+export const titolo = (s: Pick<Segnalazione, 'categoria'>) => nomeCategoria(s.categoria)
+
+// Le Segnalazioni vecchie arrivano già migrate: durata `meno_di_un_ora` → `adesso`, `non_applicabile` → vuota.
+// La quantità `non_applicabile` è quella delle categorie in cui non si chiede.
 const VALORI: Record<string, string> = {
   si: 'sì',
   no: 'no',
   non_so: 'non so',
   non_applicabile: 'non applicabile',
-  adesso: 'adesso',
-  meno_di_un_ora: 'da meno di un’ora',
-  alcune_ore: 'da alcune ore',
-  piu_di_un_giorno: 'da più di un giorno',
-  gocce: 'gocce',
-  piccolo_flusso: 'piccolo flusso',
-  molta_acqua: 'molta acqua',
+  adesso: 'appena notato',
+  alcune_ore: 'da qualche ora',
+  piu_di_un_giorno: 'da qualche giorno',
+  da_settimane: 'da settimane',
+  gocce: 'gocciola',
+  piccolo_flusso: 'un filo, come un rubinetto',
+  molta_acqua: 'tanta, scorre forte',
+  getto: 'zampilla con forza',
 }
 export const valore = (v: string) => (v ? (VALORI[v] ?? v) : '—')
 
@@ -112,8 +121,8 @@ export const dataOra = (iso?: string | null) => {
 export const ordina = (lista: Segnalazione[]) =>
   [...lista].sort((a, b) => LIVELLI.indexOf(a.priorita) - LIVELLI.indexOf(b.priorita) || a.created_at.localeCompare(b.created_at))
 
-export type Filtri = { stati: Stato[]; livelli: Priorita[]; zona: string; testo: string }
-export const FILTRI_INIZIALI: Filtri = { stati: STATI.filter((s) => s !== 'chiusa'), livelli: LIVELLI, zona: '', testo: '' }
+export type Filtri = { stati: Stato[]; livelli: Priorita[]; zona: string; categoria: Categoria | ''; testo: string }
+export const FILTRI_INIZIALI: Filtri = { stati: STATI.filter((s) => s !== 'chiusa'), livelli: LIVELLI, zona: '', categoria: '', testo: '' }
 
 /** Cosa serve per filtrare oltre alla Segnalazione: il nome della zona e dell'acquaiolo. */
 export type Contesto = { zona: (id: number | null) => string | null; acquaiolo: (id: number | null) => Acquaiolo | undefined }
@@ -124,6 +133,7 @@ export const filtra = (lista: Segnalazione[], f: Filtri, c: Contesto) =>
       f.stati.includes(s.stato_corrente) &&
       f.livelli.includes(s.priorita) &&
       (!f.zona || c.zona(s.zona_id) === f.zona) &&
+      (!f.categoria || s.categoria === f.categoria) &&
       (!f.testo ||
         `${s.codice_pratica} ${s.descrizione} ${s.nome_completo_tracciato} ${c.acquaiolo(s.acquaiolo_competente_id)?.nome ?? ''}`
           .toLowerCase()
