@@ -10,6 +10,14 @@ export const movimentoRidotto = () => matchMedia('(prefers-reduced-motion: reduc
 
 let ultima = 0
 
+// Le animazioni fatte con element.animate() sugli pseudo-elementi ::view-transition-* restano attaccate al documento
+// anche a transizione finita. Alla transizione dopo si sommerebbero alle nuove: con due clip-path sullo stesso
+// livello Chrome non anima più sulla GPU ma sul main thread, e l'onda va a scatti dalla seconda volta in poi.
+const togliAnimazioniRimaste = () =>
+  document.getAnimations().forEach((a) => {
+    if ((a.effect as KeyframeEffect | null)?.pseudoElement?.startsWith('::view-transition')) a.cancel()
+  })
+
 /** Applica `aggiorna` dentro una View Transition di tipo `tipo`; senza supporto o con movimento ridotto cambia e basta. */
 export function transizione(tipo: TipoTransizione, aggiorna: () => void, dopo?: () => Promise<unknown>) {
   if (!('startViewTransition' in document) || movimentoRidotto()) {
@@ -18,13 +26,16 @@ export function transizione(tipo: TipoTransizione, aggiorna: () => void, dopo?: 
   }
   const html = document.documentElement
   const n = ++ultima
+  togliAnimazioniRimaste()
   html.dataset.vt = tipo
   const t = document.startViewTransition(async () => {
     flushSync(aggiorna)
     await dopo?.()
   })
   t.finished.finally(() => {
-    if (n === ultima) delete html.dataset.vt
+    if (n !== ultima) return
+    delete html.dataset.vt
+    togliAnimazioniRimaste()
   })
   return t
 }
