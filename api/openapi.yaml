@@ -11,6 +11,120 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
+  responses:
+    NonAutenticato:
+      description: Token mancante, scaduto o non valido
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            non_autenticato:
+              value:
+                code: "non_autenticato"
+                message: "Accedi per continuare."
+                fields: {}
+    SegnalazioneNonTrovata:
+      description: Nessuna Segnalazione con questo id
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            non_trovata:
+              value:
+                code: "non_trovata"
+                message: "Segnalazione non trovata."
+                fields: {}
+  examples:
+    SegnalazioneInVerifica:
+      summary: Presa in carico, con la categoria corretta e un Duplicato collegato
+      value:
+        id: 123
+        codice_pratica: "GCH-4B29"
+        stato_corrente: "in_verifica"
+        esito: ""
+        priorita: "alta"
+        priorita_calcolata: "alta"
+        override_motivazione: ""
+        created_at: "2026-09-24T08:50:00Z"
+        lat: 45.31095
+        lng: 10.625391
+        lat_originale: null
+        lng_originale: null
+        descrizione: "Il canale esce sulla strada in via Brescia"
+        cellulare: "+39 339 4637252"
+        transcript_ai: "Il canale in via Brescia sta uscendo sulla strada, adesso."
+        foto: ["/media/segnalazioni/gch-4b29.jpg"]
+        categoria: "canale_che_tracima"
+        categoria_originale: "ostruzione"
+        durata: "adesso"
+        quantita_acqua: "molta_acqua"
+        pericolo_persone: "no"
+        pericolo_strada: "si"
+        pericolo_edifici: "non_so"
+        estratti_confidenza:
+          categoria: 0.62
+          durata: 0.91
+          pericolo_strada: 0.88
+        layer: "canale"
+        nome_tracciato: "III ramo C"
+        nome_completo_tracciato: "Dispensatore III ramo C"
+        tipo_tracciato: "Dispensatore"
+        distanza_m: 12.5
+        zona_id: 19
+        acquaiolo_competente_id: 7
+        operatore_riferimento:
+          id: 1
+          nome_completo: "Mario Rossi"
+        is_duplicato: false
+        duplicato_di: null
+        duplicati:
+          - id: 131
+            codice_pratica: "GCH-9K2M"
+            cellulare: "+39 347 1180254"
+            foto: ["/media/segnalazioni/gch-9k2m.jpg"]
+            created_at: "2026-09-24T09:05:00Z"
+        messaggio_al_segnalante: ""
+        registro:
+          - id: 501
+            tipo_evento: "cambio_stato"
+            stato: "ricevuta"
+            operatore: null
+            nota: ""
+            created_at: "2026-09-24T08:50:00Z"
+          - id: 502
+            tipo_evento: "cambio_stato"
+            stato: "in_verifica"
+            operatore:
+              id: 1
+              nome_completo: "Mario Rossi"
+            nota: ""
+            created_at: "2026-09-24T09:12:00Z"
+          - id: 503
+            tipo_evento: "correzione_campo"
+            stato: "in_verifica"
+            operatore:
+              id: 1
+              nome_completo: "Mario Rossi"
+            nota: "Modificati: categoria"
+            created_at: "2026-09-24T09:14:00Z"
+          - id: 504
+            tipo_evento: "duplicato_collegato"
+            stato: "in_verifica"
+            operatore:
+              id: 1
+              nome_completo: "Mario Rossi"
+            nota: "GCH-9K2M"
+            created_at: "2026-09-24T09:20:00Z"
+          - id: 505
+            tipo_evento: "nota"
+            stato: "in_verifica"
+            operatore:
+              id: 1
+              nome_completo: "Mario Rossi"
+            nota: "Chiamato il segnalante, conferma la posizione."
+            created_at: "2026-09-24T09:25:00Z"
   schemas:
     Error:
       type: object
@@ -56,6 +170,226 @@ components:
               data:
                 type: string
                 format: date-time
+
+    Stato:
+      type: string
+      enum: [ricevuta, in_verifica, assegnata, in_intervento, chiusa]
+
+    Priorita:
+      type: string
+      enum: [bassa, media, alta, critica]
+
+    Esito:
+      type: string
+      enum: [risolta, duplicata, non_di_competenza, non_riscontrata, falsa]
+
+    Operatore:
+      type: object
+      required: [id, nome_completo]
+      properties:
+        id:
+          type: integer
+        nome_completo:
+          type: string
+          example: "Mario Rossi"
+
+    Evento:
+      type: object
+      description: Una voce del Registro. Il Registro si aggiunge e basta.
+      required: [id, tipo_evento, stato, operatore, nota, created_at]
+      properties:
+        id:
+          type: integer
+        tipo_evento:
+          type: string
+          enum: [cambio_stato, correzione_campo, nota, duplicato_collegato]
+        stato:
+          description: Lo Stato della Segnalazione dopo l'evento.
+          $ref: '#/components/schemas/Stato'
+        operatore:
+          description: Null per l'evento `ricevuta` scritto all'invio.
+          oneOf:
+            - $ref: '#/components/schemas/Operatore'
+            - type: "null"
+        nota:
+          type: string
+          description: Vuota se l'Operatore non l'ha scritta. Per `correzione_campo` elenca i campi modificati.
+        created_at:
+          type: string
+          format: date-time
+
+    DuplicatoCollegato:
+      type: object
+      description: Una Segnalazione chiusa con esito `duplicata` e collegata a questa.
+      required: [id, codice_pratica, cellulare, foto, created_at]
+      properties:
+        id:
+          type: integer
+        codice_pratica:
+          type: string
+        cellulare:
+          type: string
+        foto:
+          type: array
+          items:
+            type: string
+            description: URL dell'immagine.
+        created_at:
+          type: string
+          format: date-time
+
+    SegnalazioneDettaglio:
+      type: object
+      description: |
+        La scheda della Segnalazione nel Portale operatore. I campi testuali non compilati
+        sono stringhe vuote; quelli numerici o i collegamenti non presenti sono `null`.
+      required:
+        - id
+        - codice_pratica
+        - stato_corrente
+        - esito
+        - priorita
+        - priorita_calcolata
+        - override_motivazione
+        - created_at
+        - lat
+        - lng
+        - lat_originale
+        - lng_originale
+        - descrizione
+        - cellulare
+        - transcript_ai
+        - foto
+        - categoria
+        - categoria_originale
+        - durata
+        - quantita_acqua
+        - pericolo_persone
+        - pericolo_strada
+        - pericolo_edifici
+        - estratti_confidenza
+        - layer
+        - nome_tracciato
+        - nome_completo_tracciato
+        - tipo_tracciato
+        - distanza_m
+        - zona_id
+        - acquaiolo_competente_id
+        - operatore_riferimento
+        - is_duplicato
+        - duplicato_di
+        - duplicati
+        - messaggio_al_segnalante
+        - registro
+      properties:
+        id:
+          type: integer
+        codice_pratica:
+          type: string
+        stato_corrente:
+          $ref: '#/components/schemas/Stato'
+        esito:
+          type: string
+          enum: [risolta, duplicata, non_di_competenza, non_riscontrata, falsa, ""]
+          description: Vuoto finché la Segnalazione non è Chiusa.
+        priorita:
+          $ref: '#/components/schemas/Priorita'
+        priorita_calcolata:
+          description: La priorità calcolata all'invio; resta invariata se l'Operatore la cambia.
+          $ref: '#/components/schemas/Priorita'
+        override_motivazione:
+          type: string
+          description: Perché l'Operatore ha cambiato la priorità calcolata. Vuota se non l'ha cambiata.
+        created_at:
+          type: string
+          format: date-time
+        lat:
+          type: number
+        lng:
+          type: number
+        lat_originale:
+          type: [number, "null"]
+          description: Posizione GPS inviata dal Segnalante, conservata alla prima correzione. Null se mai corretta.
+        lng_originale:
+          type: [number, "null"]
+        descrizione:
+          type: string
+        cellulare:
+          type: string
+        transcript_ai:
+          type: string
+        foto:
+          type: array
+          items:
+            type: string
+            description: URL dell'immagine.
+        categoria:
+          type: string
+          enum: [acqua_che_affiora, canale_che_tracima, argine_danneggiato, ostruzione, paratoia_danneggiata, acqua_sporca, altro, ""]
+        categoria_originale:
+          type: string
+          enum: [acqua_che_affiora, canale_che_tracima, argine_danneggiato, ostruzione, paratoia_danneggiata, acqua_sporca, altro, ""]
+          description: Categoria inviata, conservata alla prima correzione. Vuota se mai corretta.
+        durata:
+          type: string
+          enum: [adesso, meno_di_un_ora, alcune_ore, piu_di_un_giorno, non_so, non_applicabile, ""]
+        quantita_acqua:
+          type: string
+          enum: [gocce, piccolo_flusso, molta_acqua, non_so, non_applicabile, ""]
+        pericolo_persone:
+          type: string
+          enum: ["si", "no", "non_so", ""]
+        pericolo_strada:
+          type: string
+          enum: ["si", "no", "non_so", ""]
+        pericolo_edifici:
+          type: string
+          enum: ["si", "no", "non_so", ""]
+        estratti_confidenza:
+          type: object
+          description: Confidenza dell'estrazione vocale per campo, da 0 a 1. Vuoto se il form è stato compilato a mano.
+          additionalProperties:
+            type: number
+        layer:
+          type: string
+          enum: [canale, condotta, reticolo_principale, ""]
+          description: Layer del tracciato più vicino.
+        nome_tracciato:
+          type: string
+        nome_completo_tracciato:
+          type: string
+        tipo_tracciato:
+          type: string
+        distanza_m:
+          type: [number, "null"]
+          description: Distanza dal tracciato più vicino.
+        zona_id:
+          type: [integer, "null"]
+          description: Zona acquaiolo in cui cade la posizione.
+        acquaiolo_competente_id:
+          type: [integer, "null"]
+          description: Id dell'Acquaiolo nella Rubrica acquaioli (`/acquaioli`), da cui si prende il telefono.
+        operatore_riferimento:
+          oneOf:
+            - $ref: '#/components/schemas/Operatore'
+            - type: "null"
+        is_duplicato:
+          type: boolean
+        duplicato_di:
+          type: [integer, "null"]
+          description: Id dell'originale, se questa Segnalazione è un Duplicato.
+        duplicati:
+          type: array
+          description: I Duplicati collegati a questa Segnalazione ("segnalata anche da N persone").
+          items:
+            $ref: '#/components/schemas/DuplicatoCollegato'
+        messaggio_al_segnalante:
+          type: string
+        registro:
+          type: array
+          description: In ordine cronologico, dal più vecchio.
+          items:
+            $ref: '#/components/schemas/Evento'
 
     Acquaiolo:
       type: object
@@ -519,6 +853,218 @@ paths:
                   value:
                     items: []
                     total: 0
+
+  /segnalazioni/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+    get:
+      operationId: dettaglioSegnalazione
+      summary: Scheda della segnalazione con il Registro (Portale operatore)
+      description: Aprire la scheda non cambia lo Stato.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: La Segnalazione
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SegnalazioneDettaglio'
+              examples:
+                in_verifica:
+                  $ref: '#/components/examples/SegnalazioneInVerifica'
+        '401':
+          $ref: '#/components/responses/NonAutenticato'
+        '404':
+          $ref: '#/components/responses/SegnalazioneNonTrovata'
+
+    patch:
+      operationId: correggiSegnalazione
+      summary: Correzioni dell'Operatore sul campo (Portale operatore)
+      description: |
+        Si mandano solo i campi da correggere. Ogni correzione scrive un evento
+        `correzione_campo` nel Registro.
+
+        - **Posizione** (`lat` e `lng` insieme): alla prima correzione si conserva quella
+          inviata in `lat_originale`/`lng_originale`. Si ricalcolano tracciato più vicino,
+          distanza e `zona_id`; `acquaiolo_competente_id` si imposta solo se è vuoto, un
+          Acquaiolo già scelto non si sostituisce. Lo spostamento fuori perimetro è ammesso:
+          per avvisare l'Operatore il Portale chiama prima `/perimetro/check`.
+        - **Categoria**: alla prima correzione si conserva quella inviata in
+          `categoria_originale`. Non ricalcola la priorità.
+        - **Priorità**: `override_motivazione` è obbligatoria quando `priorita` è diversa da
+          `priorita_calcolata`.
+        - **Acquaiolo**: cambia l'Acquaiolo competente senza cambiare lo Stato.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              minProperties: 1
+              properties:
+                lat:
+                  type: number
+                lng:
+                  type: number
+                categoria:
+                  type: string
+                  enum: [acqua_che_affiora, canale_che_tracima, argine_danneggiato, ostruzione, paratoia_danneggiata, acqua_sporca, altro]
+                priorita:
+                  $ref: '#/components/schemas/Priorita'
+                override_motivazione:
+                  type: string
+                acquaiolo_competente_id:
+                  type: [integer, "null"]
+            examples:
+              posizione:
+                value:
+                  lat: 45.31102
+                  lng: 10.62561
+              priorita:
+                value:
+                  priorita: "critica"
+                  override_motivazione: "Il segnalante al telefono dice che l'acqua arriva alle case."
+      responses:
+        '200':
+          description: La Segnalazione dopo la correzione
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SegnalazioneDettaglio'
+              examples:
+                in_verifica:
+                  $ref: '#/components/examples/SegnalazioneInVerifica'
+        '400':
+          description: Dati non validi (per esempio priorità cambiata senza motivazione)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                motivazione_mancante:
+                  value:
+                    code: "dati_non_validi"
+                    message: "I dati inviati non sono validi."
+                    fields:
+                      override_motivazione: ["Indica perché cambi la priorità calcolata."]
+        '401':
+          $ref: '#/components/responses/NonAutenticato'
+        '404':
+          $ref: '#/components/responses/SegnalazioneNonTrovata'
+
+  /segnalazioni/{id}/azioni:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+    post:
+      operationId: azioneSegnalazione
+      summary: Azioni dell'Operatore sulla segnalazione (Portale operatore)
+      description: |
+        Ogni azione scrive un evento nel Registro con l'Operatore autenticato e la `nota`.
+
+        | `azione` | Da | A | Campi obbligatori |
+        |---|---|---|---|
+        | `prendi_in_carico` | ricevuta | in_verifica | — (diventa Operatore di riferimento) |
+        | `assegna` | in_verifica | assegnata | `acquaiolo_id` |
+        | `avvia_intervento` | assegnata | in_intervento | — |
+        | `chiudi` | qualunque tranne chiusa | chiusa | `esito`; `duplicato_di` se l'esito è `duplicata` |
+        | `indietro` | in_verifica, assegnata, in_intervento | lo Stato precedente | `nota` |
+        | `riapri` | chiusa | in_verifica | `nota` |
+        | `nota` | qualunque | invariato | `nota` (nota interna) |
+        | `messaggio_segnalante` | qualunque | invariato | `nota` (il testo che compare nella Pagina di stato) |
+
+        Chiudere come `duplicata` scrive anche un evento `duplicato_collegato` nel Registro
+        dell'originale.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [azione]
+              properties:
+                azione:
+                  type: string
+                  enum: [prendi_in_carico, assegna, avvia_intervento, chiudi, indietro, riapri, nota, messaggio_segnalante]
+                nota:
+                  type: string
+                acquaiolo_id:
+                  type: integer
+                  description: Id dell'Acquaiolo nella Rubrica acquaioli.
+                esito:
+                  $ref: '#/components/schemas/Esito'
+                duplicato_di:
+                  type: integer
+                  description: Id della Segnalazione originale.
+            examples:
+              prendi_in_carico:
+                value:
+                  azione: "prendi_in_carico"
+              assegna:
+                value:
+                  azione: "assegna"
+                  acquaiolo_id: 7
+                  nota: "Avvisato per telefono."
+              chiudi_duplicata:
+                value:
+                  azione: "chiudi"
+                  esito: "duplicata"
+                  duplicato_di: 118
+              indietro:
+                value:
+                  azione: "indietro"
+                  nota: "Assegnata all'acquaiolo sbagliato."
+      responses:
+        '200':
+          description: La Segnalazione dopo l'azione
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SegnalazioneDettaglio'
+              examples:
+                in_verifica:
+                  $ref: '#/components/examples/SegnalazioneInVerifica'
+        '400':
+          description: Azione sconosciuta o campo obbligatorio mancante
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                esito_mancante:
+                  value:
+                    code: "dati_non_validi"
+                    message: "I dati inviati non sono validi."
+                    fields:
+                      esito: ["Indica l'esito per chiudere la segnalazione."]
+        '401':
+          $ref: '#/components/responses/NonAutenticato'
+        '404':
+          $ref: '#/components/responses/SegnalazioneNonTrovata'
+        '409':
+          description: Azione non ammessa nello Stato attuale (per esempio `avvia_intervento` su una Segnalazione Ricevuta)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                transizione_non_ammessa:
+                  value:
+                    code: "transizione_non_ammessa"
+                    message: "Non puoi avviare l'intervento su una segnalazione ricevuta."
+                    fields: {}
 
   /segnalazioni/stato/{token}:
     get:
