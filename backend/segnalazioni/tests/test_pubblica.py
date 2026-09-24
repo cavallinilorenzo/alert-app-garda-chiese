@@ -48,38 +48,58 @@ def mock_geo():
         yield mock
 
 
-def test_calcolo_priorita_critica():
+@pytest.mark.parametrize(
+    "pericoli",
+    [("si", "no", "no"), ("no", "si", "no"), ("no", "no", "si")],
+)
+def test_calcolo_priorita_critica(pericoli):
     from segnalazioni.priority import calcola_priorita
 
-    # Se c'è un pericolo per le persone, è critica
-    priorita = calcola_priorita("tracimazione/allagamento", "si", "no", "no", "molta acqua")
-    assert priorita == "critica"
+    # Un pericolo a "si" vince su tutto, anche su categoria e quantità basse.
+    assert calcola_priorita("acqua_sporca", *pericoli, "gocce") == "critica"
 
 
-def test_calcolo_priorita_alta():
+@pytest.mark.parametrize(
+    "categoria,quantita_acqua",
+    [
+        ("canale_che_tracima", ""),
+        ("argine_danneggiato", ""),
+        ("paratoia_danneggiata", ""),
+        ("altro", "molta_acqua"),
+    ],
+)
+def test_calcolo_priorita_alta(categoria, quantita_acqua):
     from segnalazioni.priority import calcola_priorita
 
-    # Se la categoria è tracimazione senza pericoli, è alta
-    priorita = calcola_priorita("tracimazione/allagamento", "no", "no", "no", "")
-    assert priorita == "alta"
-
-    # Se la quantità d'acqua è molta, è alta
-    priorita = calcola_priorita("acqua_che_affiora", "no", "no", "no", "molta acqua")
-    assert priorita == "alta"
+    assert calcola_priorita(categoria, "no", "non_so", "", quantita_acqua) == "alta"
 
 
-def test_calcolo_priorita_media():
+@pytest.mark.parametrize(
+    "categoria,quantita_acqua",
+    [
+        ("acqua_che_affiora", ""),
+        ("ostruzione", "non_so"),
+        ("acqua_sporca", "piccolo_flusso"),
+    ],
+)
+def test_calcolo_priorita_media(categoria, quantita_acqua):
     from segnalazioni.priority import calcola_priorita
 
-    priorita = calcola_priorita("acqua_che_affiora", "no", "no", "no", "piccolo flusso")
-    assert priorita == "media"
+    assert calcola_priorita(categoria, "no", "no", "no", quantita_acqua) == "media"
 
 
-def test_calcolo_priorita_bassa():
+@pytest.mark.parametrize(
+    "categoria,quantita_acqua",
+    [
+        ("acqua_sporca", "gocce"),
+        ("altro", "non_applicabile"),
+        ("", ""),
+    ],
+)
+def test_calcolo_priorita_bassa(categoria, quantita_acqua):
     from segnalazioni.priority import calcola_priorita
 
-    priorita = calcola_priorita("altro", "no", "no", "no", "")
-    assert priorita == "bassa"
+    assert calcola_priorita(categoria, "no", "no", "no", quantita_acqua) == "bassa"
 
 
 def test_creazione_segnalazione(client, mock_geo):
@@ -91,8 +111,8 @@ def test_creazione_segnalazione(client, mock_geo):
         "foto": foto,
         "descrizione": "C'è un canale rotto",
         "cellulare": "3331234567",
-        "categoria": "tracimazione/allagamento",
-        "quantita_acqua": "molta acqua",
+        "categoria": "canale_che_tracima",
+        "quantita_acqua": "molta_acqua",
         "pericolo_persone": "no",
         "pericolo_strada": "no",
         "pericolo_edifici": "no",
