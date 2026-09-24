@@ -15,13 +15,26 @@ export function tokenDallIndirizzo(percorso = window.location.pathname) {
 }
 
 /** Gli Stati nell'ordine del ciclo di vita, con le parole per il Segnalante. */
-export const STATI: { stato: Stato; etichetta: string; spiegazione: string }[] = [
-  { stato: 'ricevuta', etichetta: 'Ricevuta', spiegazione: 'Il Consorzio ha ricevuto la segnalazione.' },
-  { stato: 'in_verifica', etichetta: 'In verifica', spiegazione: 'Il personale del Consorzio la sta verificando.' },
-  { stato: 'assegnata', etichetta: 'Assegnata', spiegazione: 'È stata affidata all’acquaiolo della zona.' },
-  { stato: 'in_intervento', etichetta: 'In intervento', spiegazione: 'Il Consorzio sta intervenendo sul posto.' },
-  { stato: 'chiusa', etichetta: 'Chiusa', spiegazione: 'Il Consorzio ha chiuso la segnalazione.' },
+export const STATI: { stato: Stato; etichetta: string }[] = [
+  { stato: 'ricevuta', etichetta: 'Ricevuta' },
+  { stato: 'in_verifica', etichetta: 'In verifica' },
+  { stato: 'assegnata', etichetta: 'Assegnata' },
+  { stato: 'in_intervento', etichetta: 'In intervento' },
+  { stato: 'chiusa', etichetta: 'Chiusa' },
 ]
+
+/** Dove si trova il problema: comune e tracciato, quelli che ci sono. */
+export const luogo = ({ comune, nome_completo_tracciato }: Pick<StatoPubblico, 'comune' | 'nome_completo_tracciato'>) =>
+  [comune, nome_completo_tracciato].filter((t) => t?.trim()).join(' · ')
+
+const formatoGiorno = new Intl.DateTimeFormat('it-IT', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
+const formatoGiornoAnno = new Intl.DateTimeFormat('it-IT', { dateStyle: 'medium', timeStyle: 'short' })
+
+/** "24 set, 09:12"; con l'anno solo se non è quello in corso. */
+export function formatoData(iso: string, oggi = new Date()) {
+  const data = new Date(iso)
+  return (data.getFullYear() === oggi.getFullYear() ? formatoGiorno : formatoGiornoAnno).format(data)
+}
 
 export type Tappa = (typeof STATI)[number] & { quando: 'fatta' | 'attuale' | 'futura'; data?: string }
 

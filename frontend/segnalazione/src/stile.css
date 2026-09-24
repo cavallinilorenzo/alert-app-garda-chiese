@@ -327,7 +327,16 @@ picture { display: block; }
 .link button { display: grid; place-items: center; width: 44px; height: 44px; border: 0; border-radius: 10px; background: var(--superficie); color: var(--link); }
 
 /* Pagina di stato */
-.corpo h1.stato-attuale { font-size: 30px; margin: 0 0 4px; color: var(--link); }
+.occhiello { margin: 8px 0 0; font-size: 15px; font-weight: 700; letter-spacing: .06em; color: var(--testo-2); font-variant-numeric: tabular-nums; }
+.corpo h1.stato-attuale { font-size: 40px; line-height: 1.05; margin: 2px 0 16px; color: var(--link); }
+/* La segnalazione in breve: foto a sinistra, categoria, luogo e data a destra */
+.in-breve { display: flex; gap: 14px; align-items: center; margin: 0 0 14px; padding: 10px; background: var(--superficie); border: 1px solid var(--bordo); border-radius: var(--raggio); box-shadow: var(--ombra); }
+.in-breve img { width: 96px; height: 96px; flex-shrink: 0; border-radius: calc(var(--raggio) - 4px); object-fit: cover; background: var(--sfondo); }
+.in-breve > div { min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.in-breve > div > * { display: flex; align-items: center; gap: 6px; overflow-wrap: anywhere; }
+.in-breve strong { font-size: 17px; line-height: 1.25; }
+.in-breve > div > span { font-size: 15px; color: var(--testo-2); }
+.in-breve .msym { flex-shrink: 0; font-size: 18px; color: var(--link); }
 .messaggio { margin: 0; white-space: pre-line; }
 .tappe { list-style: none; margin: 24px 0 0; padding: 0; }
 .tappe li { position: relative; display: flex; gap: 14px; padding-bottom: 22px; }
