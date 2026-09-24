@@ -183,7 +183,7 @@ function Chips<T extends string>({ etichetta, tutti, scelti, onChange, render }:
 }
 
 function BarraFiltri({ f, set, conteggio }: { f: Filtri; set: (f: Filtri) => void; conteggio: number }) {
-  const { zone, caricamento, ricarica } = usePortale()
+  const { zone } = usePortale()
   const nomiZone = [...new Set(zone.map((z) => z.nome))].sort()
   return (
     <div className="filtri">
@@ -206,9 +206,6 @@ function BarraFiltri({ f, set, conteggio }: { f: Filtri; set: (f: Filtri) => voi
             </option>
           ))}
         </select>
-        <button className="btn" onClick={() => ricarica()} disabled={caricamento} title="Aggiorna le segnalazioni">
-          <Icona nome="refresh" /> Aggiorna
-        </button>
         <span className="conteggio">
           <strong>{conteggio}</strong> segnalazioni
         </span>
