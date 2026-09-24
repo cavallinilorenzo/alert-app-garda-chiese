@@ -52,9 +52,9 @@ class Segnalazione(models.Model):
     categoria = models.CharField(max_length=100, blank=True)
     durata = models.CharField(max_length=100, blank=True)
     quantita_acqua = models.CharField(max_length=100, blank=True)
-    pericolo_persone = models.BooleanField(default=False)
-    pericolo_strada = models.BooleanField(default=False)
-    pericolo_case = models.BooleanField(default=False)
+    pericolo_persone = models.CharField(max_length=20, blank=True, default="")
+    pericolo_strada = models.CharField(max_length=20, blank=True, default="")
+    pericolo_edifici = models.CharField(max_length=20, blank=True, default="")
     
     # Confidenze (potremmo usare JSONField o campi separati)
     estratti_confidenza = models.JSONField(default=dict, blank=True)

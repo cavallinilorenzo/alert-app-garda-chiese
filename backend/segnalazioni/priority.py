@@ -1,14 +1,14 @@
 def calcola_priorita(
     categoria: str,
-    pericolo_persone: bool,
-    pericolo_strada: bool,
-    pericolo_case: bool,
+    pericolo_persone: str,
+    pericolo_strada: str,
+    pericolo_edifici: str,
     quantita_acqua: str,
 ) -> str:
     """
     Calcola la priorita (bassa, media, alta, critica) basata sui criteri #8.
     """
-    if pericolo_persone or pericolo_strada or pericolo_case:
+    if pericolo_persone == "si" or pericolo_strada == "si" or pericolo_edifici == "si":
         return "critica"
     
     cat_alta = [

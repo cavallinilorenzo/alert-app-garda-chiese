@@ -8,9 +8,21 @@ class SegnalazioneCreateSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Segnalazione
-        fields = ['lat', 'lng', 'foto', 'descrizione', 'cellulare', 'transcript_ai']
+        fields = [
+            'lat', 'lng', 'foto', 'descrizione', 'cellulare', 'transcript_ai',
+            'categoria', 'durata', 'quantita_acqua', 
+            'pericolo_persone', 'pericolo_strada', 'pericolo_edifici',
+            'estratti_confidenza'
+        ]
         extra_kwargs = {
-            'transcript_ai': {'required': False, 'allow_blank': True}
+            'transcript_ai': {'required': False, 'allow_blank': True},
+            'categoria': {'required': False, 'allow_blank': True},
+            'durata': {'required': False, 'allow_blank': True},
+            'quantita_acqua': {'required': False, 'allow_blank': True},
+            'pericolo_persone': {'required': False, 'allow_blank': True},
+            'pericolo_strada': {'required': False, 'allow_blank': True},
+            'pericolo_edifici': {'required': False, 'allow_blank': True},
+            'estratti_confidenza': {'required': False}
         }
 
 class SegnalazioneStatoSerializer(serializers.ModelSerializer):

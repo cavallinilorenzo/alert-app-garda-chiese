@@ -2,7 +2,6 @@ from rest_framework import generics, status
 from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.response import Response
 
-from estrazione.services import estrai_da_testo
 from geo.services import check_perimetro
 
 from .models import Evento, Foto, Segnalazione
@@ -33,23 +32,19 @@ class SegnalazioneCreateView(generics.CreateAPIView):
                 "fields": {}
             }, status=status.HTTP_400_BAD_REQUEST)
             
-        # 2. Estrazione dati (testo o transcript_ai)
-        testo = data.get('transcript_ai') or data['descrizione']
-        estratti = estrai_da_testo(testo)
-        
         # 3. Calcolo priorità
         priorita = calcola_priorita(
-            categoria=estratti.get("categoria", ""),
-            pericolo_persone=estratti.get("pericolo_persone", False),
-            pericolo_strada=estratti.get("pericolo_strada", False),
-            pericolo_case=estratti.get("pericolo_case", False),
-            quantita_acqua=estratti.get("quantita_acqua", "")
+            categoria=data.get("categoria", ""),
+            pericolo_persone=data.get("pericolo_persone", ""),
+            pericolo_strada=data.get("pericolo_strada", ""),
+            pericolo_edifici=data.get("pericolo_edifici", ""),
+            quantita_acqua=data.get("quantita_acqua", "")
         )
         
         pericolo_immediato = priorita == "critica" or any([
-            estratti.get("pericolo_persone", False),
-            estratti.get("pericolo_strada", False),
-            estratti.get("pericolo_case", False)
+            data.get("pericolo_persone") == "si",
+            data.get("pericolo_strada") == "si",
+            data.get("pericolo_edifici") == "si"
         ])
         
         # 4. Creazione Segnalazione
@@ -61,10 +56,13 @@ class SegnalazioneCreateView(generics.CreateAPIView):
             transcript_ai=data.get('transcript_ai', ''),
             priorita=priorita,
             priorita_calcolata=priorita,
-            **{k: v for k, v in estratti.items() if k in [
-                'categoria', 'durata', 'quantita_acqua', 
-                'pericolo_persone', 'pericolo_strada', 'pericolo_case', 'estratti_confidenza'
-            ]},
+            categoria=data.get('categoria', ''),
+            durata=data.get('durata', ''),
+            quantita_acqua=data.get('quantita_acqua', ''),
+            pericolo_persone=data.get('pericolo_persone', ''),
+            pericolo_strada=data.get('pericolo_strada', ''),
+            pericolo_edifici=data.get('pericolo_edifici', ''),
+            estratti_confidenza=data.get('estratti_confidenza', {}),
             layer=geo_data.tracciato.layer if geo_data.tracciato else None,
             id_placemark=geo_data.tracciato.id_placemark if geo_data.tracciato else None,
             nome_tracciato=geo_data.tracciato.nome if geo_data.tracciato else "",
