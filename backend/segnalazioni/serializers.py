@@ -80,15 +80,22 @@ class DuplicatoCollegatoSerializer(serializers.ModelSerializer):
 
     def get_foto(self, obj):
         request = self.context.get("request")
-        return [request.build_absolute_uri(f.immagine.url) if request else f.immagine.url for f in obj.foto.all()]
+        return [
+            request.build_absolute_uri(f.immagine.url) if request else f.immagine.url
+            for f in obj.foto.all()
+        ]
+
 
 class OperatoreRiferimentoSerializer(serializers.ModelSerializer):
     nome_completo = serializers.SerializerMethodField()
+
     class Meta:
         model = Segnalazione.operatore_riferimento.field.related_model
         fields = ["id", "nome_completo"]
+
     def get_nome_completo(self, obj):
         return f"{obj.first_name} {obj.last_name}".strip() or obj.username
+
 
 class SegnalazioneDetailSerializer(serializers.ModelSerializer):
     registro = EventoSerializer(source="timeline", many=True, read_only=True)
@@ -140,7 +147,10 @@ class SegnalazioneDetailSerializer(serializers.ModelSerializer):
 
     def get_foto(self, obj):
         request = self.context.get("request")
-        return [request.build_absolute_uri(f.immagine.url) if request else f.immagine.url for f in obj.foto.all()]
+        return [
+            request.build_absolute_uri(f.immagine.url) if request else f.immagine.url
+            for f in obj.foto.all()
+        ]
 
 
 class SegnalazioneUpdateSerializer(serializers.ModelSerializer):
