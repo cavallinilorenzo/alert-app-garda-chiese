@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { api, clearTokens } from './api';
 import { Map } from './Map';
+import { SchedaSegnalazione } from './SchedaSegnalazione';
 
 export function Dashboard({ onLogout }: { onLogout: () => void }) {
   const [segnalazioni, setSegnalazioni] = useState<any[]>([]);
@@ -99,9 +100,8 @@ export function Dashboard({ onLogout }: { onLogout: () => void }) {
 
       {/* Segnaposto Scheda */}
       {selectedId && (
-        <div style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: '400px', background: theme === 'dark' ? '#1e1e1e' : '#fff', boxShadow: '-2px 0 5px rgba(0,0,0,0.1)', padding: '1rem', display: 'flex', flexDirection: 'column' }}>
-          <h2>Scheda Segnalazione #{selectedId}</h2>
-          <button onClick={() => setSelectedId(null)} style={{ marginTop: 'auto', padding: '0.5rem' }}>Chiudi</button>
+        <div style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: '500px', background: theme === 'dark' ? '#1e1e1e' : '#fff', boxShadow: '-2px 0 5px rgba(0,0,0,0.1)', display: 'flex' }}>
+          <SchedaSegnalazione id={selectedId} onClose={() => setSelectedId(null)} />
         </div>
       )}
     </div>
