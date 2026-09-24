@@ -5,7 +5,7 @@
 // - dalla Mappa la mappa vola sul pallino e si trasforma nella mappa della scheda (View Transitions API, dove c'è)
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { flushSync } from 'react-dom'
-import { Avatar, Icona, Mappa, Pallino, Simbolo, titoloNome } from './comuni'
+import { Avatar, Icona, Mappa, Pallino, titoloNome } from './comuni'
 import { usePortale } from './dati'
 import {
   FILTRI_INIZIALI,
@@ -71,13 +71,6 @@ function Menu({ pagina, setPagina, nuove, tema, setTema, operatore, onEsci }: Pr
   )
   return (
     <nav className={`menu ${compresso ? 'compresso' : ''}`}>
-      <div className="menu-marchio">
-        <Simbolo />
-        <span className="testo">
-          <strong>Garda Chiese</strong>
-          <small>Portale operatore</small>
-        </span>
-      </div>
       <div className="menu-utente-box">
         <button className="menu-utente" onClick={() => setUtente(!utente)}>
           <Avatar nome={operatore?.nome_completo ?? 'Operatore'} accento />

@@ -148,12 +148,6 @@ button:active:not(:disabled) { transform: scale(.97); }
 /* ---------- menu laterale flottante */
 .menu { width: 248px; flex: none; display: flex; flex-direction: column; gap: 2px; padding: 12px 10px; background: var(--superficie-2); border: 1px solid var(--linea); border-radius: 16px; box-shadow: var(--ombra); transition: width .3s var(--ease); overflow: hidden; }
 .menu .testo { white-space: nowrap; transition: opacity .2s; }
-.menu-marchio { display: flex; align-items: center; gap: 10px; padding: 4px 8px 12px; margin-bottom: 6px; border-bottom: 1px solid var(--linea); white-space: nowrap; }
-.menu-marchio .simbolo { width: 30px; height: auto; flex: none; }
-.menu-marchio .testo { display: flex; flex-direction: column; line-height: 1.2; }
-.menu-marchio strong { font-size: 15px; letter-spacing: -.01em; }
-.menu-marchio small { font-size: 12px; color: var(--testo-3); }
-.menu.compresso .menu-marchio { padding-left: 7px; padding-right: 0; }
 .menu-utente-box { position: relative; margin-bottom: 6px; }
 .menu-utente { display: flex; align-items: center; gap: 10px; width: 100%; background: none; border: 0; border-radius: 10px; padding: 6px; text-align: left; font-weight: 600; }
 .menu-utente:hover { background: var(--superficie-3); }
