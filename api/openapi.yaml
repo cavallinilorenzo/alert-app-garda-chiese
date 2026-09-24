@@ -1,0 +1,370 @@
+openapi: 3.1.0
+info:
+  title: Hack4Water Alert - Consorzio di bonifica Garda Chiese
+  version: 1.0.0
+  description: API per l'App di segnalazione (pubblica) e il Portale operatore (privato).
+servers:
+  - url: /api
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    Error:
+      type: object
+      required:
+        - code
+        - message
+        - fields
+      properties:
+        code:
+          type: string
+          example: fuori_perimetro
+        message:
+          type: string
+          example: "Il punto indicato è troppo distante dal reticolo consortile."
+        fields:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+
+    SegnalazioneStatoPubblico:
+      type: object
+      required:
+        - stato_corrente
+        - is_duplicato
+        - timeline
+      properties:
+        stato_corrente:
+          type: string
+          enum: [ricevuta, in_verifica, assegnata, in_intervento, chiusa, risolta]
+        is_duplicato:
+          type: boolean
+        messaggio_al_segnalante:
+          type: string
+        timeline:
+          type: array
+          items:
+            type: object
+            properties:
+              stato:
+                type: string
+              data:
+                type: string
+                format: date-time
+
+paths:
+  /perimetro/check:
+    post:
+      summary: Controllo perimetro (App)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [lat, lng]
+              properties:
+                lat:
+                  type: number
+                lng:
+                  type: number
+      responses:
+        '200':
+          description: Esito del controllo
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [accettato, distanza_m, messaggio]
+                properties:
+                  accettato:
+                    type: boolean
+                  distanza_m:
+                    type: number
+                  zona_id:
+                    type: integer
+                  messaggio:
+                    type: string
+              examples:
+                accettato:
+                  value:
+                    accettato: true
+                    distanza_m: 12.5
+                    zona_id: 4
+                    messaggio: "Punto valido."
+
+  /estrazione/vocale:
+    post:
+      summary: Estrazione strutturata da audio (App)
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [audio]
+              properties:
+                audio:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Dati estratti
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [transcript, campi, mancanti]
+                properties:
+                  transcript:
+                    type: string
+                  campi:
+                    type: object
+                  mancanti:
+                    type: array
+                    items:
+                      type: string
+              examples:
+                success:
+                  value:
+                    transcript: "C'è un canale rotto"
+                    campi:
+                      categoria: "canale"
+                    mancanti: ["tipo_danno"]
+
+  /segnalazioni:
+    post:
+      summary: Invio della segnalazione (App)
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [lat, lng, foto, descrizione, cellulare]
+              properties:
+                lat:
+                  type: number
+                lng:
+                  type: number
+                foto:
+                  type: string
+                  format: binary
+                descrizione:
+                  type: string
+                  minLength: 10
+                  maxLength: 500
+                cellulare:
+                  type: string
+                transcript_ai:
+                  type: string
+      responses:
+        '201':
+          description: Segnalazione creata
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [id, codice_pratica, token_stato, priorita, pericolo_immediato]
+                properties:
+                  id:
+                    type: integer
+                  codice_pratica:
+                    type: string
+                  token_stato:
+                    type: string
+                  priorita:
+                    type: string
+                  pericolo_immediato:
+                    type: boolean
+              examples:
+                success:
+                  value:
+                    id: 123
+                    codice_pratica: "GCH-4B29"
+                    token_stato: "550e8400-e29b-41d4-a716-446655440000"
+                    priorita: "alta"
+                    pericolo_immediato: false
+        '400':
+          description: Errore validazione o fuori perimetro
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                fuori_perimetro:
+                  value:
+                    code: "fuori_perimetro"
+                    message: "Il punto indicato è fuori dal perimetro."
+                    fields: {}
+
+    get:
+      summary: Lista segnalazioni (Portale operatore)
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Lista paginata
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      type: object
+                  total:
+                    type: integer
+              examples:
+                success:
+                  value:
+                    items: []
+                    total: 0
+
+  /segnalazioni/stato/{token}:
+    get:
+      summary: Pagina di stato pubblica (App/Web)
+      parameters:
+        - name: token
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Stato per il segnalante
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SegnalazioneStatoPubblico'
+              examples:
+                success:
+                  value:
+                    stato_corrente: "ricevuta"
+                    is_duplicato: false
+                    timeline:
+                      - stato: "ricevuta"
+                        data: "2026-09-24T10:00:00Z"
+
+  /auth/token/:
+    post:
+      summary: Login (Portale operatore)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [username, password]
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Tokens JWT
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [access, refresh]
+                properties:
+                  access:
+                    type: string
+                  refresh:
+                    type: string
+              examples:
+                success:
+                  value:
+                    access: "eyJ..."
+                    refresh: "eyJ..."
+
+  /auth/token/refresh/:
+    post:
+      summary: Refresh del token (Portale operatore)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [refresh]
+              properties:
+                refresh:
+                  type: string
+      responses:
+        '200':
+          description: Nuovo Access Token
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [access]
+                properties:
+                  access:
+                    type: string
+              examples:
+                success:
+                  value:
+                    access: "eyJ..."
+                    
+  /auth/me/:
+    get:
+      summary: Info operatore corrente (Portale operatore)
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Operatore loggato
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [id, nome_completo]
+                properties:
+                  id:
+                    type: integer
+                  nome_completo:
+                    type: string
+              examples:
+                success:
+                  value:
+                    id: 1
+                    nome_completo: "Mario Rossi"
+
+  /auth/logout/:
+    post:
+      summary: Logout con blacklist (Portale operatore)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [refresh]
+              properties:
+                refresh:
+                  type: string
+      responses:
+        '200':
+          description: Logout effettuato
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+              examples:
+                success:
+                  value:
+                    success: true
