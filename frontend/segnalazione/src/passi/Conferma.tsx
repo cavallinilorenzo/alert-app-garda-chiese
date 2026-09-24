@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useBozza } from '../bozza'
-import { Icona, NUMERO_EMERGENZA } from '../comuni'
+import { Icona, NUMERO_VERDE, TEL_NUMERO_VERDE } from '../comuni'
 import { Schermata } from '../procedura'
 import { linkStato } from '../stato'
 
@@ -49,11 +49,11 @@ export function Conferma() {
         {ricevuta.pericolo_immediato && (
           <div className="card rossa" role="alert">
             <p>
-              <strong>Hai indicato un pericolo.</strong> Se qualcuno è in pericolo adesso, chiama il numero unico di
-              emergenza: il Consorzio non è un servizio di pronto intervento.
+              <strong>Hai indicato un pericolo.</strong> Se qualcuno è in pericolo adesso, chiama subito il numero verde
+              emergenze del Consorzio: non aspettare che la segnalazione venga presa in carico.
             </p>
-            <a className="btn rosso" href={`tel:${NUMERO_EMERGENZA}`}>
-              <Icona n="call" piena /> Chiama il {NUMERO_EMERGENZA}
+            <a className="btn rosso" href={TEL_NUMERO_VERDE}>
+              <Icona n="call" piena /> Chiama {NUMERO_VERDE}
             </a>
           </div>
         )}

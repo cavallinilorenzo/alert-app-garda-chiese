@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { api } from 'shared/api'
+import simbolo from 'shared/marchio/simbolo.png'
 import { COLORI, LIVELLI, NOME_LIVELLO, NOME_STATO, eta, titolo, type Priorita, type Segnalazione } from './dominio'
 
 /** Nome dell'icona da https://fonts.google.com/icons */
@@ -11,6 +12,9 @@ export const Icona = ({ nome, piena, className = '' }: { nome: string; piena?: b
     {nome}
   </span>
 )
+
+/** Simbolo del Consorzio Garda Chiese. */
+export const Simbolo = ({ className = '' }: { className?: string }) => <img className={`simbolo ${className}`} src={simbolo} alt="" />
 
 // I nomi nei KML sono in maiuscolo: "HALIUC & GORRIERI" → "Haliuc & Gorrieri".
 export const titoloNome = (n: string) => n.toLowerCase().replace(/(^|[\s&'])(\p{L})/gu, (_, a: string, b: string) => a + b.toUpperCase())
@@ -59,8 +63,8 @@ type Strato = 'zona_acquaiolo' | 'reticolo_principale' | 'canale' | 'condotta'
 
 const STRATI: Record<Strato, { nome: string; stile: L.PathOptions }> = {
   zona_acquaiolo: { nome: 'Zone acquaiolo', stile: { color: '#777', weight: 1, dashArray: '4 4', fillOpacity: 0.03 } },
-  reticolo_principale: { nome: 'Reticolo principale', stile: { color: '#0a5c5c', weight: 3, opacity: 0.7 } },
-  canale: { nome: 'Canali', stile: { color: '#1f77d0', weight: 2, opacity: 0.7 } },
+  reticolo_principale: { nome: 'Reticolo principale', stile: { color: '#005a8c', weight: 3, opacity: 0.7 } },
+  canale: { nome: 'Canali', stile: { color: '#00a3e8', weight: 2, opacity: 0.7 } },
   condotta: { nome: 'Condotte', stile: { color: '#8e44ad', weight: 1.2, dashArray: '5 4', opacity: 0.4 } },
 }
 

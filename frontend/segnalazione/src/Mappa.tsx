@@ -12,9 +12,9 @@ const LAYER_RETICOLO = ['reticolo_principale', 'canale', 'condotta'] as const
 type LayerReticolo = (typeof LAYER_RETICOLO)[number]
 
 const STILE: Record<LayerReticolo, L.PathOptions> = {
-  reticolo_principale: { color: '#0b4f8a', weight: 3, opacity: 0.8 },
-  canale: { color: '#2f7fc1', weight: 2, opacity: 0.8 },
-  condotta: { color: '#2f7fc1', weight: 2, opacity: 0.8, dashArray: '4 5' },
+  reticolo_principale: { color: '#005a8c', weight: 3, opacity: 0.8 },
+  canale: { color: '#00a3e8', weight: 2, opacity: 0.8 },
+  condotta: { color: '#00a3e8', weight: 2, opacity: 0.8, dashArray: '4 5' },
 }
 
 // Un solo download per sessione: tornare sul passo non rifà le chiamate.

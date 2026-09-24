@@ -5,7 +5,8 @@
   "exports": {
     "./api": "./src/api/client.ts",
     "./ProvaCollegamento": "./src/ProvaCollegamento.tsx",
-    "./vite": "./vite.ts"
+    "./vite": "./vite.ts",
+    "./marchio/*": "./marchio/*"
   },
   "dependencies": {
     "openapi-fetch": "^0.17.0"

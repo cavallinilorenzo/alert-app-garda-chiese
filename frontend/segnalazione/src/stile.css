@@ -1,13 +1,17 @@
 /* App di segnalazione: sobria, istituzionale, leggibile da 14 a 80 anni.
-   Testo base 17px, bersagli ≥ 56px, contrasto AA, un solo colore d'accento (ticket #9, variante A). */
+   Testo base 17px, bersagli ≥ 56px, contrasto AA, un solo colore d'accento (ticket #9, variante A).
+   Colori del marchio Garda Chiese (ticket #89): l'azzurro del logo per la grafica, una sua versione
+   più scura per bottoni e testi (l'azzurro pieno col bianco non arriva al contrasto AA). */
 :root {
-  --primario: #0b4f8a;
-  --primario-scuro: #083b68;
-  --primario-tenue: #e8f0f8;
-  --testo: #16202b;
+  --azzurro: #00a3e8;
+  --notte: #002840;
+  --primario: #0075b3;
+  --primario-scuro: #005a8c;
+  --primario-tenue: #e6f6fd;
+  --testo: #1c252c;
   --testo-2: #4a5663;
-  --bordo: #d5dce3;
-  --sfondo: #f3f5f7;
+  --bordo: #d3dde5;
+  --sfondo: #f2f6f9;
   --superficie: #ffffff;
   --verde: #17703a;
   --verde-tenue: #e6f3ea;
@@ -22,7 +26,7 @@ body {
   margin: 0;
   background: var(--sfondo);
   color: var(--testo);
-  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', 'Segoe UI', Roboto, Arial, sans-serif;
   font-size: 17px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
@@ -56,8 +60,8 @@ a { color: var(--primario); font-weight: 600; }
   min-height: 60px; padding: 8px 12px; padding-top: calc(8px + env(safe-area-inset-top));
   background: var(--superficie); border-bottom: 1px solid var(--bordo);
 }
-.logo { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 10px; background: var(--primario); color: #fff; }
-.logo .msym { font-size: 22px; }
+.logo { display: block; height: 40px; width: auto; flex-shrink: 0; }
+.logo-esteso { display: block; height: 40px; width: auto; max-width: 100%; }
 .icona-btn { display: grid; place-items: center; width: 44px; height: 44px; border: 0; border-radius: 50%; background: transparent; color: var(--primario); }
 .icona-btn:active { background: var(--primario-tenue); }
 .barra-testo { display: flex; flex-direction: column; line-height: 1.25; }
@@ -68,12 +72,12 @@ a { color: var(--primario); font-weight: 600; }
 .avanzamento { padding: 12px 20px 4px; max-width: 560px; width: 100%; margin: 0 auto; }
 .avanzamento-segmenti { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
 .avanzamento-segmenti span { height: 5px; border-radius: 3px; background: var(--bordo); transition: background .25s; }
-.avanzamento-segmenti span.fatto { background: var(--primario); }
+.avanzamento-segmenti span.fatto { background: var(--azzurro); }
 .avanzamento-testo { display: block; margin-top: 8px; font-size: 14px; font-weight: 600; color: var(--testo-2); }
 
 /* Corpo */
 .corpo { flex: 1; width: 100%; max-width: 560px; margin: 0 auto; padding: 12px 20px 200px; }
-.corpo h1 { font-size: 26px; line-height: 1.2; font-weight: 700; letter-spacing: -0.01em; margin: 8px 0; }
+.corpo h1 { font-size: 26px; line-height: 1.2; font-weight: 700; letter-spacing: -0.01em; margin: 8px 0; color: var(--notte); }
 .lead { font-size: 17px; color: var(--testo-2); margin: 0 0 20px; }
 .nota { display: flex; gap: 8px; align-items: flex-start; font-size: 15px; color: var(--testo-2); margin: 12px 0; }
 .nota .msym { font-size: 20px; margin-top: 1px; }
@@ -137,7 +141,7 @@ a { color: var(--primario); font-weight: 600; }
 .riga-icona { display: inline-grid; place-items: center; width: 40px; height: 40px; border-radius: 10px; background: var(--primario-tenue); color: var(--primario); flex-shrink: 0; }
 .riga-icona.forte { background: var(--primario); color: #fff; }
 .avviso-emergenza { display: flex; align-items: center; gap: 8px; margin-top: 20px; padding: 12px 14px; border-radius: 12px; background: var(--rosso-tenue); color: var(--rosso); font-size: 15px; }
-.avviso-emergenza a { color: var(--rosso); }
+.avviso-emergenza a { color: var(--rosso); white-space: nowrap; }
 
 /* Posizione. isolation tiene gli z-index di Leaflet dentro la mappa, sotto barra e azioni. */
 .mappa-box { position: relative; isolation: isolate; border-radius: var(--raggio); overflow: hidden; border: 1px solid var(--bordo); }
@@ -163,7 +167,7 @@ a { color: var(--primario); font-weight: 600; }
 .azione-nota { font-size: 14px; color: var(--testo-2); text-align: center; margin: 0 0 6px; }
 
 /* Foto */
-.scatta { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; width: 100%; min-height: 240px; border: 2px dashed #9fb3c8; border-radius: var(--raggio); background: var(--superficie); color: var(--primario); font-size: 18px; }
+.scatta { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; width: 100%; min-height: 240px; border: 2px dashed #8ccbeb; border-radius: var(--raggio); background: var(--superficie); color: var(--primario); font-size: 18px; }
 .scatta .msym { font-size: 56px; }
 .foto img { display: block; width: 100%; max-height: 52vh; object-fit: cover; border-radius: var(--raggio); margin-bottom: 12px; }
 
@@ -203,7 +207,7 @@ a { color: var(--primario); font-weight: 600; }
 .temi li { display: flex; align-items: flex-start; gap: 12px; padding: 5px 0; font-size: 18px; }
 .temi .msym { color: var(--primario); font-size: 22px; margin-top: 2px; }
 .registratore { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 20px 0 8px; text-align: center; }
-.microfono { display: grid; place-items: center; width: 112px; height: 112px; border-radius: 50%; border: 0; background: var(--primario); color: #fff; box-shadow: 0 6px 18px rgba(11,79,138,.35); transition: transform .1s; }
+.microfono { display: grid; place-items: center; width: 112px; height: 112px; border-radius: 50%; border: 0; background: var(--primario); color: #fff; box-shadow: 0 6px 18px rgba(0,117,179,.35); transition: transform .1s; }
 .microfono:active { transform: scale(.96); }
 .microfono .msym { font-size: 52px; }
 .microfono.ascolto { background: var(--rosso); box-shadow: 0 0 0 0 rgba(180,35,24,.45); animation: pulsa 1.6s infinite; }
@@ -224,10 +228,10 @@ a { color: var(--primario); font-weight: 600; }
 .capito-valore { flex: 1; min-width: 0; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .capito-correzione { padding: 4px 14px 14px; }
 
-/* Finestra del 112, sopra barra e azioni */
+/* Finestra del numero verde, sopra barra e azioni */
 .velo { position: fixed; inset: 0; z-index: 1500; display: flex; align-items: flex-end; justify-content: center; background: rgba(16,24,32,.55); }
 .dialogo { width: 100%; max-width: 560px; padding: 28px 20px calc(24px + env(safe-area-inset-bottom)); background: var(--superficie); border-radius: 20px 20px 0 0; text-align: center; }
-.dialogo h2 { font-size: 22px; margin: 14px 0 8px; }
+.dialogo h2 { font-size: 22px; margin: 14px 0 8px; color: var(--notte); }
 .dialogo p { color: var(--testo-2); margin: 0 0 20px; }
 .dialogo .btn + .btn { margin-top: 8px; }
 

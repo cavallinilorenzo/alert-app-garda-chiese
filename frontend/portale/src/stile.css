@@ -1,5 +1,7 @@
 /* Portale operatore, desktop (layout del ticket #10). Tema chiaro e scuro con variabili; icone Material Symbols Rounded.
-   Regola: niente spazi vuoti se non come separatori di importanza. */
+   Regola: niente spazi vuoti se non come separatori di importanza.
+   Colori del marchio Garda Chiese (ticket #89): azzurro del logo; nel tema chiaro una sua versione più scura
+   per bottoni e testi, perché l'azzurro pieno col bianco non arriva al contrasto AA. */
 
 :root, :root[data-tema='chiaro'] {
   --fondo: #f3f4f6;
@@ -8,14 +10,16 @@
   --superficie-3: #eef0f3;
   --linea: #e4e7eb;
   --linea-2: #eff1f4;
-  --testo: #111827;
+  --testo: #1c252c;
   --testo-2: #4b5563;
   --testo-3: #8a93a1;
-  --accento: #0b5394;
-  --accento-hover: #094680;
-  --accento-testo: #0b5394;
-  --accento-chiaro: #eaf2fb;
-  --accento-bordo: #bcd4ee;
+  --marchio: #00a3e8;
+  --accento: #0075b3;
+  --accento-hover: #005f93;
+  --accento-testo: #0075b3;
+  --accento-su: #ffffff;
+  --accento-chiaro: #e6f6fd;
+  --accento-bordo: #b3e1f6;
   --pericolo: #c0162c;
   --pericolo-fondo: #fdecee;
   --pericolo-bordo: #f6c3ca;
@@ -28,7 +32,7 @@
   --ombra-alta: 0 12px 32px #00000026;
   --st-0: #fdeceb; --st-0-t: #9f1d20;
   --st-1: #fef3e2; --st-1-t: #8a4b00;
-  --st-2: #e8f0fd; --st-2-t: #1c4f9c;
+  --st-2: #e6f6fd; --st-2-t: #005a8c;
   --st-3: #e7f6ec; --st-3-t: #1e6b3a;
   --st-4: #f0f1f3; --st-4-t: #5b6472;
   --filtro-mappa: none;
@@ -44,11 +48,13 @@
   --testo: #e7e9ee;
   --testo-2: #b3b9c5;
   --testo-3: #7f8897;
-  --accento: #3b82f6;
-  --accento-hover: #2f6fd6;
-  --accento-testo: #7cb0ff;
-  --accento-chiaro: #1a2638;
-  --accento-bordo: #2b4468;
+  --marchio: #00a3e8;
+  --accento: #00a3e8;
+  --accento-hover: #33b5ed;
+  --accento-testo: #5cc8f5;
+  --accento-su: #00151f;
+  --accento-chiaro: #0b2433;
+  --accento-bordo: #15496a;
   --pericolo: #ff5d6c;
   --pericolo-fondo: #35161c;
   --pericolo-bordo: #5c2029;
@@ -61,7 +67,7 @@
   --ombra-alta: 0 12px 32px #0009;
   --st-0: #3a1a1c; --st-0-t: #ff9f9f;
   --st-1: #372812; --st-1-t: #f5c26b;
-  --st-2: #182a44; --st-2-t: #8fb8ff;
+  --st-2: #0c2a3a; --st-2-t: #7fd0f5;
   --st-3: #16301f; --st-3-t: #7fd79b;
   --st-4: #232834; --st-4-t: #a3abb8;
   --filtro-mappa: invert(1) hue-rotate(180deg) brightness(.92) contrast(.88) saturate(.6);
@@ -70,7 +76,7 @@
 
 :root {
   --ease: cubic-bezier(.22, 1, .36, 1);
-  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', system-ui, 'Segoe UI', Roboto, sans-serif;
   font-size: 14px;
   line-height: 1.4;
   color: var(--testo);
@@ -98,7 +104,7 @@ button:active:not(:disabled) { transform: scale(.97); }
 .btn:hover:not(:disabled) { border-color: var(--testo-3); }
 .btn .icona { font-size: 18px; }
 .btn.attivo { border-color: var(--accento); color: var(--accento-testo); }
-.btn-primario { background: var(--accento); border-color: var(--accento); color: #fff; }
+.btn-primario { background: var(--accento); border-color: var(--accento); color: var(--accento-su); }
 .btn-primario:hover:not(:disabled) { background: var(--accento-hover); border-color: var(--accento-hover); }
 .btn-chiama { background: var(--verde); border-color: var(--verde); color: #fff; }
 .btn-chiama:hover { filter: brightness(1.08); border-color: var(--verde) !important; }
@@ -112,7 +118,7 @@ button:active:not(:disabled) { transform: scale(.97); }
 /* ---------- avatar */
 .avatar { width: 36px; height: 36px; border-radius: 50%; display: inline-grid; place-items: center; flex: none; background: var(--accento-chiaro); color: var(--accento-testo); font-weight: 700; font-size: 13px; letter-spacing: .02em; }
 .avatar.piccolo { width: 26px; height: 26px; font-size: 10.5px; }
-.avatar.accento { background: var(--accento); color: #fff; }
+.avatar.accento { background: var(--accento); color: var(--accento-su); }
 .avatar.vuoto { background: transparent; border: 1.5px dashed var(--linea); color: var(--testo-3); }
 .avatar.vuoto .icona { font-size: 16px; }
 .avatar.piccolo.vuoto .icona { font-size: 14px; }
@@ -155,7 +161,7 @@ button:active:not(:disabled) { transform: scale(.97); }
 .voce .icona { font-size: 21px; }
 .voce .testo { flex: 1; }
 .voce.on { background: var(--superficie); border-color: var(--accento-bordo); color: var(--testo); box-shadow: var(--ombra); }
-.voce.on::before { content: ''; position: absolute; left: -11px; top: 8px; bottom: 8px; width: 3px; border-radius: 0 3px 3px 0; background: var(--accento); }
+.voce.on::before { content: ''; position: absolute; left: -11px; top: 8px; bottom: 8px; width: 3px; border-radius: 0 3px 3px 0; background: var(--marchio); }
 .voce .icona { color: inherit; }
 .voce.on .icona { color: var(--accento-testo); }
 .badge { background: var(--pericolo); color: #fff; font-size: 11px; font-weight: 700; border-radius: 10px; padding: 1px 7px; }
@@ -247,7 +253,7 @@ button:active:not(:disabled) { transform: scale(.97); }
 .traccia::after { content: ''; position: absolute; inset: 0 auto 0 0; width: calc(var(--p) * 100%); background: var(--accento); transition: width .6s var(--ease); }
 .passo { position: relative; display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 12.5px; color: var(--testo-3); }
 .nodo { width: 20px; height: 20px; border-radius: 50%; background: var(--superficie); border: 2px solid var(--linea); display: grid; place-items: center; transition: background .3s, border-color .3s, box-shadow .3s; }
-.nodo .icona { font-size: 14px; color: #fff; font-variation-settings: 'wght' 700; }
+.nodo .icona { font-size: 14px; color: var(--accento-su); font-variation-settings: 'wght' 700; }
 .passo.fatto .nodo { background: var(--accento); border-color: var(--accento); }
 .passo.fatto { color: var(--testo-2); }
 .passo.qui .nodo { border-color: var(--accento); box-shadow: 0 0 0 4px color-mix(in srgb, var(--accento) 22%, transparent); }
@@ -375,7 +381,6 @@ button:active:not(:disabled) { transform: scale(.97); }
 .login-marchio > div { display: flex; flex-direction: column; }
 .login-marchio strong { font-size: 17px; }
 .login-marchio .muto { font-size: 12.5px; }
-.login-logo { width: 42px; height: 42px; border-radius: 12px; display: grid; place-items: center; background: var(--accento); color: #fff; }
-.login-logo .icona { font-size: 24px; }
+.login-logo { width: 42px; height: auto; flex: none; }
 .login-errore { display: flex; align-items: center; gap: 8px; background: var(--pericolo-fondo); color: var(--pericolo-testo); border: 1px solid var(--pericolo-bordo); border-radius: 8px; padding: 8px 10px; font-size: 13px; }
 .login-errore .icona { font-size: 18px; color: var(--pericolo); }

@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react'
-import { Icona } from './comuni'
+import { Icona, Logo, Simbolo } from './comuni'
 
 // Procedura guidata dell'App di segnalazione (variante A del ticket #9): una cosa per
 // schermata, barra di avanzamento a 5 passi, azione principale fissa in basso.
@@ -97,14 +97,16 @@ export function Schermata({ titolo, sotto, azione, onIndietro, children }: Props
             <Icona n="arrow_back" />
           </button>
         ) : (
-          <span className="logo">
-            <Icona n="water_drop" piena />
-          </span>
+          dentroLaProcedura && <Simbolo />
         )}
-        <div className="barra-testo">
-          <strong>{dentroLaProcedura ? 'Nuova segnalazione' : 'Consorzio di bonifica Garda Chiese'}</strong>
-          {dentroLaProcedura && <span>Consorzio di bonifica Garda Chiese</span>}
-        </div>
+        {dentroLaProcedura ? (
+          <div className="barra-testo">
+            <strong>Nuova segnalazione</strong>
+            <span>Consorzio di bonifica Garda Chiese</span>
+          </div>
+        ) : (
+          <Logo />
+        )}
       </header>
       {indice >= 0 && (
         <div className="avanzamento" aria-label={`Passo ${indice + 1} di ${NUMERATI.length}`}>
