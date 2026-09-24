@@ -1,3 +1,4 @@
+from django.conf import settings
 from rest_framework import generics, status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
@@ -7,8 +8,12 @@ from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer, TokenRefreshSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from accounts.models import Acquaiolo
-from accounts.serializers import AcquaioloSerializer, OperatoreSerializer
+from accounts.models import Acquaiolo, SottoscrizionePush
+from accounts.serializers import (
+    AcquaioloSerializer,
+    OperatoreSerializer,
+    SottoscrizionePushSerializer,
+)
 
 
 class TokenView(simplejwt_views.TokenObtainPairView):
@@ -54,6 +59,27 @@ class LogoutView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
         return Response({"success": True})
+
+
+class PushSubscriptionView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        return Response({"public_key": settings.VAPID_PUBLIC_KEY})
+
+    def post(self, request):
+        serializer = SottoscrizionePushSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        SottoscrizionePush.objects.update_or_create(
+            endpoint=serializer.validated_data["endpoint"],
+            defaults={"operatore": request.user, **serializer.validated_data},
+        )
+        return Response({"success": True}, status=status.HTTP_201_CREATED)
+
+    def delete(self, request):
+        endpoint = request.data.get("endpoint")
+        SottoscrizionePush.objects.filter(operatore=request.user, endpoint=endpoint).delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class AcquaioloListCreateView(generics.ListCreateAPIView):

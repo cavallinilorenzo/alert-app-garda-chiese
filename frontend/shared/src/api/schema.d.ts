@@ -673,6 +673,25 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/auth/push-subscription": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Chiave pubblica per le notifiche push */
+        get: operations["chiavePush"];
+        put?: never;
+        /** Registra il dispositivo dell'operatore per le notifiche push */
+        post: operations["registraPush"];
+        /** Disattiva le notifiche push sul dispositivo corrente */
+        delete: operations["eliminaPush"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/acquaioli": {
         parameters: {
             query?: never;
@@ -1109,6 +1128,82 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["Error"];
                 };
+            };
+        };
+    };
+    chiavePush: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Configurazione push */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        public_key: string;
+                    };
+                };
+            };
+        };
+    };
+    registraPush: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    endpoint: string;
+                    p256dh: string;
+                    auth: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Dispositivo registrato */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        success: boolean;
+                    };
+                };
+            };
+        };
+    };
+    eliminaPush: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    endpoint: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Dispositivo disattivato */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
