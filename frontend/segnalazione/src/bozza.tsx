@@ -29,6 +29,8 @@ export type Bozza = {
   perimetro: EsitoPerimetro | null
   /** La foto del problema, già ridotta per l'invio. */
   foto: File | null
+  /** I campi visti nella foto da `/estrazione/foto`; vuoto se non si vede niente o non si è potuta controllare. */
+  campiFoto: Campi
   /** Le risposte, dette a voce o scelte a mano. */
   campi: Campi
   /** Risposta di `/estrazione/vocale`; null finché il Segnalante non ha parlato. Si parla una volta sola. */
@@ -44,6 +46,7 @@ const VUOTA: Bozza = {
   posizione: null,
   perimetro: null,
   foto: null,
+  campiFoto: {},
   campi: {},
   estrazione: null,
   cellulare: '',

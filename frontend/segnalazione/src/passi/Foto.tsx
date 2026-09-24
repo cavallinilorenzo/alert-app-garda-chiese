@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import { useBozza } from '../bozza'
 import { Icona, Spinner } from '../comuni'
+import { analizzaFoto, conCampiFoto } from '../foto'
 import { Schermata, useProcedura } from '../procedura'
+import { CATEGORIE } from '../tassonomia'
 
 // Lato lungo massimo della foto inviata. Tiene l'invio sotto il limite di 10 MB di nginx
 // anche su rete mobile, e converte in JPEG i formati che il backend potrebbe non leggere.
@@ -33,7 +35,10 @@ export function Foto() {
   const { bozza, aggiorna } = useBozza()
   const { vai } = useProcedura()
   const input = useRef<HTMLInputElement>(null)
-  const [preparo, setPreparo] = useState(false)
+  // Il messaggio sotto lo spinner mentre la foto si riduce e poi si controlla.
+  const [attesa, setAttesa] = useState<string | null>(null)
+  // Perché l'ultima foto è stata scartata.
+  const [scartata, setScartata] = useState<string | null>(null)
   const [anteprima, setAnteprima] = useState<string | null>(null)
 
   useEffect(() => {
@@ -45,31 +50,57 @@ export function Foto() {
 
   async function scelta(file: File | undefined) {
     if (!file) return
-    setPreparo(true)
-    aggiorna({ foto: await riduci(file) })
-    setPreparo(false)
+    setScartata(null)
+    setAttesa('Preparo la foto…')
+    const foto = await riduci(file)
+    setAttesa('Controllo la foto…')
+    const analisi = await analizzaFoto(foto)
+    setAttesa(null)
+    // Una foto che non c'entra non si tiene: si chiede subito di rifarla.
+    if (analisi && !analisi.pertinente) {
+      aggiorna({ foto: null, campi: conCampiFoto(bozza.campi, bozza.campiFoto, {}), campiFoto: {} })
+      return setScartata(analisi.motivo ?? 'La foto non sembra mostrare il problema.')
+    }
+    const campiFoto = analisi?.campi ?? {}
+    aggiorna({ foto, campi: conCampiFoto(bozza.campi, bozza.campiFoto, campiFoto), campiFoto })
   }
 
   const apriFotocamera = () => input.current?.click()
+  const vista = CATEGORIE.find((c) => c.valore === bozza.campiFoto.categoria)
 
   return (
     <Schermata
       titolo="Scatta una foto del problema"
       sotto="Inquadra il punto da vicino: aiuta il Consorzio a capire cosa serve."
       azione={
-        <button className="btn" disabled={!bozza.foto || preparo} onClick={() => vai('descrizione')}>
+        <button className="btn" disabled={!bozza.foto || !!attesa} onClick={() => vai('descrizione')}>
           Continua
         </button>
       }
     >
-      {preparo ? (
+      {scartata && !attesa && (
+        <div className="banner giallo" role="alert">
+          <Icona n="image_not_supported" />
+          <span>{scartata}</span>
+        </div>
+      )}
+      {attesa ? (
         <div className="centro">
           <Spinner />
-          <p>Preparo la foto…</p>
+          <p>{attesa}</p>
         </div>
       ) : anteprima ? (
         <div className="foto">
           <img src={anteprima} alt="Foto del problema" />
+          {vista && (
+            <p className="nota">
+              <Icona n="photo_camera" />
+              <span>
+                Dalla foto sembra: <strong>{vista.etichetta.toLowerCase()}</strong>. Potrai correggerlo nel passo
+                successivo.
+              </span>
+            </p>
+          )}
           <button className="btn secondario" onClick={apriFotocamera}>
             <Icona n="replay" /> Rifai la foto
           </button>
@@ -77,7 +108,7 @@ export function Foto() {
       ) : (
         <button className="scatta" onClick={apriFotocamera}>
           <Icona n="photo_camera" />
-          <strong>Apri la fotocamera</strong>
+          <strong>{scartata ? 'Scatta un’altra foto' : 'Apri la fotocamera'}</strong>
         </button>
       )}
       <input

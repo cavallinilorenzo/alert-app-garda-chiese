@@ -763,6 +763,121 @@ paths:
                     message: "L'assistente vocale non è disponibile: compila il modulo a mano."
                     fields: {}
 
+  /estrazione/foto:
+    post:
+      summary: Controllo di pertinenza ed estrazione dalla foto (App)
+      description: |
+        L'App lo chiama subito dopo lo scatto. Se la foto non è pertinente al reticolo
+        consortile va scartata e rifatta. Se è pertinente, i `campi` visti nella foto
+        completano quelli che il Segnalante non dice a voce o non sceglie a mano; quello che
+        dice il Segnalante ha sempre la precedenza.
+      security: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [foto]
+              properties:
+                foto:
+                  type: string
+                  format: binary
+                  description: |
+                    La foto del problema, al massimo 10 MB. Formati: `image/jpeg`, `image/png`,
+                    `image/webp`, `image/heic`, `image/heif`.
+      responses:
+        '200':
+          description: |
+            Esito dell'analisi. In `campi` ci sono solo i campi che si vedono con sicurezza
+            nella foto; se la foto non è pertinente `campi` è vuoto e `motivo` spiega al
+            Segnalante cosa fotografare.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [pertinente, motivo, campi]
+                properties:
+                  pertinente:
+                    type: boolean
+                  motivo:
+                    type: [string, "null"]
+                    description: Messaggio per il Segnalante se la foto non è pertinente, altrimenti null.
+                  campi:
+                    type: object
+                    description: |
+                      La durata non si ricava da una foto; un pericolo compare solo quando si
+                      vede (una foto non basta a escluderlo).
+                    properties:
+                      categoria:
+                        type: string
+                        enum: [acqua_che_affiora, canale_che_tracima, argine_danneggiato, ostruzione, paratoia_danneggiata, acqua_sporca, altro]
+                      descrizione:
+                        type: string
+                        maxLength: 500
+                      quantita_acqua:
+                        type: string
+                        enum: [gocce, piccolo_flusso, molta_acqua]
+                      pericolo_strada:
+                        type: string
+                        enum: ["si"]
+                      pericolo_edifici:
+                        type: string
+                        enum: ["si"]
+              examples:
+                pertinente:
+                  value:
+                    pertinente: true
+                    motivo: null
+                    campi:
+                      categoria: "canale_che_tracima"
+                      descrizione: "Il canale è uscito dagli argini e l'acqua copre la strada sterrata"
+                      quantita_acqua: "molta_acqua"
+                      pericolo_strada: "si"
+                non_pertinente:
+                  value:
+                    pertinente: false
+                    motivo: "Nella foto si vede l'interno di una stanza. Fotografa il canale o il punto dove vedi l'acqua."
+                    campi: {}
+        '400':
+          description: Foto mancante, vuota o in un formato non supportato
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                foto_non_valida:
+                  value:
+                    code: "foto_non_valida"
+                    message: "Formato della foto non supportato."
+                    fields:
+                      foto: ["Formato della foto non supportato."]
+        '413':
+          description: Foto oltre i 10 MB
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                foto_troppo_grande:
+                  value:
+                    code: "foto_troppo_grande"
+                    message: "La foto è troppo pesante."
+                    fields:
+                      foto: ["La foto supera i 10 MB."]
+        '503':
+          description: Analisi non disponibile (provider che non risponde o non configurato); l'App tiene la foto senza analisi
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                estrazione_non_disponibile:
+                  value:
+                    code: "estrazione_non_disponibile"
+                    message: "Non riusciamo a controllare la foto in questo momento."
+                    fields: {}
+
   /segnalazioni:
     post:
       summary: Invio della segnalazione (App)

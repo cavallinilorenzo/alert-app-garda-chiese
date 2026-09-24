@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react'
 import { useBozza } from '../bozza'
 import { Icona, Spinner } from '../comuni'
+import { completaConFoto, dallaFoto } from '../foto'
 import { Schermata, useProcedura } from '../procedura'
 import { Controllo, useRisposte } from '../risposte'
 import {
@@ -28,6 +29,7 @@ export function Descrizione() {
 // ---------- Rispondendo alle domande: una domanda per schermata ----------
 
 function Domande() {
+  const { bozza } = useBozza()
   const { vai } = useProcedura()
   const { campi, rispondi, finestra } = useRisposte()
   const [indice, setIndice] = useState(0)
@@ -67,6 +69,12 @@ function Domande() {
         valore={campi[domanda.campo]}
         onChange={(v) => rispondi({ [domanda.campo]: v })}
       />
+      {dallaFoto(campi, bozza.campiFoto, domanda.campo) && (
+        <p className="nota">
+          <Icona n="photo_camera" />
+          <span>Risposta presa dalla foto. Cambiala se non è giusta.</span>
+        </p>
+      )}
       {finestra}
     </Schermata>
   )
@@ -104,7 +112,8 @@ function AVoce() {
     const esito = await estrai(audio)
     setAnalizzo(false)
     if ('errore' in esito) return setProblema(esito.errore)
-    aggiorna({ estrazione: esito.estrazione })
+    // Quello che non ha detto ma si vede nella foto è già nelle risposte, dal passo Foto.
+    aggiorna({ estrazione: completaConFoto(esito.estrazione, bozza.campiFoto) })
     rispondi(esito.estrazione.campi)
   }
 
@@ -208,6 +217,7 @@ const minuti = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2
 // Dopo l'ascolto: i campi capiti chiusi in una riga e correggibili, i mancanti da scegliere a mano.
 // L'estrazione non è iterativa: niente secondo messaggio vocale.
 function Completa({ estrazione }: { estrazione: Estrazione }) {
+  const { bozza } = useBozza()
   const { vai } = useProcedura()
   const { campi, rispondi, finestra } = useRisposte()
   const [inCorrezione, setInCorrezione] = useState<Campo | null>(null)
@@ -232,7 +242,13 @@ function Completa({ estrazione }: { estrazione: Estrazione }) {
         onClick={() => setInCorrezione(inCorrezione === d.campo ? null : d.campo)}
         aria-expanded={inCorrezione === d.campo}
       >
-        <Icona n="check_circle" piena className="verde" />
+        {dallaFoto(campi, bozza.campiFoto, d.campo) ? (
+          <span role="img" aria-label="Dalla foto">
+            <Icona n="photo_camera" piena className="verde" />
+          </span>
+        ) : (
+          <Icona n="check_circle" piena className="verde" />
+        )}
         <span className="capito-etichetta">{d.etichetta}</span>
         <span className="capito-valore">{campi[d.campo] ? etichettaValore(d, campi[d.campo]!) : '—'}</span>
         <Icona n={inCorrezione === d.campo ? 'close' : 'edit'} className="grigio" />

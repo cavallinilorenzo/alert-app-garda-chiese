@@ -5,7 +5,7 @@ import pytest
 from google.genai import errors
 
 from contratti import CampoEstratto, EstrazioneNonDisponibile
-from estrazione.services import EstrattoreGemini, estrattore_predefinito
+from estrazione.services import MOTIVO_PREDEFINITO, EstrattoreGemini, estrattore_predefinito
 
 
 class ClientGeminiFinto:
@@ -90,3 +90,76 @@ def test_senza_chiave_gemini_l_estrazione_non_e_disponibile(settings):
 
     with pytest.raises(EstrazioneNonDisponibile):
         estrattore_predefinito()
+
+
+def risposta_foto(pertinente=True, motivo=None, **campi):
+    return json.dumps({"pertinente": pertinente, "motivo": motivo, "campi": campi})
+
+
+def test_trasforma_l_analisi_di_una_foto_pertinente():
+    client = ClientGeminiFinto(
+        risposta_foto(
+            categoria={"valore": "canale_che_tracima", "confidenza": 0.9},
+            quantita_acqua={"valore": "molta_acqua", "confidenza": 0.8},
+            pericolo_strada={"valore": "si", "confidenza": 0.7},
+            pericolo_edifici={"valore": None, "confidenza": 0},
+        )
+    )
+
+    risultato = EstrattoreGemini(client, "m").analizza_foto(b"\xff\xd8", "image/jpeg")
+
+    assert risultato.pertinente
+    assert risultato.motivo is None
+    assert risultato.campi["categoria"] == CampoEstratto("canale_che_tracima", 0.9)
+    assert risultato.campi["pericolo_strada"] == CampoEstratto("si", 0.7)
+    [richiesta] = client.richieste
+    [foto] = [p for p in richiesta["contents"] if getattr(p, "inline_data", None)]
+    assert foto.inline_data.data == b"\xff\xd8"
+    assert foto.inline_data.mime_type == "image/jpeg"
+
+
+def test_dalla_foto_non_si_ricavano_ne_durata_ne_l_assenza_di_pericolo():
+    client = ClientGeminiFinto(
+        risposta_foto(
+            durata={"valore": "adesso", "confidenza": 1},
+            pericolo_strada={"valore": "no", "confidenza": 0.9},
+            quantita_acqua={"valore": "non_so", "confidenza": 0.9},
+        )
+    )
+
+    risultato = EstrattoreGemini(client, "m").analizza_foto(b"f", "image/jpeg")
+
+    assert "durata" not in risultato.campi
+    assert risultato.campi["pericolo_strada"].valore is None
+    assert risultato.campi["quantita_acqua"].valore is None
+
+
+def test_una_foto_non_pertinente_ha_un_motivo_e_nessun_campo():
+    client = ClientGeminiFinto(
+        risposta_foto(
+            pertinente=False,
+            motivo="Si vede una stanza. Fotografa il canale.",
+            categoria={"valore": "altro", "confidenza": 0.2},
+        )
+    )
+
+    risultato = EstrattoreGemini(client, "m").analizza_foto(b"f", "image/jpeg")
+
+    assert not risultato.pertinente
+    assert risultato.motivo == "Si vede una stanza. Fotografa il canale."
+    assert risultato.campi == {}
+
+
+def test_senza_motivo_una_foto_non_pertinente_ha_quello_predefinito():
+    client = ClientGeminiFinto(risposta_foto(pertinente=False, motivo=" "))
+
+    risultato = EstrattoreGemini(client, "m").analizza_foto(b"f", "image/jpeg")
+
+    assert risultato.motivo == MOTIVO_PREDEFINITO
+
+
+def test_i_guasti_del_provider_sulla_foto_diventano_estrazione_non_disponibile():
+    client = ClientGeminiFinto(json.dumps({"campi": {}}))
+
+    with pytest.raises(EstrazioneNonDisponibile):
+        EstrattoreGemini(client, "m").analizza_foto(b"f", "image/jpeg")

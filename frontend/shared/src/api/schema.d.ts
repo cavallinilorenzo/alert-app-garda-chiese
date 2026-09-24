@@ -178,6 +178,109 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/estrazione/foto": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Controllo di pertinenza ed estrazione dalla foto (App)
+         * @description L'App lo chiama subito dopo lo scatto. Se la foto non è pertinente al reticolo
+         *     consortile va scartata e rifatta. Se è pertinente, i `campi` visti nella foto
+         *     completano quelli che il Segnalante non dice a voce o non sceglie a mano; quello che
+         *     dice il Segnalante ha sempre la precedenza.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "multipart/form-data": {
+                        /**
+                         * Format: binary
+                         * @description La foto del problema, al massimo 10 MB. Formati: `image/jpeg`, `image/png`,
+                         *     `image/webp`, `image/heic`, `image/heif`.
+                         */
+                        foto: string;
+                    };
+                };
+            };
+            responses: {
+                /**
+                 * @description Esito dell'analisi. In `campi` ci sono solo i campi che si vedono con sicurezza
+                 *     nella foto; se la foto non è pertinente `campi` è vuoto e `motivo` spiega al
+                 *     Segnalante cosa fotografare.
+                 */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            pertinente: boolean;
+                            /** @description Messaggio per il Segnalante se la foto non è pertinente, altrimenti null. */
+                            motivo: string | null;
+                            /**
+                             * @description La durata non si ricava da una foto; un pericolo compare solo quando si
+                             *     vede (una foto non basta a escluderlo).
+                             */
+                            campi: {
+                                /** @enum {string} */
+                                categoria?: "acqua_che_affiora" | "canale_che_tracima" | "argine_danneggiato" | "ostruzione" | "paratoia_danneggiata" | "acqua_sporca" | "altro";
+                                descrizione?: string;
+                                /** @enum {string} */
+                                quantita_acqua?: "gocce" | "piccolo_flusso" | "molta_acqua";
+                                /** @enum {string} */
+                                pericolo_strada?: "si";
+                                /** @enum {string} */
+                                pericolo_edifici?: "si";
+                            };
+                        };
+                    };
+                };
+                /** @description Foto mancante, vuota o in un formato non supportato */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Foto oltre i 10 MB */
+                413: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Analisi non disponibile (provider che non risponde o non configurato); l'App tiene la foto senza analisi */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/segnalazioni": {
         parameters: {
             query?: never;
