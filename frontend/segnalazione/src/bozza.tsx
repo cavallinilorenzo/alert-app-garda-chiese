@@ -1,0 +1,53 @@
+import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react'
+import type { paths } from 'shared/api'
+
+// La Segnalazione in corso, condivisa tra i passi della procedura guidata. Vive solo in
+// memoria: si invia alla fine, e i passi successivi aggiungono qui i loro campi.
+
+export type Modalita = 'voce' | 'domande'
+
+export type Posizione = {
+  lat: number
+  lng: number
+  fonte: 'gps' | 'mappa'
+  /** Precisione dichiarata dal GPS, in metri. Solo con fonte `gps`. */
+  precisione_m?: number
+}
+
+export type EsitoPerimetro =
+  paths['/perimetro/check']['post']['responses'][200]['content']['application/json']
+
+export type Bozza = {
+  modalita: Modalita | null
+  posizione: Posizione | null
+  /** Esito di `/perimetro/check` per la posizione attuale; null se il punto non è ancora controllato. */
+  perimetro: EsitoPerimetro | null
+}
+
+const VUOTA: Bozza = { modalita: null, posizione: null, perimetro: null }
+
+type ContestoBozza = { bozza: Bozza; aggiorna: (modifica: Partial<Bozza>) => void }
+
+const Contesto = createContext<ContestoBozza | null>(null)
+
+export function BozzaProvider({ children }: { children: ReactNode }) {
+  const [bozza, setBozza] = useState(VUOTA)
+
+  const aggiorna = useCallback((modifica: Partial<Bozza>) => {
+    setBozza((b) => {
+      const nuova = { ...b, ...modifica }
+      // Un punto spostato va ricontrollato: l'esito vecchio non vale più.
+      if (modifica.posizione && !('perimetro' in modifica)) nuova.perimetro = null
+      return nuova
+    })
+  }, [])
+
+  const valore = useMemo(() => ({ bozza, aggiorna }), [bozza, aggiorna])
+  return <Contesto.Provider value={valore}>{children}</Contesto.Provider>
+}
+
+export function useBozza() {
+  const contesto = useContext(Contesto)
+  if (!contesto) throw new Error('useBozza va usato dentro BozzaProvider')
+  return contesto
+}
