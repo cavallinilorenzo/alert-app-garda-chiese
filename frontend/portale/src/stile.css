@@ -76,6 +76,7 @@
 
 :root {
   --ease: cubic-bezier(.22, 1, .36, 1);
+  --ease-enfasi: cubic-bezier(.2, .8, .2, 1); /* parte decisa e si posa piano, per i movimenti grandi */
   font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', system-ui, 'Segoe UI', Roboto, sans-serif;
   font-size: 14px;
   line-height: 1.4;
@@ -190,10 +191,11 @@ button:active:not(:disabled) { transform: scale(.97); }
 .chips button.on { background: var(--accento-chiaro); border-color: var(--accento-bordo); color: var(--testo); font-weight: 500; }
 
 /* ---------- lista */
-.pagina { animation: dissolvenza .3s var(--ease); }
+.pagina { animation: pagina .4s var(--ease-enfasi); }
 .split { flex: 1; min-height: 0; display: flex; }
 .lista { flex: 1 1 auto; min-width: 0; overflow: auto; padding-bottom: 70px; }
 .lista.compatta { flex: 0 0 380px; border-right: 1px solid var(--linea); }
+.riga > * { min-width: 0; }
 .riga { display: grid; grid-template-columns: 104px minmax(220px, 2.4fr) 140px minmax(170px, 1.4fr) 104px; gap: 14px; align-items: center; width: 100%; text-align: left; background: none; border: 0; border-bottom: 1px solid var(--linea-2); padding: 11px 16px; position: relative; transition: background .15s; }
 .riga::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--accento); transform: scaleY(0); transition: transform .25s var(--ease); }
 .riga:not(.intestazione):hover { background: var(--superficie-2); }
@@ -208,6 +210,8 @@ button:active:not(:disabled) { transform: scale(.97); }
 .cella > span, .taglia { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .titolo-riga { font-weight: 600; display: flex; align-items: center; gap: 8px; min-width: 0; }
 .sotto { font-size: 12.5px; color: var(--testo-3); }
+.stato-cella { align-items: flex-start; gap: 2px; }
+.stato-cella .stato { max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
 .tag-pericolo { flex: none; font-size: 11px; font-weight: 700; color: var(--pericolo); background: var(--pericolo-fondo); border-radius: 4px; padding: 1px 6px; }
 .tempo, .destra { text-align: right; }
 .tempo { font-weight: 500; }
@@ -216,7 +220,7 @@ button:active:not(:disabled) { transform: scale(.97); }
 
 /* ---------- scheda: blocchi che entrano uno dopo l'altro */
 .scheda { flex: 1; min-width: 0; overflow: auto; padding: 18px 20px 80px; display: flex; flex-direction: column; gap: 12px; background: var(--superficie-2); }
-.entra { animation: entra .5s var(--ease) both; animation-delay: calc(var(--i) * 55ms); }
+.entra { animation: entra .6s var(--ease-enfasi) both; animation-delay: calc(60ms + var(--i) * 45ms); }
 .entra.fermo { animation: none; }
 .scheda-testa { display: flex; gap: 16px; align-items: flex-start; }
 .scheda-titolo { flex: 1; min-width: 0; }
@@ -330,11 +334,42 @@ button:active:not(:disabled) { transform: scale(.97); }
 .suggerimento { position: absolute; top: 12px; left: 50%; transform: translateX(-50%); z-index: 1000; display: flex; gap: 6px; align-items: center; background: var(--superficie); border: 1px solid var(--linea); border-radius: 999px; padding: 6px 14px; font-size: 13px; color: var(--testo-2); box-shadow: var(--ombra); }
 .suggerimento .icona { font-size: 17px; }
 
-/* transizione Mappa → scheda: la mappa grande si trasforma nella mappa della scheda */
-.vt-mappa { view-transition-name: mappa-segnalazione; }
-::view-transition-group(mappa-segnalazione) { animation-duration: .55s; animation-timing-function: var(--ease); }
-::view-transition-old(root), ::view-transition-new(root) { animation-duration: .35s; }
-::view-transition-old(mappa-segnalazione), ::view-transition-new(mappa-segnalazione) { height: 100%; object-fit: cover; }
+/* ---------- transizioni (transizioni.ts): <html data-vt> dice quale coreografia è in corso */
+
+/* aprire e chiudere la scheda: la lista si stringe (o si allarga) e la scheda scorre da destra.
+   Il resto della pagina non cambia, quindi niente dissolvenza sulla radice. */
+:root[data-vt='apri'] .lista, :root[data-vt='chiudi'] .lista { view-transition-name: lista; }
+:root[data-vt='apri'] .scheda, :root[data-vt='chiudi'] .scheda { view-transition-name: scheda; }
+:root[data-vt='apri']::view-transition-old(root), :root[data-vt='apri']::view-transition-new(root),
+:root[data-vt='chiudi']::view-transition-old(root), :root[data-vt='chiudi']::view-transition-new(root) { animation: none; }
+::view-transition-group(lista) { animation-duration: .5s; animation-timing-function: var(--ease-enfasi); overflow: clip; }
+/* le due liste restano alla loro misura, ancorate in alto a sinistra: il riquadro le ritaglia, niente testo stirato */
+::view-transition-old(lista), ::view-transition-new(lista) { width: auto; height: auto; inset: 0 auto auto 0; object-fit: none; object-position: left top; }
+::view-transition-old(lista) { animation: vt-sparisci .2s linear both; }
+::view-transition-new(lista) { animation: vt-appari .3s linear .12s both; }
+::view-transition-new(scheda) { animation: vt-scheda-entra .55s var(--ease-enfasi) both; }
+::view-transition-old(scheda) { animation: vt-scheda-esce .3s cubic-bezier(.4, 0, 1, 1) both; }
+
+/* Mappa → scheda: la mappa grande si ritaglia attorno al pallino fino a diventare la mappa della scheda.
+   Stessa posizione e stesso zoom, quindi nessuna scalatura: solo il riquadro che si chiude. */
+:root[data-vt='mappa'] .vt-mappa { view-transition-name: mappa-segnalazione; }
+::view-transition-group(mappa-segnalazione) { animation-duration: .7s; animation-timing-function: var(--ease-enfasi); overflow: clip; }
+::view-transition-old(mappa-segnalazione), ::view-transition-new(mappa-segnalazione) { width: 100%; height: 100%; object-fit: none; object-position: center; }
+::view-transition-old(mappa-segnalazione) { animation: vt-sparisci .45s ease .2s both; }
+::view-transition-new(mappa-segnalazione) { animation: vt-appari .35s ease .15s both; }
+:root[data-vt='mappa']::view-transition-old(root) { animation: vt-sparisci .25s ease both; }
+:root[data-vt='mappa']::view-transition-new(root) { animation: vt-appari .4s ease .15s both; }
+
+/* tema: l'onda è disegnata con clip-path in transizioni.ts; qui solo il colore della cresta tra i due temi */
+:root[data-vt='tema']::view-transition-old(root), :root[data-vt='tema']::view-transition-new(root) { animation: none; mix-blend-mode: normal; }
+:root[data-vt='tema']::view-transition-image-pair(root) { isolation: auto; }
+:root[data-vt='tema']::view-transition-group(root) { background: linear-gradient(180deg, #7fd6fb, #00a3e8 45%, #0075b3); }
+:root[data-vt='tema'] *, :root[data-vt='tema'] *::before, :root[data-vt='tema'] *::after { transition: none !important; }
+
+@keyframes vt-sparisci { to { opacity: 0; } }
+@keyframes vt-appari { from { opacity: 0; } }
+@keyframes vt-scheda-entra { from { opacity: 0; transform: translateX(48px); } 40% { opacity: 1; } }
+@keyframes vt-scheda-esce { to { opacity: 0; transform: translateX(32px); } }
 
 /* ---------- rubrica */
 .pagina-rubrica { padding: 24px 28px 80px; overflow: auto; }
@@ -355,8 +390,8 @@ button:active:not(:disabled) { transform: scale(.97); }
 .toast { position: fixed; right: 24px; bottom: 72px; z-index: 4000; display: flex; align-items: center; gap: 8px; background: var(--testo); color: var(--superficie); padding: 10px 16px; border-radius: 10px; box-shadow: var(--ombra-alta); font-weight: 500; animation: toast 2.4s var(--ease) forwards; }
 .toast .icona { color: #4ade80; }
 
-@keyframes entra { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
-@keyframes dissolvenza { from { opacity: 0; } to { opacity: 1; } }
+@keyframes entra { from { opacity: 0; transform: translateY(12px) scale(.99); filter: blur(4px); } to { opacity: 1; transform: none; filter: none; } }
+@keyframes pagina { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 @keyframes apri { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
 @keyframes lampo { 0%, 45% { background: color-mix(in srgb, #facc15 30%, transparent); } 100% { background: var(--accento-chiaro); } }
 @keyframes toast { 0% { opacity: 0; transform: translateY(10px); } 10%, 85% { opacity: 1; transform: none; } 100% { opacity: 0; transform: translateY(6px); } }

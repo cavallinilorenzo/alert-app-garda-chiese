@@ -94,6 +94,13 @@ const icona = (s: Segnalazione, sel: boolean) =>
     html: `<div class="pallino ${s.priorita === 'critica' ? 'critica' : ''} ${sel ? 'sel' : ''} ${s.stato_corrente === 'chiusa' ? 'chiusa' : ''}" style="background:${COLORI[s.priorita]}"></div>`,
   })
 
+/** Aspetta che le tessere visibili sotto `radice` siano caricate, al massimo `max` ms: le transizioni fotografano una mappa completa. */
+export function tessereCaricate(radice: ParentNode, max = 500) {
+  const inAttesa = [...radice.querySelectorAll<HTMLImageElement>('img.leaflet-tile')].filter((img) => !img.complete)
+  const caricate = inAttesa.map((img) => new Promise((ok) => ['load', 'error'].forEach((e) => img.addEventListener(e, ok, { once: true }))))
+  return Promise.race([Promise.all(caricate), new Promise((ok) => setTimeout(ok, max))])
+}
+
 const tooltip = (s: Segnalazione) =>
   `<b>${s.codice_pratica}</b> · ${NOME_LIVELLO[s.priorita]}<br>${titolo(s)}<br><small>${NOME_STATO[s.stato_corrente]} · ${eta(s.created_at)}</small>`
 
@@ -125,6 +132,7 @@ export function Mappa({
   const mappa = useRef<L.Map | null>(null)
   const gruppo = useRef<L.LayerGroup | null>(null)
   const adattata = useRef(false)
+  const inVolo = useRef(false)
   const onSel = useRef(onSeleziona)
   onSel.current = onSeleziona
 
@@ -177,9 +185,18 @@ export function Mappa({
         mk.bindTooltip(tooltip(s), { direction: 'top', offset: [0, -8] })
         mk.on('click', () => {
           if (!volaPrima) return onSel.current?.(s.id)
+          if (inVolo.current) return
+          inVolo.current = true
+          // il pallino si ingrandisce subito, poi la mappa ci vola sopra e aspetta le tessere prima della transizione
+          mk.getElement()?.firstElementChild?.classList.add('sel')
+          mk.setZIndexOffset(1000)
           const m = mappa.current!
-          m.flyTo([s.lat, s.lng], 16, { duration: 0.7 })
-          m.once('moveend', () => onSel.current?.(s.id))
+          m.once('moveend', async () => {
+            await tessereCaricate(el.current!)
+            inVolo.current = false
+            onSel.current?.(s.id)
+          })
+          m.flyTo([s.lat, s.lng], 16, { duration: 0.9 })
         })
         mk.addTo(g)
       })

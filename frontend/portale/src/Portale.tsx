@@ -1,11 +1,11 @@
 // Portale operatore: la coda di lavoro scelta nel ticket #10 (variante B, rifinita).
 // - menu laterale flottante a sezioni, richiudibile, con il tema chiaro/scuro
 // - filtri in una barra sola, condivisa tra Segnalazioni e Mappa
-// - lista con la colonna "Assegnata a"; con la scheda aperta la lista si stringe a colonna
-// - dalla Mappa la mappa vola sul pallino e si trasforma nella mappa della scheda (View Transitions API, dove c'è)
+// - lista con la colonna "Assegnata a"; con la scheda aperta la lista si stringe a colonna e la scheda entra da destra
+// - dalla Mappa la mappa vola sul pallino e si trasforma nella mappa della scheda
+// - il tema cambia con un'onda che attraversa la pagina (ticket #97; View Transitions API, dove c'è)
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
-import { flushSync } from 'react-dom'
-import { Avatar, Icona, Mappa, Pallino, titoloNome } from './comuni'
+import { Avatar, Icona, Mappa, Pallino, tessereCaricate, titoloNome } from './comuni'
 import { usePortale } from './dati'
 import {
   FILTRI_INIZIALI,
@@ -19,6 +19,7 @@ import {
   eta,
   filtra,
   inRitardo,
+  nomeEsito,
   ordina,
   pericoliSi,
   titolo,
@@ -28,11 +29,10 @@ import {
 } from './dominio'
 import { Rubrica } from './Rubrica'
 import { Scheda, StatoPill } from './Scheda'
+import { movimentoRidotto, ondaTema, transizione } from './transizioni'
 
 type Pagina = 'coda' | 'mappa' | 'rubrica'
 type Tema = 'chiaro' | 'scuro'
-
-const movimentoRidotto = () => matchMedia('(prefers-reduced-motion: reduce)').matches
 
 // ---------- tema
 
@@ -98,7 +98,7 @@ function Menu({ pagina, setPagina, nuove, tema, setTema, operatore, onEsci }: Pr
 
       <span className="spazio" />
       <div className="menu-piede">
-        <button className="voce" onClick={() => setTema(tema === 'scuro' ? 'chiaro' : 'scuro')} title={compresso ? 'Tema' : undefined}>
+        <button className="voce" onClick={() => ondaTema(() => setTema(tema === 'scuro' ? 'chiaro' : 'scuro'))} title={compresso ? 'Tema' : undefined}>
           <Icona nome={tema === 'scuro' ? 'light_mode' : 'dark_mode'} />
           <span className="testo">{tema === 'scuro' ? 'Tema chiaro' : 'Tema scuro'}</span>
         </button>
@@ -190,6 +190,8 @@ function Assegnatario({ s }: { s: Segnalazione }) {
   )
 }
 
+const maiuscola = (t: string) => t.charAt(0).toUpperCase() + t.slice(1)
+
 type PropsLista = { lista: Segnalazione[]; sel: number | null; setSel: (id: number) => void; compatta: boolean; lampo: number | null }
 
 function Lista({ lista, sel, setSel, compatta, lampo }: PropsLista) {
@@ -222,8 +224,9 @@ function Lista({ lista, sel, setSel, compatta, lampo }: PropsLista) {
               {compatta ? NOME_STATO[s.stato_corrente] : [NOME_LAYER[s.layer], s.nome_tracciato].filter(Boolean).join(' ') || s.descrizione}
             </span>
           </span>
-          <span className="extra">
-            <StatoPill s={s} />
+          <span className="extra cella stato-cella">
+            <StatoPill s={s} senzaEsito />
+            {s.esito && <span className="sotto">{maiuscola(nomeEsito(s.esito))}</span>}
           </span>
           <span className="extra">
             <Assegnatario s={s} />
@@ -264,19 +267,35 @@ export function Portale({ operatore, onEsci }: { operatore: Operatore | null; on
   const s = segnalazioni.find((x) => x.id === sel)
   const nuove = segnalazioni.filter((x) => x.stato_corrente === 'ricevuta').length
 
+  // Aprire dalla lista: la lista si stringe a colonna e la scheda entra da destra.
+  // Con una scheda già aperta si passa all'altra senza transizione della pagina: entrano solo i blocchi.
+  const apri = (id: number) => {
+    if (id === sel) return
+    const cambia = () => {
+      setDaMappa(false)
+      setSel(id)
+    }
+    if (s) cambia()
+    else transizione('apri', cambia)
+  }
+
+  const chiudi = () => {
+    if (sel === null) return
+    if (s && pagina === 'coda') transizione('chiudi', () => setSel(null))
+    else setSel(null)
+  }
+  const chiudiOra = useRef(chiudi)
+  chiudiOra.current = chiudi
+
   useEffect(() => {
     const tasto = (e: KeyboardEvent) =>
-      e.key === 'Escape' && !(e.target as HTMLElement).closest?.('input, textarea, select') && setSel(null)
+      e.key === 'Escape' && !(e.target as HTMLElement).closest?.('input, textarea, select') && chiudiOra.current()
     window.addEventListener('keydown', tasto)
     return () => window.removeEventListener('keydown', tasto)
   }, [])
 
-  const apri = (id: number) => {
-    setDaMappa(false)
-    setSel(id)
-  }
-
-  // Dalla mappa: la mappa ha già volato sul pallino; la View Transition la trasforma nella mappa della scheda.
+  // Dalla mappa: la mappa ha già volato sul pallino; la View Transition la trasforma nella mappa della scheda,
+  // dopo aver aspettato le tessere della mini-mappa (sono le stesse, già in cache).
   const apriDaMappa = (id: number) => {
     const cambia = () => {
       setDaMappa(true)
@@ -285,11 +304,7 @@ export function Portale({ operatore, onEsci }: { operatore: Operatore | null; on
       setLampo(id)
     }
     setTimeout(() => setLampo(null), 1600)
-    if (!('startViewTransition' in document) || movimentoRidotto()) return cambia()
-    document.startViewTransition(async () => {
-      flushSync(cambia)
-      await new Promise((r) => setTimeout(r, 200)) // tempo per le tessere della mini-mappa
-    })
+    transizione('mappa', cambia, () => tessereCaricate(document.querySelector('.scheda .media-mappa') ?? document, 400))
   }
 
   return (
@@ -302,7 +317,7 @@ export function Portale({ operatore, onEsci }: { operatore: Operatore | null; on
         {pagina === 'coda' && (
           <div className="pagina split" key="coda">
             <Lista lista={lista} sel={sel} setSel={apri} compatta={!!s} lampo={lampo} />
-            {s && <Scheda key={s.id} s={s} onChiudi={() => setSel(null)} onApri={apri} daMappa={daMappa} />}
+            {s && <Scheda key={s.id} s={s} onChiudi={chiudi} onApri={apri} daMappa={daMappa} />}
           </div>
         )}
 

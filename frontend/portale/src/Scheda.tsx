@@ -28,10 +28,10 @@ import {
   type Segnalazione,
 } from './dominio'
 
-export const StatoPill = ({ s }: { s: Segnalazione }) => (
+export const StatoPill = ({ s, senzaEsito }: { s: Segnalazione; senzaEsito?: boolean }) => (
   <span className={`stato st-${STATI.indexOf(s.stato_corrente)}`}>
     {NOME_STATO[s.stato_corrente]}
-    {s.esito ? ` · ${nomeEsito(s.esito)}` : ''}
+    {s.esito && !senzaEsito ? ` · ${nomeEsito(s.esito)}` : ''}
   </span>
 )
 
