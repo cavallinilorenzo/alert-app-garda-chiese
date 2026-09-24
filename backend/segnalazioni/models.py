@@ -70,7 +70,16 @@ class Segnalazione(models.Model):
         CONDOTTA = "condotta", _("Condotta")
         RIP = "reticolo_principale", _("Reticolo Idrico Principale")
 
+    class CanaleIngresso(models.TextChoices):
+        WEB_APP = "web_app", _("Web app")
+        NUMERO_VERDE = "numero_verde", _("Numero verde")
+        EMAIL = "email", _("Email")
+        DI_PERSONA = "di_persona", _("Di persona")
+
     codice_pratica = models.CharField(max_length=15, default=generate_codice_pratica, unique=True)
+    canale_ingresso = models.CharField(
+        max_length=20, choices=CanaleIngresso.choices, default=CanaleIngresso.WEB_APP
+    )
     token_stato = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
 
     stato_corrente = models.CharField(max_length=20, choices=Stato.choices, default=Stato.RICEVUTA)

@@ -17,6 +17,7 @@ from .serializers import (
     SegnalazioneCreateSerializer,
     SegnalazioneDetailSerializer,
     SegnalazioneListSerializer,
+    SegnalazioneManualeSerializer,
     SegnalazioneStatoSerializer,
     SegnalazioneUpdateSerializer,
 )
@@ -36,6 +37,49 @@ def comune_del_punto(lat: float, lng: float) -> str:
     except GeocodingNonDisponibile:
         return ""
     return (indirizzo.comune or "") if indirizzo else ""
+
+
+def crea_segnalazione(data, geo_data, **extra) -> Segnalazione:
+    """Salva una Segnalazione, dall'App o dal Portale: priorità calcolata (criteri #8),
+    tracciato, zona e acquaiolo del punto, più la foto se c'è."""
+    priorita = calcola_priorita(
+        categoria=data.get("categoria", ""),
+        pericolo_persone=data.get("pericolo_persone", ""),
+        pericolo_strada=data.get("pericolo_strada", ""),
+        pericolo_edifici=data.get("pericolo_edifici", ""),
+        quantita_acqua=data.get("quantita_acqua", ""),
+    )
+    tracciato = geo_data.tracciato
+    segnalazione = Segnalazione.objects.create(
+        lat=data["lat"],
+        lng=data["lng"],
+        descrizione=data["descrizione"],
+        cellulare=data.get("cellulare", ""),
+        transcript_ai=data.get("transcript_ai", ""),
+        priorita=priorita,
+        priorita_calcolata=priorita,
+        categoria=data.get("categoria", ""),
+        durata=data.get("durata", ""),
+        quantita_acqua=data.get("quantita_acqua", ""),
+        pericolo_persone=data.get("pericolo_persone", ""),
+        pericolo_strada=data.get("pericolo_strada", ""),
+        pericolo_edifici=data.get("pericolo_edifici", ""),
+        estratti_confidenza=data.get("estratti_confidenza", {}),
+        # Fuori perimetro (solo dal Portale) non c'è un tracciato
+        layer=tracciato.layer if tracciato else "",
+        id_placemark=tracciato.id_placemark if tracciato else "",
+        nome_tracciato=tracciato.nome if tracciato else "",
+        nome_completo_tracciato=tracciato.nome_completo if tracciato else "",
+        tipo_tracciato=(tracciato.tipo or "") if tracciato else "",
+        comune=comune_del_punto(data["lat"], data["lng"]),
+        distanza_m=geo_data.distanza_m,
+        zona_id=geo_data.zona.id if geo_data.zona else None,
+        acquaiolo_competente_id=acquaiolo_di_zona(geo_data.zona),
+        **extra,
+    )
+    if data.get("foto"):
+        Foto.objects.create(segnalazione=segnalazione, immagine=data["foto"])
+    return segnalazione
 
 
 class PortalePagination(PageNumberPagination):
@@ -104,16 +148,8 @@ class SegnalazioneListCreateView(generics.ListCreateAPIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        # 3. Calcolo priorità
-        priorita = calcola_priorita(
-            categoria=data.get("categoria", ""),
-            pericolo_persone=data.get("pericolo_persone", ""),
-            pericolo_strada=data.get("pericolo_strada", ""),
-            pericolo_edifici=data.get("pericolo_edifici", ""),
-            quantita_acqua=data.get("quantita_acqua", ""),
-        )
-
-        pericolo_immediato = priorita == "critica" or any(
+        segnalazione = crea_segnalazione(data, geo_data)
+        pericolo_immediato = segnalazione.priorita == "critica" or any(
             [
                 data.get("pericolo_persone") == "si",
                 data.get("pericolo_strada") == "si",
@@ -121,39 +157,6 @@ class SegnalazioneListCreateView(generics.ListCreateAPIView):
             ]
         )
 
-        # 4. Creazione Segnalazione
-        segnalazione = Segnalazione(
-            lat=lat,
-            lng=lng,
-            descrizione=data["descrizione"],
-            cellulare=data["cellulare"],
-            transcript_ai=data.get("transcript_ai", ""),
-            priorita=priorita,
-            priorita_calcolata=priorita,
-            categoria=data.get("categoria", ""),
-            durata=data.get("durata", ""),
-            quantita_acqua=data.get("quantita_acqua", ""),
-            pericolo_persone=data.get("pericolo_persone", ""),
-            pericolo_strada=data.get("pericolo_strada", ""),
-            pericolo_edifici=data.get("pericolo_edifici", ""),
-            estratti_confidenza=data.get("estratti_confidenza", {}),
-            layer=geo_data.tracciato.layer if geo_data.tracciato else None,
-            id_placemark=geo_data.tracciato.id_placemark if geo_data.tracciato else None,
-            nome_tracciato=geo_data.tracciato.nome if geo_data.tracciato else "",
-            nome_completo_tracciato=geo_data.tracciato.nome_completo if geo_data.tracciato else "",
-            tipo_tracciato=geo_data.tracciato.tipo if geo_data.tracciato else "",
-            comune=comune_del_punto(lat, lng),
-            distanza_m=geo_data.distanza_m,
-            zona_id=geo_data.zona.id if geo_data.zona else None,
-            acquaiolo_competente_id=acquaiolo_di_zona(geo_data.zona),
-        )
-        segnalazione.save()
-
-        # 5. Salva foto
-        foto = data.pop("foto")
-        Foto.objects.create(segnalazione=segnalazione, immagine=foto)
-
-        # 6. Evento iniziale
         Evento.objects.create(segnalazione=segnalazione, stato=Segnalazione.Stato.RICEVUTA)
         # Temporaneamente disabilitato: il flusso di invio deve restare indipendente dalle push.
         # invia_notifica_nuova_segnalazione(segnalazione)
@@ -168,6 +171,38 @@ class SegnalazioneListCreateView(generics.ListCreateAPIView):
             },
             status=status.HTTP_201_CREATED,
         )
+
+
+class SegnalazioneManualeView(APIView):
+    """L'Operatore inserisce una Segnalazione arrivata per numero verde, email o di persona.
+    Un punto Fuori perimetro non si rifiuta: il Portale avvisa e l'Operatore decide."""
+
+    parser_classes = [MultiPartParser, FormParser]
+
+    def post(self, request):
+        serializer = SegnalazioneManualeSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(
+                {
+                    "code": "dati_non_validi",
+                    "message": "I dati inviati non sono validi.",
+                    "fields": serializer.errors,
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        data = serializer.validated_data
+        canale = data["canale_ingresso"]
+        segnalazione = crea_segnalazione(
+            data, check_perimetro(data["lat"], data["lng"]), canale_ingresso=canale
+        )
+        Evento.objects.create(
+            segnalazione=segnalazione,
+            stato=Segnalazione.Stato.RICEVUTA,
+            operatore=request.user,
+            nota=f"Inserita dal Portale: {Segnalazione.CanaleIngresso(canale).label.lower()}",
+        )
+        dettaglio = SegnalazioneDetailSerializer(segnalazione, context={"request": request})
+        return Response(dettaglio.data, status=status.HTTP_201_CREATED)
 
 
 class SegnalazioneStatoView(generics.RetrieveAPIView):

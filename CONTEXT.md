@@ -44,7 +44,7 @@ La persona che invia una segnalazione. Non ha un account.
 _Avoid_: utente, cliente, consumer
 
 **Canale di ingresso**:
-Il mezzo da cui arriva una segnalazione: web app, numero verde, email. Tutte le segnalazioni confluiscono nello stesso portale, distinte dal canale.
+Il mezzo da cui arriva una segnalazione: web app, numero verde, email, di persona (il passaparola, o chi la riferisce direttamente a un operatore o a un acquaiolo). Tutte le segnalazioni confluiscono nello stesso portale, distinte dal canale: quelle che non arrivano dalla web app le inserisce a mano l'operatore, per conto del segnalante.
 
 **Fuori perimetro**:
 Una segnalazione la cui posizione non riguarda il reticolo consortile. Viene rifiutata prima dell'invio e non arriva al Consorzio.
