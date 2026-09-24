@@ -9,7 +9,10 @@ logger = logging.getLogger(__name__)
 
 
 def invia_notifica_nuova_segnalazione(segnalazione):
-    """Invia una push agli operatori; la segnalazione non fallisce se il provider è indisponibile."""
+    """Invia una push agli operatori.
+
+    La segnalazione non fallisce se il provider è indisponibile.
+    """
     if not all(
         (settings.VAPID_PUBLIC_KEY, settings.VAPID_PRIVATE_KEY, settings.VAPID_CLAIMS_EMAIL)
     ):
