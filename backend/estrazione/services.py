@@ -18,6 +18,7 @@ from google.genai import types
 from contratti import (
     CAMPI_ESTRAZIONE,
     CAMPI_FOTO,
+    CATEGORIE_CON_QUANTITA_ACQUA,
     CampoEstratto,
     Estrattore,
     EstrazioneNonDisponibile,
@@ -52,17 +53,21 @@ dedurre dal contesto quello che la persona non dice. Usa non_so solo se la perso
 esplicitamente di non saperlo: se non ne parla, il valore è null.
 
 Campi:
-- categoria, cosa ha visto: acqua_che_affiora (acqua che esce dal terreno, perdita), \
-canale_che_tracima (canale che esce dagli argini, allagamento), argine_danneggiato \
-(argine o sponda rotta o franata), ostruzione (rami, rifiuti, accumuli che bloccano \
-l'acqua), paratoia_danneggiata (paratoia, chiusa o impianto rotto), acqua_sporca (acqua \
-sporca, schiuma, cattivo odore), altro (un problema diverso da questi).
+- categoria, cosa ha visto: acqua_che_affiora (acqua che esce dal terreno), \
+perdita_dal_canale (un canale o una condotta che perde acqua), canale_che_tracima \
+(canale che esce dagli argini, allagamento), argine_danneggiato (argine o sponda rotta o \
+franata), ostruzione (rami, rifiuti, accumuli che bloccano l'acqua), canale_asciutto \
+(canale senz'acqua o quasi), paratoia_danneggiata (paratoia, chiusa o impianto rotto), \
+acqua_sporca (acqua sporca, schiuma, cattivo odore, rifiuti che non bloccano l'acqua), \
+altro (un problema diverso da questi).
 - descrizione: una frase breve, tra 10 e 500 caratteri, che riassume il problema con le \
 parole della persona, compresi i riferimenti di luogo (via, località, ponte).
-- durata, da quanto tempo lo vede: adesso, meno_di_un_ora, alcune_ore, \
-piu_di_un_giorno, non_so; non_applicabile se non ha senso per questo problema.
-- quantita_acqua: gocce, piccolo_flusso, molta_acqua, non_so; non_applicabile se non ha \
-senso per questo problema.
+- durata, da quando lo vede: adesso (l'ha appena notato), alcune_ore, piu_di_un_giorno \
+(da qualche giorno), da_settimane, non_so.
+- quantita_acqua, quanta acqua esce: gocce, piccolo_flusso (un filo, come un rubinetto), \
+molta_acqua (tanta, scorre forte), getto (zampilla con forza), non_so. Solo per \
+acqua_che_affiora, perdita_dal_canale, canale_che_tracima e argine_danneggiato; per le \
+altre categorie non_applicabile.
 - pericolo_persone, pericolo_strada (strada o viabilità), pericolo_edifici (case o altri \
 edifici): si, no, non_so.
 """
@@ -88,14 +93,18 @@ Descrivi solo quello che si vede. Se un campo non si capisce dalla foto usa null
 confidenza 0. Non inventare.
 
 Campi:
-- categoria, cosa mostra: acqua_che_affiora (acqua che esce dal terreno, perdita), \
-canale_che_tracima (canale che esce dagli argini, allagamento), argine_danneggiato \
-(argine o sponda rotta o franata), ostruzione (rami, rifiuti, accumuli che bloccano \
-l'acqua), paratoia_danneggiata (paratoia, chiusa o impianto rotto), acqua_sporca (acqua \
-sporca, schiuma, chiazze), altro (un problema diverso da questi).
+- categoria, cosa mostra: acqua_che_affiora (acqua che esce dal terreno), \
+perdita_dal_canale (un canale o una condotta che perde acqua), canale_che_tracima \
+(canale che esce dagli argini, allagamento), argine_danneggiato (argine o sponda rotta o \
+franata), ostruzione (rami, rifiuti, accumuli che bloccano l'acqua), canale_asciutto \
+(canale senz'acqua o quasi), paratoia_danneggiata (paratoia, chiusa o impianto rotto), \
+acqua_sporca (acqua sporca, schiuma, chiazze, rifiuti che non bloccano l'acqua), altro \
+(un problema diverso da questi).
 - descrizione: una frase breve, tra 10 e 500 caratteri, che descrive il problema che si \
 vede, senza dire che è una foto.
-- quantita_acqua: gocce, piccolo_flusso, molta_acqua.
+- quantita_acqua, quanta acqua esce: gocce, piccolo_flusso, molta_acqua, getto (zampilla \
+con forza). Solo per acqua_che_affiora, perdita_dal_canale, canale_che_tracima e \
+argine_danneggiato; per le altre categorie null.
 - pericolo_strada: si se si vede acqua o un cedimento sulla strada; altrimenti null.
 - pericolo_edifici: si se si vede acqua che raggiunge case o altri edifici; altrimenti null.
 """
@@ -179,7 +188,7 @@ class EstrattoreGemini:
         dati = self._genera(audio, MIME_PER_GEMINI.get(mime_type, mime_type), ISTRUZIONI, SCHEMA)
         return RisultatoEstrazione(
             transcript=dati["transcript"],
-            campi=_campi(CAMPI_ESTRAZIONE, dati["campi"]),
+            campi=_quantita_secondo_categoria(_campi(CAMPI_ESTRAZIONE, dati["campi"])),
         )
 
     def _analizza_foto(self, foto, mime_type):
@@ -190,7 +199,9 @@ class EstrattoreGemini:
                 motivo = MOTIVO_PREDEFINITO
             return RisultatoAnalisiFoto(pertinente=False, motivo=motivo, campi={})
         return RisultatoAnalisiFoto(
-            pertinente=True, motivo=None, campi=_campi(CAMPI_FOTO, dati["campi"])
+            pertinente=True,
+            motivo=None,
+            campi=_quantita_secondo_categoria(_campi(CAMPI_FOTO, dati["campi"]), senza_acqua=None),
         )
 
     def _genera(self, dati: bytes, mime_type: str, istruzioni: str, schema: dict) -> dict:
@@ -208,6 +219,27 @@ class EstrattoreGemini:
 
 def _campi(tassonomia, dati) -> dict[str, CampoEstratto]:
     return {nome: _campo(tassonomia[nome], dati[nome]) for nome in tassonomia if nome in dati}
+
+
+def _quantita_secondo_categoria(
+    campi: dict[str, CampoEstratto], senza_acqua: str | None = "non_applicabile"
+) -> dict[str, CampoEstratto]:
+    """La quantità d'acqua si chiede solo se l'acqua esce: le istruzioni non bastano.
+
+    Per le altre categorie vale `senza_acqua` (`non_applicabile` per la voce, con la
+    confidenza della categoria; None per la foto, che non ha quel valore). Per le categorie
+    con l'acqua `non_applicabile` non ha senso e il campo resta da chiedere.
+    """
+    categoria = campi.get("categoria")
+    if categoria is None or categoria.valore is None:
+        return campi
+    quantita = campi.get("quantita_acqua")
+    if categoria.valore not in CATEGORIE_CON_QUANTITA_ACQUA:
+        confidenza = categoria.confidenza if senza_acqua is not None else 0.0
+        campi["quantita_acqua"] = CampoEstratto(senza_acqua, confidenza)
+    elif quantita is not None and quantita.valore == "non_applicabile":
+        campi["quantita_acqua"] = CampoEstratto(None, 0.0)
+    return campi
 
 
 def _campo(valori, dati) -> CampoEstratto:
