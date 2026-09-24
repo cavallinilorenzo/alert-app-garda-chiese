@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 import pytest
 from django.contrib.auth.models import User
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -5,6 +7,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 
+from contratti import Indirizzo, RisultatoPerimetro, Tracciato
 from segnalazioni.models import Evento, Foto, Segnalazione
 
 pytestmark = pytest.mark.django_db
@@ -100,6 +103,46 @@ def test_foto_con_percorso_relativo(auth_client):
     url = reverse("segnalazioni-detail", kwargs={"pk": s.id})
     foto = auth_client.get(url, HTTP_HOST="localhost:8080").data["foto"]
     assert foto[0].startswith("/media/segnalazioni/")
+
+
+def test_correggere_la_posizione_aggiorna_comune_e_tracciato(auth_client):
+    s = Segnalazione.objects.create(
+        lat=45.0,
+        lng=10.0,
+        descrizione="Test",
+        cellulare="123",
+        comune="Medole",
+        nome_completo_tracciato="Vecchio tracciato",
+    )
+    perimetro = RisultatoPerimetro(
+        accettato=True,
+        tracciato=Tracciato(
+            layer="canale",
+            id_placemark="7",
+            nome="Nuovo",
+            nome_completo="Nuovo tracciato",
+            tipo=None,
+            codice=None,
+        ),
+        distanza_m=5,
+        zona=None,
+        acquaiolo_suggerito=None,
+        messaggio="",
+    )
+    with (
+        patch("segnalazioni.views.check_perimetro", return_value=perimetro),
+        patch(
+            "segnalazioni.views.reverse_geocode",
+            return_value=Indirizzo(testo="Guidizzolo", comune="Guidizzolo"),
+        ),
+    ):
+        url = reverse("segnalazioni-detail", kwargs={"pk": s.id})
+        response = auth_client.patch(url, {"lat": 45.3, "lng": 10.5}, format="json")
+
+    assert response.status_code == 200
+    s.refresh_from_db()
+    assert s.comune == "Guidizzolo"
+    assert s.nome_completo_tracciato == "Nuovo tracciato"
 
 
 def test_azioni_segnalazione(auth_client):
