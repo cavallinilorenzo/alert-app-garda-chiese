@@ -33,26 +33,21 @@ services:
       - static_data:/app/backend/staticfiles
       - media_data:/app/backend/media
 
-  caddy:
+  nginx:
     build:
       context: .
-      dockerfile: deploy/Dockerfile.caddy
+      dockerfile: deploy/Dockerfile.nginx
     restart: unless-stopped
     ports:
-      - "80:80"
-      - "443:443"
+      # Modifica "8080:80" se vuoi esporre Nginx su un'altra porta dell'host
+      - "${NGINX_PORT:-8080}:80"
     depends_on:
       - backend
     volumes:
-      # Condividiamo i file statici e media creati dal backend con caddy per poterli servire
       - static_data:/srv/backend/static:ro
       - media_data:/srv/backend/media:ro
-      - caddy_data:/data
-      - caddy_config:/config
 
 volumes:
   postgres_data:
   static_data:
   media_data:
-  caddy_data:
-  caddy_config:
