@@ -50,10 +50,34 @@ Il mezzo da cui arriva una segnalazione: web app, numero verde, email. Tutte le 
 Una segnalazione la cui posizione non riguarda il reticolo consortile. Viene rifiutata prima dell'invio e non arriva al Consorzio.
 
 **Operatore**:
-Persona del Consorzio che usa il portale per smistare e gestire le segnalazioni. L'acquaiolo non è un operatore.
+Persona del Consorzio che usa il portale per smistare e gestire le segnalazioni. Ha un account personale creato dall'amministratore: non esiste registrazione. L'acquaiolo non è un operatore.
 
 **Rubrica acquaioli**:
 Elenco dei recapiti telefonici degli acquaioli, usato dall'operatore per contattare chi è competente per una segnalazione.
+
+### Ciclo di vita
+
+**Stato**:
+La fase in cui si trova una segnalazione: Ricevuta, In verifica, Assegnata, In intervento, Chiusa. Lo cambia solo l'operatore, con un'azione esplicita; aprire una segnalazione non ne cambia lo stato.
+_Avoid_: fase, status
+
+**Esito**:
+Il motivo per cui una segnalazione è stata chiusa: risolta, duplicata, non di competenza, non riscontrata, falsa. Si indica sempre alla chiusura.
+
+**Duplicato**:
+Una segnalazione che riguarda la stessa criticità di un'altra già ricevuta, l'originale. Viene chiusa con esito duplicata e resta collegata all'originale, che mostra quante persone l'hanno segnalata.
+
+**Registro**:
+Lo storico di una segnalazione: cambi di stato, correzioni, note interne e duplicati collegati, ciascuno con il momento e l'operatore che l'ha fatto. Si aggiunge e basta, non si modifica.
+_Avoid_: log, cronologia
+
+**Operatore di riferimento**:
+L'operatore che ha preso in carico una segnalazione. Indica chi la sta seguendo, ma non impedisce agli altri operatori di lavorarci.
+_Avoid_: assegnatario, responsabile
+
+**Pagina di stato**:
+La pagina che il segnalante apre dal link ricevuto a fine invio per seguire la propria segnalazione: gli stati attraversati con le date, l'esito e un eventuale messaggio dell'operatore. Non mostra le note interne.
+_Avoid_: tracking
 
 ### Applicazioni
 
