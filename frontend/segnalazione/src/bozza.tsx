@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react'
 import type { paths } from 'shared/api'
-import type { Campi, Estrazione } from './tassonomia'
+import { conQuantitaCoerente, type Campi, type Estrazione } from './tassonomia'
 
 // La Segnalazione in corso, condivisa tra i passi della procedura guidata. Vive solo in
 // memoria: si invia alla fine, e i passi successivi aggiungono qui i loro campi.
@@ -76,6 +76,8 @@ export function BozzaProvider({ children }: { children: ReactNode }) {
       const nuova = { ...b, ...modifica }
       // Un punto spostato va ricontrollato: l'esito vecchio non vale più.
       if (modifica.posizione && !('perimetro' in modifica)) nuova.perimetro = null
+      // La quantità d'acqua segue la categoria, detta, scelta o vista nella foto.
+      if (modifica.campi) nuova.campi = conQuantitaCoerente(modifica.campi)
       return nuova
     })
   }, [])
