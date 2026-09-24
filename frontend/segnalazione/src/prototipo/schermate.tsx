@@ -155,7 +155,7 @@ function Opzioni({ opzioni, scelta }: { opzioni: string[]; scelta?: string }) {
   return (
     <div className="p-opzioni">
       {opzioni.map((o) => (
-        <button key={o} className={`p-opzione ${valore === o ? 'scelta' : ''}`} onClick={() => setValore(o)}>{o}</button>
+        <button key={o} className={`p-opzione ${valore === o ? 'selezionata' : ''}`} onClick={() => setValore(o)}>{o}</button>
       ))}
     </div>
   )
@@ -212,7 +212,7 @@ function DomandaCategoria() {
     <Cornice titolo="Cosa hai visto?" occhiello="Domanda 2 di 5" passo={3} azione={<button className="p-btn">Continua</button>}>
       <div className="p-lista">
         {CATEGORIE.map((c) => (
-          <button key={c.valore} className={`p-voce ${scelta === c.valore ? 'scelta' : ''}`} onClick={() => setScelta(c.valore)}>
+          <button key={c.valore} className={`p-voce ${scelta === c.valore ? 'selezionata' : ''}`} onClick={() => setScelta(c.valore)}>
             <span className="p-voce-icona"><Icona n={c.icona} /></span>
             <span>{c.etichetta}</span>
             {c.valore === 'acqua_che_affiora' && <Icona n="photo_camera" className="p-dalla-foto" />}
@@ -335,6 +335,15 @@ function PaginaStato() {
       <main className="p-corpo">
         <p className="p-occhiello">GCH-9K2M</p>
         <h1 className="p-stato-attuale">In verifica</h1>
+        {/* La segnalazione in breve, per riconoscerla quando si riapre il link dopo giorni. */}
+        <div className="p-scheda">
+          <img src={FOTO} alt="La foto inviata" />
+          <div>
+            <strong><Icona n="water_drop" /> Acqua che affiora o perdita</strong>
+            <span><Icona n="location_on" /> Castiglione delle Stiviere · Canale Seriola</span>
+            <span><Icona n="send" /> Inviata il 24 set, 09:12</span>
+          </div>
+        </div>
         <div className="p-messaggio"><small>Dal Consorzio</small><p>Abbiamo mandato l’acquaiolo a vedere. Grazie!</p></div>
         <ol className="p-tappe">
           {tappe.map(([e, d, q]) => (
