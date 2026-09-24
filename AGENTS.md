@@ -14,10 +14,10 @@ Single-context layout: one `CONTEXT.md` at the repo root plus `docs/adr/` for ar
 
 ### Come lavoriamo
 
-Prima di toccare codice leggi `docs/come-lavoriamo.md`: aree e ownership, flusso git (trunk-based, branch `<area>/<numero-issue>-<slug>`, squash merge, review obbligatoria su `api/`), struttura della repo e decisioni tecniche già prese. Regole che non si derogano:
+Prima di toccare codice leggi `docs/come-lavoriamo.md`: aree, flusso git (trunk-based, branch `<area>/<numero-issue>-<slug>`, squash merge, review obbligatoria su `api/`), struttura della repo e decisioni tecniche già prese. Regole che non si derogano:
 
 - Lavora solo su un ticket assegnato a chi ti sta usando, e assegnalo **prima** di iniziare.
-- Non modificare file dell'altra area. `api/openapi.yaml` si cambia solo con una PR approvata da un'altra persona.
+- Tutti lavorano su tutto: frontend, backend e condiviso sono aperti a chiunque. `api/openapi.yaml` si cambia solo con una PR approvata da un'altra persona.
 - Non pushare su `main` e non fare force push.
 - Mai segreti nella repo: solo in `.env`, che è nel gitignore.
 - Termini del dominio in italiano, identici a `CONTEXT.md` (vedi `docs/adr/0001-dominio-in-italiano-nel-codice.md`).
