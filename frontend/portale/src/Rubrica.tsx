@@ -1,135 +1,107 @@
-import { useEffect, useState, FormEvent } from 'react';
-import { api } from './api';
-import { components } from 'shared/api';
+// Rubrica acquaioli: i numeri che l'Operatore usa per chiamare l'Acquaiolo competente.
+import { useState } from 'react'
+import { Avatar, Copia, Icona, titoloNome } from './comuni'
+import { usePortale } from './dati'
 
-type Acquaiolo = components['schemas']['Acquaiolo'];
+type Modifica = { id: number | null; nome: string; telefono: string; zona_id: number | null }
 
 export function Rubrica() {
-  const [acquaioli, setAcquaioli] = useState<Acquaiolo[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [editingId, setEditingId] = useState<number | null>(null);
-  const [nome, setNome] = useState('');
-  const [telefono, setTelefono] = useState('');
-  const [zonaId, setZonaId] = useState<number | ''>('');
-  const [error, setError] = useState('');
+  const { rubrica, zone, zona, salvaAcquaiolo } = usePortale()
+  const [modifica, setModifica] = useState<Modifica | null>(null)
+  const [cerca, setCerca] = useState('')
+  const lista = rubrica.filter((r) => `${r.nome} ${zona(r.zona_id) ?? ''}`.toLowerCase().includes(cerca.toLowerCase()))
 
-  const loadAcquaioli = async () => {
-    setLoading(true);
-    const { data } = await api.GET('/acquaioli');
-    if (data) setAcquaioli(data);
-    setLoading(false);
-  };
+  const salva = async () => {
+    if (!modifica) return
+    const { id, ...corpo } = modifica
+    if (await salvaAcquaiolo(id, corpo)) setModifica(null)
+  }
 
-  useEffect(() => {
-    loadAcquaioli();
-  }, []);
-
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    setError('');
-
-    const body = {
-      nome,
-      telefono,
-      zona_id: zonaId === '' ? null : Number(zonaId)
-    };
-
-    if (editingId) {
-      const { error: apiError } = await api.PATCH('/acquaioli/{id}', {
-        params: { path: { id: editingId } },
-        body
-      });
-      if (apiError) {
-        setError(apiError.message || 'Errore durante la modifica');
-        return;
-      }
-    } else {
-      const { error: apiError } = await api.POST('/acquaioli', {
-        body
-      });
-      if (apiError) {
-        setError(apiError.message || 'Errore durante la creazione');
-        return;
-      }
-    }
-
-    setEditingId(null);
-    setNome('');
-    setTelefono('');
-    setZonaId('');
-    loadAcquaioli();
-  };
-
-  const startEdit = (acq: Acquaiolo) => {
-    setEditingId(acq.id);
-    setNome(acq.nome);
-    setTelefono(acq.telefono);
-    setZonaId(acq.zona_id ?? '');
-    setError('');
-  };
-
-  const cancelEdit = () => {
-    setEditingId(null);
-    setNome('');
-    setTelefono('');
-    setZonaId('');
-    setError('');
-  };
+  const inModifica = (m: Modifica) => (
+    <tr key={m.id ?? 'nuovo'} className="in-modifica">
+      <td>
+        <input value={m.nome} placeholder="Nome" autoFocus onChange={(e) => setModifica({ ...m, nome: e.target.value })} />
+      </td>
+      <td>
+        <select value={m.zona_id ?? ''} onChange={(e) => setModifica({ ...m, zona_id: e.target.value ? +e.target.value : null })}>
+          <option value="">Nessuna zona</option>
+          {zone.map((z) => (
+            <option key={z.id} value={z.id}>
+              {z.nome} · {z.acquaiolo ? titoloNome(z.acquaiolo) : 'non servita'} (zona {z.id})
+            </option>
+          ))}
+        </select>
+      </td>
+      <td>
+        <input value={m.telefono} placeholder="+39 …" onChange={(e) => setModifica({ ...m, telefono: e.target.value })} />
+      </td>
+      <td className="azioni-riga">
+        <button className="btn-icona" title="Salva" disabled={!m.nome.trim() || !m.telefono.trim()} onClick={salva}>
+          <Icona nome="check" />
+        </button>
+        <button className="btn-icona" title="Annulla" onClick={() => setModifica(null)}>
+          <Icona nome="close" />
+        </button>
+      </td>
+    </tr>
+  )
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', padding: '1rem', overflowY: 'auto' }}>
-      <h2>Rubrica Acquaioli</h2>
-      
-      <form onSubmit={handleSubmit} style={{ border: '1px solid #ccc', padding: '1rem', marginBottom: '1rem', borderRadius: '8px', display: 'flex', gap: '1rem', alignItems: 'flex-start', flexWrap: 'wrap' }}>
-        <div>
-          <label style={{ display: 'block' }}>Nome</label>
-          <input required value={nome} onChange={e => setNome(e.target.value)} style={{ padding: '0.5rem' }} />
-        </div>
-        <div>
-          <label style={{ display: 'block' }}>Telefono</label>
-          <input required value={telefono} onChange={e => setTelefono(e.target.value)} style={{ padding: '0.5rem' }} />
-        </div>
-        <div>
-          <label style={{ display: 'block' }}>Zona ID</label>
-          <input type="number" value={zonaId} onChange={e => setZonaId(e.target.value === '' ? '' : Number(e.target.value))} style={{ padding: '0.5rem' }} />
-        </div>
-        <div style={{ alignSelf: 'flex-end', display: 'flex', gap: '0.5rem' }}>
-          <button type="submit" style={{ padding: '0.5rem 1rem', background: '#007bff', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
-            {editingId ? 'Salva Modifiche' : 'Crea'}
-          </button>
-          {editingId && <button type="button" onClick={cancelEdit} style={{ padding: '0.5rem 1rem' }}>Annulla</button>}
-        </div>
-        {error && <div style={{ color: 'red', width: '100%', marginTop: '0.5rem' }}>{error}</div>}
-      </form>
-
-      {loading ? (
-        <div>Caricamento...</div>
-      ) : (
-        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-          <thead>
-            <tr>
-              <th style={{ padding: '0.5rem', borderBottom: '2px solid #ccc' }}>ID</th>
-              <th style={{ padding: '0.5rem', borderBottom: '2px solid #ccc' }}>Nome</th>
-              <th style={{ padding: '0.5rem', borderBottom: '2px solid #ccc' }}>Telefono</th>
-              <th style={{ padding: '0.5rem', borderBottom: '2px solid #ccc' }}>Zona ID</th>
-              <th style={{ padding: '0.5rem', borderBottom: '2px solid #ccc' }}>Azioni</th>
-            </tr>
-          </thead>
-          <tbody>
-            {acquaioli.map(a => (
-              <tr key={a.id} style={{ background: editingId === a.id ? 'rgba(0,123,255,0.1)' : 'transparent' }}>
-                <td style={{ padding: '0.5rem', borderBottom: '1px solid #eee' }}>{a.id}</td>
-                <td style={{ padding: '0.5rem', borderBottom: '1px solid #eee' }}>{a.nome}</td>
-                <td style={{ padding: '0.5rem', borderBottom: '1px solid #eee' }}>{a.telefono}</td>
-                <td style={{ padding: '0.5rem', borderBottom: '1px solid #eee' }}>{a.zona_id ?? '-'}</td>
-                <td style={{ padding: '0.5rem', borderBottom: '1px solid #eee' }}>
-                  <button onClick={() => startEdit(a)}>Modifica</button>
+    <div className="rubrica">
+      <div className="riga-form">
+        <label className="cerca">
+          <Icona nome="search" />
+          <input placeholder="Cerca acquaiolo o zona" value={cerca} onChange={(e) => setCerca(e.target.value)} />
+        </label>
+        <button className="btn btn-primario" onClick={() => setModifica({ id: null, nome: '', telefono: '+39 ', zona_id: null })}>
+          <Icona nome="person_add" /> Nuovo acquaiolo
+        </button>
+      </div>
+      <table className="tabella">
+        <thead>
+          <tr>
+            <th>Nome</th>
+            <th>Zona</th>
+            <th>Telefono</th>
+            <th />
+          </tr>
+        </thead>
+        <tbody>
+          {modifica?.id === null && inModifica(modifica)}
+          {lista.map((r) =>
+            modifica?.id === r.id ? (
+              inModifica(modifica)
+            ) : (
+              <tr key={r.id}>
+                <td>
+                  <span className="persona">
+                    <Avatar nome={r.nome} piccolo /> <strong>{titoloNome(r.nome)}</strong>
+                  </span>
+                </td>
+                <td>{zona(r.zona_id) ?? <span className="muto">—</span>}</td>
+                <td className="telefono">
+                  <a href={`tel:${r.telefono.replace(/\s/g, '')}`}>
+                    <Icona nome="call" /> {r.telefono}
+                  </a>{' '}
+                  <Copia testo={r.telefono} />
+                </td>
+                <td className="azioni-riga">
+                  <button className="btn-icona" title="Modifica" onClick={() => setModifica({ id: r.id, nome: r.nome, telefono: r.telefono, zona_id: r.zona_id })}>
+                    <Icona nome="edit" />
+                  </button>
                 </td>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
+            ),
+          )}
+          {lista.length === 0 && !modifica && (
+            <tr>
+              <td colSpan={4} className="muto">
+                Nessun acquaiolo in rubrica.
+              </td>
+            </tr>
+          )}
+        </tbody>
+      </table>
     </div>
-  );
+  )
 }
