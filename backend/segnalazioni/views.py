@@ -9,7 +9,8 @@ from rest_framework.views import APIView
 
 from accounts.models import Acquaiolo
 from accounts.push import invia_notifica_nuova_segnalazione
-from geo.services import check_perimetro
+from contratti import GeocodingNonDisponibile
+from geo.services import check_perimetro, reverse_geocode
 
 from .models import Evento, Foto, Segnalazione
 from .priority import calcola_priorita
@@ -27,6 +28,15 @@ def acquaiolo_di_zona(zona) -> int | None:
     if zona is None:
         return None
     return Acquaiolo.objects.filter(zona_id=zona.id).values_list("id", flat=True).first()
+
+
+def comune_del_punto(lat: float, lng: float) -> str:
+    """Comune della posizione, per la Pagina di stato. Vuoto se Nominatim non risponde."""
+    try:
+        indirizzo = reverse_geocode(lat, lng)
+    except GeocodingNonDisponibile:
+        return ""
+    return (indirizzo.comune or "") if indirizzo else ""
 
 
 class PortalePagination(PageNumberPagination):
@@ -133,6 +143,7 @@ class SegnalazioneListCreateView(generics.ListCreateAPIView):
             nome_tracciato=geo_data.tracciato.nome if geo_data.tracciato else "",
             nome_completo_tracciato=geo_data.tracciato.nome_completo if geo_data.tracciato else "",
             tipo_tracciato=geo_data.tracciato.tipo if geo_data.tracciato else "",
+            comune=comune_del_punto(lat, lng),
             distanza_m=geo_data.distanza_m,
             zona_id=geo_data.zona.id if geo_data.zona else None,
             acquaiolo_competente_id=acquaiolo_di_zona(geo_data.zona),
@@ -177,7 +188,9 @@ class SegnalazioneDetailView(generics.RetrieveUpdateAPIView):
         return SegnalazioneDetailSerializer
 
     def perform_update(self, serializer):
-        instance = self.get_object()
+        # Lo stesso oggetto che `serializer.save()` salva: una copia da get_object()
+        # perderebbe i campi ricalcolati qui sotto.
+        instance = serializer.instance
         data = serializer.validated_data
 
         campi_modificati = []
@@ -194,6 +207,10 @@ class SegnalazioneDetailView(generics.RetrieveUpdateAPIView):
             instance.layer = geo_data.tracciato.layer if geo_data.tracciato else None
             instance.id_placemark = geo_data.tracciato.id_placemark if geo_data.tracciato else ""
             instance.nome_tracciato = geo_data.tracciato.nome if geo_data.tracciato else ""
+            instance.nome_completo_tracciato = (
+                geo_data.tracciato.nome_completo if geo_data.tracciato else ""
+            )
+            instance.comune = comune_del_punto(new_lat or instance.lat, new_lng or instance.lng)
             instance.distanza_m = geo_data.distanza_m
             instance.zona_id = geo_data.zona.id if geo_data.zona else None
 

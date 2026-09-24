@@ -16,7 +16,7 @@ def aggiorna_durate(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('segnalazioni', '0003_segnalazione_categoria_originale_and_more'),
+        ('segnalazioni', '0004_segnalazione_comune'),
     ]
 
     operations = [

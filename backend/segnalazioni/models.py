@@ -122,6 +122,7 @@ class Segnalazione(models.Model):
     nome_tracciato = models.CharField(max_length=255, blank=True, default="")
     nome_completo_tracciato = models.CharField(max_length=255, blank=True, default="")
     tipo_tracciato = models.CharField(max_length=100, blank=True, default="")
+    comune = models.CharField(max_length=100, blank=True, default="")
     distanza_m = models.FloatField(null=True, blank=True)
     zona_id = models.IntegerField(null=True, blank=True)
     acquaiolo_competente_id = models.IntegerField(null=True, blank=True)

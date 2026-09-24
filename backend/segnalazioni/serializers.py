@@ -52,11 +52,33 @@ class SegnalazioneListSerializer(serializers.ModelSerializer):
 
 
 class SegnalazioneStatoSerializer(serializers.ModelSerializer):
+    """Pagina di stato: lo Stato più un riassunto per riconoscere la Segnalazione.
+
+    Chi ha il token vede anche le foto: nginx serve /media/ senza JWT. Cellulare e
+    descrizione restano fuori.
+    """
+
+    foto = serializers.SerializerMethodField()
     timeline = serializers.SerializerMethodField()
 
     class Meta:
         model = Segnalazione
-        fields = ["stato_corrente", "is_duplicato", "messaggio_al_segnalante", "timeline"]
+        fields = [
+            "codice_pratica",
+            "created_at",
+            "foto",
+            "categoria",
+            "comune",
+            "nome_completo_tracciato",
+            "stato_corrente",
+            "is_duplicato",
+            "messaggio_al_segnalante",
+            "timeline",
+        ]
+
+    def get_foto(self, obj):
+        # Percorsi relativi (/media/...), come nella scheda del Portale operatore.
+        return [f.immagine.url for f in obj.foto.all()]
 
     def get_timeline(self, obj):
         return [

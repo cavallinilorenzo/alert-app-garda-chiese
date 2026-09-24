@@ -29,9 +29,15 @@ def foto_jpeg():
 
 @pytest.fixture
 def mock_geo():
-    from contratti import RisultatoPerimetro, Tracciato, ZonaAcquaiolo
+    from contratti import Indirizzo, RisultatoPerimetro, Tracciato, ZonaAcquaiolo
 
-    with patch("segnalazioni.views.check_perimetro") as mock:
+    with (
+        patch("segnalazioni.views.check_perimetro") as mock,
+        patch("segnalazioni.views.reverse_geocode") as mock_geocode,
+    ):
+        mock_geocode.return_value = Indirizzo(
+            testo="Via Roma 5, Castiglione delle Stiviere", comune="Castiglione delle Stiviere"
+        )
         mock.return_value = RisultatoPerimetro(
             accettato=True,
             tracciato=Tracciato(
@@ -140,6 +146,7 @@ def test_creazione_segnalazione(client, mock_geo):
     assert segnalazione.id_placemark == "123"
     assert Foto.objects.filter(segnalazione=segnalazione).exists()
     assert Evento.objects.filter(segnalazione=segnalazione).count() == 1
+    assert segnalazione.comune == "Castiglione delle Stiviere"
     # l'Acquaiolo della zona 4 nella Rubrica è proposto come competente
     assert segnalazione.acquaiolo_competente_id == Acquaiolo.objects.filter(zona_id=4).first().id
 
@@ -196,7 +203,7 @@ def test_creazione_rifiuta_i_valori_fuori_dal_contratto(client, mock_geo, campo,
 def test_migrazione_delle_durate_tolte():
     from django.apps import apps
 
-    migrazione = importlib.import_module("segnalazioni.migrations.0004_nuove_opzioni")
+    migrazione = importlib.import_module("segnalazioni.migrations.0005_nuove_opzioni")
     vecchie = {
         durata: Segnalazione.objects.create(
             lat=45.0,
@@ -220,6 +227,24 @@ def test_migrazione_delle_durate_tolte():
     assert vecchie["meno_di_un_ora"].durata == "adesso"
     assert vecchie["non_applicabile"].durata == ""
     assert vecchie["alcune_ore"].durata == "alcune_ore"
+
+
+def test_comune_vuoto_se_il_geocoding_non_risponde(client, mock_geo):
+    from contratti import GeocodingNonDisponibile
+
+    data = {
+        "lat": 45.0,
+        "lng": 10.0,
+        "foto": foto_jpeg(),
+        "descrizione": "C'è un canale rotto",
+        "cellulare": "3331234567",
+    }
+    with patch("segnalazioni.views.reverse_geocode", side_effect=GeocodingNonDisponibile()):
+        response = client.post(reverse("segnalazioni-list"), data, format="multipart")
+
+    # Il comune serve solo alla Pagina di stato: senza Nominatim l'invio va avanti lo stesso.
+    assert response.status_code == status.HTTP_201_CREATED
+    assert Segnalazione.objects.get(id=response.data["id"]).comune == ""
 
 
 def test_creazione_segnalazione_fuori_perimetro(client, mock_geo):
@@ -267,3 +292,38 @@ def test_stato_segnalazione(client):
     assert response.data["stato_corrente"] == "in_verifica"
     assert not response.data["is_duplicato"]
     assert len(response.data["timeline"]) == 2
+
+
+def test_stato_con_il_riassunto_della_segnalazione(client_contratto, settings, tmp_path):
+    settings.MEDIA_ROOT = tmp_path
+    segnalazione = Segnalazione.objects.create(
+        lat=45.0,
+        lng=10.0,
+        descrizione="Test",
+        cellulare="3331234567",
+        categoria="acqua_che_affiora",
+        comune="Castiglione delle Stiviere",
+        nome_completo_tracciato="Dispensatore III ramo C",
+    )
+    Foto.objects.create(segnalazione=segnalazione, immagine=foto_jpeg())
+    Evento.objects.create(segnalazione=segnalazione, stato=Segnalazione.Stato.RICEVUTA)
+
+    url = reverse("segnalazioni-stato", kwargs={"token": segnalazione.token_stato})
+    dati = client_contratto.get(url).data
+
+    assert dati["codice_pratica"] == segnalazione.codice_pratica
+    assert dati["categoria"] == "acqua_che_affiora"
+    assert dati["comune"] == "Castiglione delle Stiviere"
+    assert dati["nome_completo_tracciato"] == "Dispensatore III ramo C"
+    assert "created_at" in dati
+    # Percorso relativo sotto /media/: nginx lo serve a chi ha il link, senza JWT.
+    assert len(dati["foto"]) == 1
+    assert dati["foto"][0].startswith("/media/segnalazioni/")
+    # Chi ha il token non vede i dati del Segnalante.
+    assert "cellulare" not in dati
+    assert "descrizione" not in dati
+
+
+def test_stato_con_token_sconosciuto(client):
+    url = reverse("segnalazioni-stato", kwargs={"token": "00000000-0000-0000-0000-000000000000"})
+    assert client.get(url).status_code == status.HTTP_404_NOT_FOUND
