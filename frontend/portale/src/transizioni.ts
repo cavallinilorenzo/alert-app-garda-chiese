@@ -42,7 +42,7 @@ export function transizione(tipo: TipoTransizione, aggiorna: () => void, dopo?: 
 
 // ---------- onda del tema
 
-// Uno tsunami: un frangente già arricciato è in basso a destra, corre verso sinistra crescendo un po' e
+// Uno tsunami: un frangente appena piegato nasce nell'angolo in basso a destra, corre verso sinistra crescendo e
 // si schianta sul bordo sinistro; poi l'acqua, cioè il nuovo tema, sale piano fino all'orlo.
 // La fisica che segue: verso riva l'onda si alza (shoaling), la cresta va più veloce della base e le passa davanti fino
 // a fare il tubo (frangente a tuffo). Contro la parete l'acqua risale in un getto, schizza gocce che volano in parabola
@@ -126,14 +126,14 @@ const caso = (i: number, s: number) => {
 function fotogrammiOnda(W: number, H: number, fotogrammi = 80) {
   const M = 60 // quanto la linea esce dallo schermo
   const hMax = Math.min(H * 0.74, W * 0.55)
-  const altezza = (a: number) => hMax * (0.8 + 0.2 * a) // parte già carica e cresce appena verso la riva
+  const altezza = (a: number) => hMax * (0.45 + 0.55 * a ** 1.2) // nasce bassa nell'angolo e si alza verso la riva
   const xFine = -TUBO[PUNTA][0] * altezza(1) - 0.01 * W // la cresta quando la punta del labbro tocca il bordo
-  const xInizio = W * 0.82 - lerp(MONTANTE[PUNTA][0], TUBO[PUNTA][0], 0.8) * altezza(0) // il labbro già dentro lo schermo
+  const xInizio = W * 0.94 - lerp(MONTANTE[PUNTA][0], TUBO[PUNTA][0], 0.35) * altezza(0) // il labbro quasi nell'angolo
 
-  // Prima dello schianto, a da 0 a 1: il frangente, già a tubo, accelera verso sinistra e finisce di arricciarsi.
+  // Prima dello schianto, a da 0 a 1: il frangente accelera verso sinistra, si alza e si arriccia fino al tubo.
   const frangente = (a: number): Punto[] => {
     const h = altezza(a)
-    const arriccio = lerp(0.8, 1, morbido(0, 1, a))
+    const arriccio = lerp(0.35, 1, morbido(0, 1, a))
     const xc = lerp(xInizio, xFine, 0.7 * a + 0.3 * a * a)
     const profilo = spline(
       MONTANTE.map(([u, v], i): Punto => [xc + lerp(u, TUBO[i][0], arriccio) * h, H - lerp(v, TUBO[i][1], arriccio) * h]),
