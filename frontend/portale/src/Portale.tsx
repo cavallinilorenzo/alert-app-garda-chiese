@@ -3,7 +3,7 @@
 // - filtri in una barra sola, condivisa tra Segnalazioni e Mappa
 // - lista con la colonna "Assegnata a"; con la scheda aperta la lista si stringe a colonna e la scheda entra da destra
 // - dalla Mappa la mappa vola sul pallino e si trasforma nella mappa della scheda
-// - il tema cambia con un'onda che attraversa la pagina (ticket #97; View Transitions API, dove c'è)
+// - il tema cambia con uno tsunami che si schianta a sinistra e riempie la pagina (ticket #97; View Transitions API, dove c'è)
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Avatar, Icona, Mappa, Pallino, tessereCaricate, titoloNome } from './comuni'
 import { usePortale } from './dati'
