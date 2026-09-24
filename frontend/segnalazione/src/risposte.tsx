@@ -1,12 +1,12 @@
 import { useState } from 'react'
 import { useBozza } from './bozza'
-import { Icona, NUMERO_EMERGENZA } from './comuni'
+import { Icona, NUMERO_VERDE, TEL_NUMERO_VERDE } from './comuni'
 import { DESCRIZIONE_MAX, DESCRIZIONE_MIN, type Campi, type Domanda } from './tassonomia'
 
 // Le risposte del passo Descrizione, a voce o a mano: i controlli di ogni campo e la
-// finestra del 112 quando c'è pericolo per le persone.
+// finestra del numero verde quando c'è pericolo per le persone.
 
-/** Aggiorna le risposte nella bozza e apre la finestra del 112 quando il pericolo per le persone diventa "sì". */
+/** Aggiorna le risposte nella bozza e apre la finestra del numero verde quando il pericolo per le persone diventa "sì". */
 export function useRisposte() {
   const { bozza, aggiorna } = useBozza()
   const [emergenza, setEmergenza] = useState(false)
@@ -74,11 +74,11 @@ function Emergenza({ onContinua }: { onContinua: () => void }) {
         <span className="tondo rosso"><Icona n="warning" piena /></span>
         <h2 id="emergenza-titolo">Qualcuno è in pericolo?</h2>
         <p>
-          Se c’è un pericolo immediato per le persone chiama subito il numero unico di emergenza. Il Consorzio non è
-          un servizio di pronto intervento.
+          Se c’è un pericolo immediato per le persone chiama subito il numero verde emergenze del Consorzio. La
+          chiamata è gratuita.
         </p>
-        <a className="btn rosso" href={`tel:${NUMERO_EMERGENZA}`}>
-          <Icona n="call" piena /> Chiama il {NUMERO_EMERGENZA}
+        <a className="btn rosso" href={TEL_NUMERO_VERDE}>
+          <Icona n="call" piena /> Chiama {NUMERO_VERDE}
         </a>
         <button className="btn secondario" onClick={onContinua}>
           Continua la segnalazione

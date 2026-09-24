@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { api } from 'shared/api'
-import { Icona, Spinner } from './comuni'
+import { Icona, Simbolo, Spinner } from './comuni'
 import { STATI, tappe, type StatoPubblico } from './stato'
 
 // Pagina di stato pubblica: la apre il Segnalante dal link ricevuto a fine invio. Sta fuori dalla
@@ -35,7 +35,7 @@ export function PaginaStato({ token }: { token: string }) {
   return (
     <div className="app">
       <header className="barra">
-        <span className="logo"><Icona n="water_drop" piena /></span>
+        <Simbolo />
         <div className="barra-testo">
           <strong>Consorzio di bonifica Garda Chiese</strong>
           <span>Stato della segnalazione</span>

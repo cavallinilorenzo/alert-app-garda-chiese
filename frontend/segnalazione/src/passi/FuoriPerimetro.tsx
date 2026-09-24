@@ -1,4 +1,4 @@
-import { Icona, NUMERO_EMERGENZA } from '../comuni'
+import { Icona, NUMERO_UNICO_EMERGENZA } from '../comuni'
 import { Schermata, useProcedura } from '../procedura'
 
 // Il punto non è sul Reticolo consortile: nessun invio, solo a chi rivolgersi.
@@ -37,7 +37,7 @@ export function FuoriPerimetro() {
               <Icona n="emergency" />
               <span>
                 <strong>Persone in pericolo</strong><br />Numero unico di emergenza{' '}
-                <a href={`tel:${NUMERO_EMERGENZA}`}>{NUMERO_EMERGENZA}</a>
+                <a href={`tel:${NUMERO_UNICO_EMERGENZA}`}>{NUMERO_UNICO_EMERGENZA}</a>
               </span>
             </li>
           </ul>

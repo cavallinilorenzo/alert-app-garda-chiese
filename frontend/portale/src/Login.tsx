@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { api, setTokens } from './api'
-import { Icona } from './comuni'
+import { Icona, Simbolo } from './comuni'
 
 export function Login({ onLogin }: { onLogin: () => void }) {
   const [username, setUsername] = useState('')
@@ -31,9 +31,7 @@ export function Login({ onLogin }: { onLogin: () => void }) {
     <div className="login">
       <form onSubmit={handleSubmit} className="login-card">
         <div className="login-marchio">
-          <span className="login-logo">
-            <Icona nome="water_drop" piena />
-          </span>
+          <Simbolo className="login-logo" />
           <div>
             <strong>Portale operatore</strong>
             <span className="muto">Consorzio di bonifica Garda Chiese</span>

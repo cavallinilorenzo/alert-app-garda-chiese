@@ -1,5 +1,5 @@
 import { useBozza, type Modalita } from '../bozza'
-import { Icona, NUMERO_EMERGENZA } from '../comuni'
+import { Icona, NUMERO_VERDE, TEL_NUMERO_VERDE } from '../comuni'
 import { Schermata, useProcedura } from '../procedura'
 
 export function Inizio() {
@@ -48,8 +48,10 @@ export function Inizio() {
           <Icona n="chevron_right" />
         </button>
         <p className="avviso-emergenza">
-          <Icona n="emergency" /> Se qualcuno è in pericolo chiama il{' '}
-          <a href={`tel:${NUMERO_EMERGENZA}`}>{NUMERO_EMERGENZA}</a>.
+          <Icona n="emergency" />
+          <span>
+            Se qualcuno è in pericolo chiama il numero verde <a href={TEL_NUMERO_VERDE}>{NUMERO_VERDE}</a>.
+          </span>
         </p>
       </div>
     </Schermata>
