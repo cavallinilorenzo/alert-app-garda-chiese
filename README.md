@@ -49,8 +49,8 @@ Before this project, citizens lacked a streamlined way to report issues like bro
 
 The project is publicly accessible and ready to be used! You can reach the live environments at the following links:
 
-> 🔗 **Citizen App**: `[Insert Public URL Here]`  
-> 🔗 **Operator Portal**: `[Insert Portal URL Here]/portale`
+> 🔗 **Citizen App**: `https://garda-chiese.simonetrentin.me`  
+> 🔗 **Operator Portal**: `https://garda-chiese.simonetrentin.me/portale/`
 
 *(Note: Replace the placeholders above with the actual deployed domain).*
 
