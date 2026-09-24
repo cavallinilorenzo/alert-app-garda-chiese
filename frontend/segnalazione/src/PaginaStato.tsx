@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useState } from 'react'
 import { api } from 'shared/api'
-import { Icona, Simbolo, Spinner } from './comuni'
+import { Icona, Logo, Spinner } from './comuni'
 import { STATI, tappe, type StatoPubblico } from './stato'
 
 // Pagina di stato pubblica: la apre il Segnalante dal link ricevuto a fine invio. Sta fuori dalla
-// procedura guidata, quindi ha la sua barra.
+// procedura guidata, quindi ha la sua testata con il logo grande.
 
 type Caricamento = { dati: StatoPubblico } | { errore: 'non_trovata' | 'rete' } | null
 
@@ -34,12 +34,8 @@ export function PaginaStato({ token }: { token: string }) {
 
   return (
     <div className="app">
-      <header className="barra">
-        <Simbolo />
-        <div className="barra-testo">
-          <strong>Consorzio di bonifica Garda Chiese</strong>
-          <span>Stato della segnalazione</span>
-        </div>
+      <header className="testata">
+        <Logo />
       </header>
       <main className="corpo">
         {caricamento === null ? (
