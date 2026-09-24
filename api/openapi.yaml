@@ -41,7 +41,7 @@ components:
       properties:
         stato_corrente:
           type: string
-          enum: [ricevuta, in_verifica, assegnata, in_intervento, chiusa, risolta]
+          enum: [ricevuta, in_verifica, assegnata, in_intervento, chiusa]
         is_duplicato:
           type: boolean
         messaggio_al_segnalante:
@@ -61,6 +61,7 @@ paths:
   /perimetro/check:
     post:
       summary: Controllo perimetro (App)
+      security: []
       requestBody:
         required: true
         content:
@@ -96,11 +97,12 @@ paths:
                     accettato: true
                     distanza_m: 12.5
                     zona_id: 4
-                    messaggio: "Punto valido."
+                    messaggio: "Punto valido nel comune di Mantova."
 
   /estrazione/vocale:
     post:
       summary: Estrazione strutturata da audio (App)
+      security: []
       requestBody:
         required: true
         content:
@@ -132,7 +134,7 @@ paths:
               examples:
                 success:
                   value:
-                    transcript: "C'è un canale rotto"
+                    transcript: "C'è un canale rotto in via Brescia a Mantova"
                     campi:
                       categoria: "canale"
                     mancanti: ["tipo_danno"]
@@ -140,6 +142,7 @@ paths:
   /segnalazioni:
     post:
       summary: Invio della segnalazione (App)
+      security: []
       requestBody:
         required: true
         content:
@@ -230,6 +233,7 @@ paths:
   /segnalazioni/stato/{token}:
     get:
       summary: Pagina di stato pubblica (App/Web)
+      security: []
       parameters:
         - name: token
           in: path
@@ -252,9 +256,10 @@ paths:
                       - stato: "ricevuta"
                         data: "2026-09-24T10:00:00Z"
 
-  /auth/token/:
+  /auth/token:
     post:
       summary: Login (Portale operatore)
+      security: []
       requestBody:
         required: true
         content:
@@ -286,9 +291,10 @@ paths:
                     access: "eyJ..."
                     refresh: "eyJ..."
 
-  /auth/token/refresh/:
+  /auth/token/refresh:
     post:
       summary: Refresh del token (Portale operatore)
+      security: []
       requestBody:
         required: true
         content:
@@ -315,7 +321,7 @@ paths:
                   value:
                     access: "eyJ..."
                     
-  /auth/me/:
+  /auth/me:
     get:
       summary: Info operatore corrente (Portale operatore)
       security:
@@ -339,7 +345,7 @@ paths:
                     id: 1
                     nome_completo: "Mario Rossi"
 
-  /auth/logout/:
+  /auth/logout:
     post:
       summary: Logout con blacklist (Portale operatore)
       security:
