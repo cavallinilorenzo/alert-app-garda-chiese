@@ -17,30 +17,58 @@ type SiNo = NonNullable<Campi['pericolo_persone']>
 
 export type Opzione = { valore: string; etichetta: string; icona?: string }
 
+// Categoria, durata e quantità d'acqua come decise nella revisione delle opzioni (ticket #100).
 export const CATEGORIE: { valore: Categoria; etichetta: string; icona: string }[] = [
-  { valore: 'acqua_che_affiora', etichetta: 'Acqua che affiora o perdita', icona: 'water_drop' },
-  { valore: 'canale_che_tracima', etichetta: 'Canale che tracima o allagamento', icona: 'flood' },
-  { valore: 'argine_danneggiato', etichetta: 'Argine o sponda danneggiata o franata', icona: 'landslide' },
-  { valore: 'ostruzione', etichetta: 'Ostruzione o accumulo', icona: 'block' },
-  { valore: 'paratoia_danneggiata', etichetta: 'Paratoia o impianto danneggiato', icona: 'valve' },
-  { valore: 'acqua_sporca', etichetta: 'Acqua sporca o cattivo odore', icona: 'water_ec' },
+  { valore: 'acqua_che_affiora', etichetta: 'Acqua che esce dal terreno', icona: 'water_drop' },
+  { valore: 'perdita_dal_canale', etichetta: 'Canale che perde', icona: 'water_damage' },
+  { valore: 'canale_che_tracima', etichetta: 'Canale che esonda o allaga', icona: 'flood' },
+  { valore: 'argine_danneggiato', etichetta: 'Argine o sponda franata', icona: 'landslide' },
+  { valore: 'ostruzione', etichetta: 'Qualcosa blocca l’acqua', icona: 'block' },
+  { valore: 'canale_asciutto', etichetta: 'Canale senz’acqua', icona: 'water_loss' },
+  { valore: 'paratoia_danneggiata', etichetta: 'Paratoia o impianto rotto', icona: 'valve' },
+  { valore: 'acqua_sporca', etichetta: 'Acqua sporca o rifiuti', icona: 'water_ec' },
   { valore: 'altro', etichetta: 'Altro', icona: 'more_horiz' },
 ]
 
 const DURATE: { valore: Durata; etichetta: string }[] = [
-  { valore: 'adesso', etichetta: 'Adesso' },
-  { valore: 'alcune_ore', etichetta: 'Da alcune ore' },
-  { valore: 'piu_di_un_giorno', etichetta: 'Da più di un giorno' },
+  { valore: 'adesso', etichetta: 'L’ho appena notato' },
+  { valore: 'alcune_ore', etichetta: 'Da qualche ora' },
+  { valore: 'piu_di_un_giorno', etichetta: 'Da qualche giorno' },
+  { valore: 'da_settimane', etichetta: 'Da settimane' },
   { valore: 'non_so', etichetta: 'Non so' },
 ]
 
+// Senza `non_applicabile`: non si sceglie, lo mette l'App quando la domanda non si fa.
 const QUANTITA: { valore: QuantitaAcqua; etichetta: string }[] = [
-  { valore: 'gocce', etichetta: 'Gocce' },
-  { valore: 'piccolo_flusso', etichetta: 'Piccolo flusso' },
-  { valore: 'molta_acqua', etichetta: 'Molta acqua' },
+  { valore: 'gocce', etichetta: 'Gocciola' },
+  { valore: 'piccolo_flusso', etichetta: 'Un filo, come un rubinetto' },
+  { valore: 'molta_acqua', etichetta: 'Tanta, scorre forte' },
+  { valore: 'getto', etichetta: 'Zampilla con forza' },
   { valore: 'non_so', etichetta: 'Non so' },
-  { valore: 'non_applicabile', etichetta: 'Non applicabile' },
 ]
+
+/** Le categorie in cui l'acqua esce: solo per queste si chiede quanta se ne vede. */
+const CATEGORIE_CON_QUANTITA: Categoria[] = [
+  'acqua_che_affiora',
+  'perdita_dal_canale',
+  'canale_che_tracima',
+  'argine_danneggiato',
+]
+
+const chiedeQuantita = (campi: Campi) =>
+  campi.categoria != null && CATEGORIE_CON_QUANTITA.includes(campi.categoria)
+
+/**
+ * Le risposte con la quantità d'acqua coerente con la categoria: `non_applicabile` se la
+ * domanda non si fa, nessuna risposta se si fa ma prima valeva `non_applicabile`.
+ */
+export function conQuantitaCoerente(campi: Campi): Campi {
+  if (campi.categoria == null) return campi
+  if (!chiedeQuantita(campi)) return { ...campi, quantita_acqua: 'non_applicabile' }
+  if (campi.quantita_acqua !== 'non_applicabile') return campi
+  const { quantita_acqua: _, ...senza } = campi
+  return senza
+}
 
 const SI_NO: { valore: SiNo; etichetta: string }[] = [
   { valore: 'si', etichetta: 'Sì' },
@@ -61,12 +89,16 @@ export type Domanda = {
 export const DOMANDE: Domanda[] = [
   { campo: 'categoria', testo: 'Che cosa hai visto?', etichetta: 'Cosa hai visto', obbligatorio: true, opzioni: CATEGORIE },
   { campo: 'descrizione', testo: 'Raccontalo in una frase breve', etichetta: 'Descrizione', obbligatorio: true },
-  { campo: 'durata', testo: 'Da quanto tempo lo vedi?', etichetta: 'Da quanto tempo', obbligatorio: false, opzioni: DURATE },
+  { campo: 'durata', testo: 'Da quando lo vedi?', etichetta: 'Da quando', obbligatorio: false, opzioni: DURATE },
   { campo: 'quantita_acqua', testo: 'Quanta acqua vedi?', etichetta: 'Quanta acqua', obbligatorio: false, opzioni: QUANTITA },
-  { campo: 'pericolo_persone', testo: 'C’è pericolo per le persone?', etichetta: 'Pericolo per le persone', obbligatorio: false, opzioni: SI_NO },
-  { campo: 'pericolo_strada', testo: 'C’è pericolo per una strada?', etichetta: 'Pericolo per strade', obbligatorio: false, opzioni: SI_NO },
-  { campo: 'pericolo_edifici', testo: 'C’è pericolo per case o altri edifici?', etichetta: 'Pericolo per case o edifici', obbligatorio: false, opzioni: SI_NO },
+  { campo: 'pericolo_persone', testo: 'Qualcuno è in pericolo?', etichetta: 'Persone in pericolo', obbligatorio: false, opzioni: SI_NO },
+  { campo: 'pericolo_strada', testo: 'Una strada è allagata o a rischio?', etichetta: 'Strada a rischio', obbligatorio: false, opzioni: SI_NO },
+  { campo: 'pericolo_edifici', testo: 'Case o edifici a rischio?', etichetta: 'Case o edifici a rischio', obbligatorio: false, opzioni: SI_NO },
 ]
+
+/** Le domande da fare con queste risposte: la quantità d'acqua solo se la categoria la prevede. */
+export const domandeDa = (campi: Campi) =>
+  DOMANDE.filter((d) => d.campo !== 'quantita_acqua' || chiedeQuantita(campi))
 
 // Limiti di `descrizione` nell'invio (`POST /segnalazioni`).
 export const DESCRIZIONE_MIN = 10
