@@ -264,6 +264,80 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/segnalazioni/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        /**
+         * Scheda della segnalazione con il Registro (Portale operatore)
+         * @description Aprire la scheda non cambia lo Stato.
+         */
+        get: operations["dettaglioSegnalazione"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Correzioni dell'Operatore sul campo (Portale operatore)
+         * @description Si mandano solo i campi da correggere. Ogni correzione scrive un evento
+         *     `correzione_campo` nel Registro.
+         *
+         *     - **Posizione** (`lat` e `lng` insieme): alla prima correzione si conserva quella
+         *       inviata in `lat_originale`/`lng_originale`. Si ricalcolano tracciato più vicino,
+         *       distanza e `zona_id`; `acquaiolo_competente_id` si imposta solo se è vuoto, un
+         *       Acquaiolo già scelto non si sostituisce. Lo spostamento fuori perimetro è ammesso:
+         *       per avvisare l'Operatore il Portale chiama prima `/perimetro/check`.
+         *     - **Categoria**: alla prima correzione si conserva quella inviata in
+         *       `categoria_originale`. Non ricalcola la priorità.
+         *     - **Priorità**: `override_motivazione` è obbligatoria quando `priorita` è diversa da
+         *       `priorita_calcolata`.
+         *     - **Acquaiolo**: cambia l'Acquaiolo competente senza cambiare lo Stato.
+         */
+        patch: operations["correggiSegnalazione"];
+        trace?: never;
+    };
+    "/segnalazioni/{id}/azioni": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Azioni dell'Operatore sulla segnalazione (Portale operatore)
+         * @description Ogni azione scrive un evento nel Registro con l'Operatore autenticato e la `nota`.
+         *
+         *     | `azione` | Da | A | Campi obbligatori |
+         *     |---|---|---|---|
+         *     | `prendi_in_carico` | ricevuta | in_verifica | — (diventa Operatore di riferimento) |
+         *     | `assegna` | in_verifica | assegnata | `acquaiolo_id` |
+         *     | `avvia_intervento` | assegnata | in_intervento | — |
+         *     | `chiudi` | qualunque tranne chiusa | chiusa | `esito`; `duplicato_di` se l'esito è `duplicata` |
+         *     | `indietro` | in_verifica, assegnata, in_intervento | lo Stato precedente | `nota` |
+         *     | `riapri` | chiusa | in_verifica | `nota` |
+         *     | `nota` | qualunque | invariato | `nota` (nota interna) |
+         *     | `messaggio_segnalante` | qualunque | invariato | `nota` (il testo che compare nella Pagina di stato) |
+         *
+         *     Chiudere come `duplicata` scrive anche un evento `duplicato_collegato` nel Registro
+         *     dell'originale.
+         */
+        post: operations["azioneSegnalazione"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/segnalazioni/stato/{token}": {
         parameters: {
             query?: never;
@@ -534,6 +608,114 @@ export interface components {
                 data?: string;
             }[];
         };
+        /** @enum {string} */
+        Stato: "ricevuta" | "in_verifica" | "assegnata" | "in_intervento" | "chiusa";
+        /** @enum {string} */
+        Priorita: "bassa" | "media" | "alta" | "critica";
+        /** @enum {string} */
+        Esito: "risolta" | "duplicata" | "non_di_competenza" | "non_riscontrata" | "falsa";
+        Operatore: {
+            id: number;
+            /** @example Mario Rossi */
+            nome_completo: string;
+        };
+        /** @description Una voce del Registro. Il Registro si aggiunge e basta. */
+        Evento: {
+            id: number;
+            /** @enum {string} */
+            tipo_evento: "cambio_stato" | "correzione_campo" | "nota" | "duplicato_collegato";
+            /** @description Lo Stato della Segnalazione dopo l'evento. */
+            stato: components["schemas"]["Stato"];
+            /** @description Null per l'evento `ricevuta` scritto all'invio. */
+            operatore: components["schemas"]["Operatore"] | null;
+            /** @description Vuota se l'Operatore non l'ha scritta. Per `correzione_campo` elenca i campi modificati. */
+            nota: string;
+            /** Format: date-time */
+            created_at: string;
+        };
+        /** @description Una Segnalazione chiusa con esito `duplicata` e collegata a questa. */
+        DuplicatoCollegato: {
+            id: number;
+            codice_pratica: string;
+            cellulare: string;
+            foto: string[];
+            /** Format: date-time */
+            created_at: string;
+        };
+        /**
+         * @description La scheda della Segnalazione nel Portale operatore. I campi testuali non compilati
+         *     sono stringhe vuote; quelli numerici o i collegamenti non presenti sono `null`.
+         */
+        SegnalazioneDettaglio: {
+            id: number;
+            codice_pratica: string;
+            stato_corrente: components["schemas"]["Stato"];
+            /**
+             * @description Vuoto finché la Segnalazione non è Chiusa.
+             * @enum {string}
+             */
+            esito: "risolta" | "duplicata" | "non_di_competenza" | "non_riscontrata" | "falsa" | "";
+            priorita: components["schemas"]["Priorita"];
+            /** @description La priorità calcolata all'invio; resta invariata se l'Operatore la cambia. */
+            priorita_calcolata: components["schemas"]["Priorita"];
+            /** @description Perché l'Operatore ha cambiato la priorità calcolata. Vuota se non l'ha cambiata. */
+            override_motivazione: string;
+            /** Format: date-time */
+            created_at: string;
+            lat: number;
+            lng: number;
+            /** @description Posizione GPS inviata dal Segnalante, conservata alla prima correzione. Null se mai corretta. */
+            lat_originale: number | null;
+            lng_originale: number | null;
+            descrizione: string;
+            cellulare: string;
+            transcript_ai: string;
+            foto: string[];
+            /** @enum {string} */
+            categoria: "acqua_che_affiora" | "canale_che_tracima" | "argine_danneggiato" | "ostruzione" | "paratoia_danneggiata" | "acqua_sporca" | "altro" | "";
+            /**
+             * @description Categoria inviata, conservata alla prima correzione. Vuota se mai corretta.
+             * @enum {string}
+             */
+            categoria_originale: "acqua_che_affiora" | "canale_che_tracima" | "argine_danneggiato" | "ostruzione" | "paratoia_danneggiata" | "acqua_sporca" | "altro" | "";
+            /** @enum {string} */
+            durata: "adesso" | "meno_di_un_ora" | "alcune_ore" | "piu_di_un_giorno" | "non_so" | "non_applicabile" | "";
+            /** @enum {string} */
+            quantita_acqua: "gocce" | "piccolo_flusso" | "molta_acqua" | "non_so" | "non_applicabile" | "";
+            /** @enum {string} */
+            pericolo_persone: "si" | "no" | "non_so" | "";
+            /** @enum {string} */
+            pericolo_strada: "si" | "no" | "non_so" | "";
+            /** @enum {string} */
+            pericolo_edifici: "si" | "no" | "non_so" | "";
+            /** @description Confidenza dell'estrazione vocale per campo, da 0 a 1. Vuoto se il form è stato compilato a mano. */
+            estratti_confidenza: {
+                [key: string]: number;
+            };
+            /**
+             * @description Layer del tracciato più vicino.
+             * @enum {string}
+             */
+            layer: "canale" | "condotta" | "reticolo_principale" | "";
+            nome_tracciato: string;
+            nome_completo_tracciato: string;
+            tipo_tracciato: string;
+            /** @description Distanza dal tracciato più vicino. */
+            distanza_m: number | null;
+            /** @description Zona acquaiolo in cui cade la posizione. */
+            zona_id: number | null;
+            /** @description Id dell'Acquaiolo nella Rubrica acquaioli (`/acquaioli`), da cui si prende il telefono. */
+            acquaiolo_competente_id: number | null;
+            operatore_riferimento: components["schemas"]["Operatore"] | null;
+            is_duplicato: boolean;
+            /** @description Id dell'originale, se questa Segnalazione è un Duplicato. */
+            duplicato_di: number | null;
+            /** @description I Duplicati collegati a questa Segnalazione ("segnalata anche da N persone"). */
+            duplicati: components["schemas"]["DuplicatoCollegato"][];
+            messaggio_al_segnalante: string;
+            /** @description In ordine cronologico, dal più vecchio. */
+            registro: components["schemas"]["Evento"][];
+        };
         Acquaiolo: {
             readonly id: number;
             /** @example BRIGNANI */
@@ -602,7 +784,26 @@ export interface components {
             features: (components["schemas"]["FeatureTracciato"] | components["schemas"]["FeatureZonaAcquaiolo"])[];
         };
     };
-    responses: never;
+    responses: {
+        /** @description Token mancante, scaduto o non valido */
+        NonAutenticato: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["Error"];
+            };
+        };
+        /** @description Nessuna Segnalazione con questo id */
+        SegnalazioneNonTrovata: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["Error"];
+            };
+        };
+    };
     parameters: never;
     requestBodies: never;
     headers: never;
@@ -638,6 +839,130 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    dettaglioSegnalazione: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description La Segnalazione */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SegnalazioneDettaglio"];
+                };
+            };
+            401: components["responses"]["NonAutenticato"];
+            404: components["responses"]["SegnalazioneNonTrovata"];
+        };
+    };
+    correggiSegnalazione: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    lat?: number;
+                    lng?: number;
+                    /** @enum {string} */
+                    categoria?: "acqua_che_affiora" | "canale_che_tracima" | "argine_danneggiato" | "ostruzione" | "paratoia_danneggiata" | "acqua_sporca" | "altro";
+                    priorita?: components["schemas"]["Priorita"];
+                    override_motivazione?: string;
+                    acquaiolo_competente_id?: number | null;
+                };
+            };
+        };
+        responses: {
+            /** @description La Segnalazione dopo la correzione */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SegnalazioneDettaglio"];
+                };
+            };
+            /** @description Dati non validi (per esempio priorità cambiata senza motivazione) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            401: components["responses"]["NonAutenticato"];
+            404: components["responses"]["SegnalazioneNonTrovata"];
+        };
+    };
+    azioneSegnalazione: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @enum {string} */
+                    azione: "prendi_in_carico" | "assegna" | "avvia_intervento" | "chiudi" | "indietro" | "riapri" | "nota" | "messaggio_segnalante";
+                    nota?: string;
+                    /** @description Id dell'Acquaiolo nella Rubrica acquaioli. */
+                    acquaiolo_id?: number;
+                    esito?: components["schemas"]["Esito"];
+                    /** @description Id della Segnalazione originale. */
+                    duplicato_di?: number;
+                };
+            };
+        };
+        responses: {
+            /** @description La Segnalazione dopo l'azione */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SegnalazioneDettaglio"];
+                };
+            };
+            /** @description Azione sconosciuta o campo obbligatorio mancante */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            401: components["responses"]["NonAutenticato"];
+            404: components["responses"]["SegnalazioneNonTrovata"];
+            /** @description Azione non ammessa nello Stato attuale (per esempio `avvia_intervento` su una Segnalazione Ricevuta) */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
             };
         };
     };
