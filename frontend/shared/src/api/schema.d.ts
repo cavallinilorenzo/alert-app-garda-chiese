@@ -388,6 +388,33 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/segnalazioni/manuale": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Inserimento manuale della segnalazione (Portale operatore)
+         * @description L'Operatore inserisce una Segnalazione arrivata per numero verde, email o di persona.
+         *     Rispetto all'App di segnalazione:
+         *     - foto e cellulare sono facoltativi;
+         *     - un punto Fuori perimetro non viene rifiutato: il Portale avvisa l'Operatore con
+         *       `/perimetro/check` e lascia decidere a lui;
+         *     - la priorità si calcola con le stesse regole, e l'Operatore la può cambiare dopo.
+         *
+         *     Il Registro parte con l'evento Ricevuta firmato dall'Operatore che l'ha inserita.
+         */
+        post: operations["inserisciSegnalazione"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/segnalazioni/{id}": {
         parameters: {
             query?: never;
@@ -808,6 +835,12 @@ export interface components {
             created_at: string;
         };
         /**
+         * @description Il Canale di ingresso. `web_app` è l'App di segnalazione; gli altri li indica
+         *     l'Operatore quando inserisce la Segnalazione dal Portale operatore.
+         * @enum {string}
+         */
+        CanaleIngresso: "web_app" | "numero_verde" | "email" | "di_persona";
+        /**
          * @description La scheda della Segnalazione nel Portale operatore. I campi testuali non compilati
          *     sono stringhe vuote; quelli numerici o i collegamenti non presenti sono `null`.
          */
@@ -825,6 +858,7 @@ export interface components {
             priorita_calcolata: components["schemas"]["Priorita"];
             /** @description Perché l'Operatore ha cambiato la priorità calcolata. Vuota se non l'ha cambiata. */
             override_motivazione: string;
+            canale_ingresso: components["schemas"]["CanaleIngresso"];
             /** Format: date-time */
             created_at: string;
             lat: number;
@@ -1005,6 +1039,62 @@ export interface operations {
                 };
                 content?: never;
             };
+        };
+    };
+    inserisciSegnalazione: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    lat: number;
+                    lng: number;
+                    /** @enum {string} */
+                    canale_ingresso: "numero_verde" | "email" | "di_persona";
+                    descrizione: string;
+                    /** @description Recapito del Segnalante, se l'ha lasciato. */
+                    cellulare?: string;
+                    /** Format: binary */
+                    foto?: string;
+                    /** @enum {string} */
+                    categoria?: "acqua_che_affiora" | "perdita_dal_canale" | "canale_che_tracima" | "argine_danneggiato" | "ostruzione" | "canale_asciutto" | "paratoia_danneggiata" | "acqua_sporca" | "altro";
+                    /** @enum {string} */
+                    durata?: "adesso" | "alcune_ore" | "piu_di_un_giorno" | "da_settimane" | "non_so";
+                    /** @enum {string} */
+                    quantita_acqua?: "gocce" | "piccolo_flusso" | "molta_acqua" | "getto" | "non_so" | "non_applicabile";
+                    /** @enum {string} */
+                    pericolo_persone?: "si" | "no" | "non_so";
+                    /** @enum {string} */
+                    pericolo_strada?: "si" | "no" | "non_so";
+                    /** @enum {string} */
+                    pericolo_edifici?: "si" | "no" | "non_so";
+                };
+            };
+        };
+        responses: {
+            /** @description La Segnalazione inserita */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SegnalazioneDettaglio"];
+                };
+            };
+            /** @description Dati non validi */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            401: components["responses"]["NonAutenticato"];
         };
     };
     dettaglioSegnalazione: {

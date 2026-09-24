@@ -47,6 +47,7 @@ components:
         priorita: "alta"
         priorita_calcolata: "alta"
         override_motivazione: ""
+        canale_ingresso: "web_app"
         created_at: "2026-09-24T08:50:00Z"
         lat: 45.31095
         lng: 10.625391
@@ -271,6 +272,13 @@ components:
           type: string
           format: date-time
 
+    CanaleIngresso:
+      type: string
+      enum: [web_app, numero_verde, email, di_persona]
+      description: |
+        Il Canale di ingresso. `web_app` è l'App di segnalazione; gli altri li indica
+        l'Operatore quando inserisce la Segnalazione dal Portale operatore.
+
     SegnalazioneDettaglio:
       type: object
       description: |
@@ -284,6 +292,7 @@ components:
         - priorita
         - priorita_calcolata
         - override_motivazione
+        - canale_ingresso
         - created_at
         - lat
         - lng
@@ -333,6 +342,8 @@ components:
         override_motivazione:
           type: string
           description: Perché l'Operatore ha cambiato la priorità calcolata. Vuota se non l'ha cambiata.
+        canale_ingresso:
+          $ref: '#/components/schemas/CanaleIngresso'
         created_at:
           type: string
           format: date-time
@@ -1026,6 +1037,100 @@ paths:
                   value:
                     items: []
                     total: 0
+
+  /segnalazioni/manuale:
+    post:
+      operationId: inserisciSegnalazione
+      summary: Inserimento manuale della segnalazione (Portale operatore)
+      description: |
+        L'Operatore inserisce una Segnalazione arrivata per numero verde, email o di persona.
+        Rispetto all'App di segnalazione:
+        - foto e cellulare sono facoltativi;
+        - un punto Fuori perimetro non viene rifiutato: il Portale avvisa l'Operatore con
+          `/perimetro/check` e lascia decidere a lui;
+        - la priorità si calcola con le stesse regole, e l'Operatore la può cambiare dopo.
+
+        Il Registro parte con l'evento Ricevuta firmato dall'Operatore che l'ha inserita.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [lat, lng, descrizione, canale_ingresso]
+              properties:
+                lat:
+                  type: number
+                lng:
+                  type: number
+                canale_ingresso:
+                  type: string
+                  enum: [numero_verde, email, di_persona]
+                descrizione:
+                  type: string
+                  minLength: 10
+                  maxLength: 500
+                cellulare:
+                  type: string
+                  description: Recapito del Segnalante, se l'ha lasciato.
+                foto:
+                  type: string
+                  format: binary
+                categoria:
+                  type: string
+                  enum: [acqua_che_affiora, perdita_dal_canale, canale_che_tracima, argine_danneggiato, ostruzione, canale_asciutto, paratoia_danneggiata, acqua_sporca, altro]
+                durata:
+                  type: string
+                  enum: [adesso, alcune_ore, piu_di_un_giorno, da_settimane, non_so]
+                quantita_acqua:
+                  type: string
+                  enum: [gocce, piccolo_flusso, molta_acqua, getto, non_so, non_applicabile]
+                pericolo_persone:
+                  type: string
+                  enum: ["si", "no", "non_so"]
+                pericolo_strada:
+                  type: string
+                  enum: ["si", "no", "non_so"]
+                pericolo_edifici:
+                  type: string
+                  enum: ["si", "no", "non_so"]
+            examples:
+              telefonata:
+                value:
+                  lat: 45.31095
+                  lng: 10.625391
+                  canale_ingresso: "numero_verde"
+                  descrizione: "Al telefono: il canale esce sulla strada in via Brescia"
+                  cellulare: "+39 333 1234567"
+                  categoria: "canale_che_tracima"
+                  pericolo_strada: "si"
+      responses:
+        '201':
+          description: La Segnalazione inserita
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SegnalazioneDettaglio'
+              examples:
+                inserita:
+                  $ref: '#/components/examples/SegnalazioneInVerifica'
+        '400':
+          description: Dati non validi
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                descrizione_corta:
+                  value:
+                    code: "dati_non_validi"
+                    message: "I dati inviati non sono validi."
+                    fields:
+                      descrizione: ["Assicurati che questo valore abbia almeno 10 caratteri."]
+        '401':
+          $ref: '#/components/responses/NonAutenticato'
 
   /segnalazioni/{id}:
     parameters:

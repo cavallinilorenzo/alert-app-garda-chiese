@@ -11,6 +11,7 @@ import {
   ESITI,
   LIVELLI,
   NOME_LAYER,
+  NOME_CANALE,
   NOME_LIVELLO,
   NOME_STATO,
   PERICOLI,
@@ -505,7 +506,7 @@ export function Scheda({ s, onChiudi, onApri, daMappa, ritardo }: PropsScheda) {
           <div className="quando">
             <strong className={inRitardo(s) ? 'ritardo' : ''}>Ricevuta {eta(s.created_at)}</strong>
             <span>{dataOra(s.created_at)}</span>
-            <span className="muto">via web app</span>
+            <span className="muto">via {NOME_CANALE[s.canale_ingresso]}</span>
           </div>
           <PrioritaDettaglio key={`${s.id}-${s.priorita}`} s={s} />
         </div>

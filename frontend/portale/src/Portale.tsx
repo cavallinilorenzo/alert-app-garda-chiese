@@ -28,12 +28,13 @@ import {
   type Operatore,
   type Segnalazione,
 } from './dominio'
+import { NuovaSegnalazione } from './NuovaSegnalazione'
 import { Rubrica } from './Rubrica'
 import { Scheda, StatoPill } from './Scheda'
 import { allontana, movimentoRidotto, ondaTema, transizione } from './transizioni'
 import { attivaNotifiche, disattivaNotifiche, notificheAttive } from './push'
 
-type Pagina = 'coda' | 'mappa' | 'rubrica'
+type Pagina = 'coda' | 'mappa' | 'rubrica' | 'nuova'
 type Tema = 'chiaro' | 'scuro'
 /** Come si è aperta la scheda: decide quando entrano i suoi blocchi. */
 type Ingresso = 'apri' | 'cambio' | 'mappa'
@@ -137,6 +138,7 @@ function Menu({ pagina, setPagina, nuove, tema, setTema, operatore, onEsci }: Pr
       </div>
 
       <div className="sezione">Lavoro</div>
+      {voce('nuova', 'Nuova segnalazione', 'add_circle')}
       {voce('coda', 'Segnalazioni', 'inbox', nuove)}
       {voce('mappa', 'Mappa', 'map')}
       <div className="sezione">Consorzio</div>
@@ -389,7 +391,7 @@ export function Portale({ operatore, onEsci }: { operatore: Operatore | null; on
       <Menu pagina={pagina} setPagina={vai} nuove={nuove} tema={tema} setTema={setTema} operatore={operatore} onEsci={onEsci} />
 
       <main className="principale">
-        {pagina !== 'rubrica' && <BarraFiltri f={f} set={setF} conteggio={lista.length} />}
+        {(pagina === 'coda' || pagina === 'mappa') && <BarraFiltri f={f} set={setF} conteggio={lista.length} />}
 
         {pagina === 'coda' && (
           <div className={`pagina split ${ingresso === 'mappa' ? 'fermo' : ''}`} key="coda">
@@ -406,6 +408,18 @@ export function Portale({ operatore, onEsci }: { operatore: Operatore | null; on
               <Icona nome="touch_app" /> Clicca un pallino per aprire la segnalazione
             </div>
           </div>
+        )}
+
+        {pagina === 'nuova' && (
+          <NuovaSegnalazione
+            key="nuova"
+            onAnnulla={() => vai('coda')}
+            onInserita={(nuova) => {
+              setIngresso('apri')
+              setPagina('coda')
+              setSel(nuova.id)
+            }}
+          />
         )}
 
         {pagina === 'rubrica' && (

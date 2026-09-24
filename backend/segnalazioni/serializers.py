@@ -35,6 +35,46 @@ class SegnalazioneCreateSerializer(serializers.ModelSerializer):
         }
 
 
+class SegnalazioneManualeSerializer(serializers.ModelSerializer):
+    """Inserimento manuale dal Portale operatore: foto e cellulare facoltativi."""
+
+    foto = serializers.ImageField(write_only=True, required=False)
+    canale_ingresso = serializers.ChoiceField(
+        choices=[
+            c
+            for c in Segnalazione.CanaleIngresso.choices
+            if c[0] != Segnalazione.CanaleIngresso.WEB_APP
+        ]
+    )
+    descrizione = serializers.CharField(min_length=10, max_length=500)
+
+    class Meta:
+        model = Segnalazione
+        fields = [
+            "lat",
+            "lng",
+            "canale_ingresso",
+            "foto",
+            "descrizione",
+            "cellulare",
+            "categoria",
+            "durata",
+            "quantita_acqua",
+            "pericolo_persone",
+            "pericolo_strada",
+            "pericolo_edifici",
+        ]
+        extra_kwargs = {
+            "cellulare": {"required": False, "allow_blank": True},
+            "categoria": {"required": False, "allow_blank": True},
+            "durata": {"required": False, "allow_blank": True},
+            "quantita_acqua": {"required": False, "allow_blank": True},
+            "pericolo_persone": {"required": False, "allow_blank": True},
+            "pericolo_strada": {"required": False, "allow_blank": True},
+            "pericolo_edifici": {"required": False, "allow_blank": True},
+        }
+
+
 class SegnalazioneListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Segnalazione
@@ -88,9 +128,15 @@ class SegnalazioneStatoSerializer(serializers.ModelSerializer):
 
 
 class EventoSerializer(serializers.ModelSerializer):
+    # Solo per il Portale operatore: la Pagina di stato costruisce la sua timeline senza operatori.
+    operatore = serializers.SerializerMethodField()
+
     class Meta:
         model = Evento
-        fields = ["id", "stato", "nota", "created_at"]
+        fields = ["id", "tipo_evento", "stato", "operatore", "nota", "created_at"]
+
+    def get_operatore(self, obj):
+        return OperatoreRiferimentoSerializer(obj.operatore).data if obj.operatore else None
 
 
 class DuplicatoCollegatoSerializer(serializers.ModelSerializer):
@@ -133,6 +179,7 @@ class SegnalazioneDetailSerializer(serializers.ModelSerializer):
             "priorita",
             "priorita_calcolata",
             "override_motivazione",
+            "canale_ingresso",
             "created_at",
             "lat",
             "lng",

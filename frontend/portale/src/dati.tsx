@@ -8,6 +8,7 @@ import type { Acquaiolo, Contesto, Segnalazione } from './dominio'
 type CorpoAzione = paths['/segnalazioni/{id}/azioni']['post']['requestBody']['content']['application/json']
 type CorpoCorrezione = paths['/segnalazioni/{id}']['patch']['requestBody']['content']['application/json']
 type CorpoAcquaiolo = { nome: string; telefono: string; zona_id: number | null }
+export type CorpoManuale = Omit<paths['/segnalazioni/manuale']['post']['requestBody']['content']['multipart/form-data'], 'foto'>
 
 export type Zona = { id: number; nome: string; acquaiolo: string | null }
 export type Toast = { testo: string; errore?: boolean; n: number }
@@ -23,6 +24,7 @@ type Portale = Contesto & {
   azione: (id: number, corpo: CorpoAzione) => Promise<boolean>
   correggi: (id: number, corpo: CorpoCorrezione) => Promise<boolean>
   salvaAcquaiolo: (id: number | null, corpo: CorpoAcquaiolo) => Promise<boolean>
+  inserisci: (corpo: CorpoManuale, foto: File | null) => Promise<Segnalazione | null>
 }
 
 const PortaleContesto = createContext<Portale | null>(null)
@@ -122,6 +124,29 @@ export function PortaleProvider({ children }: { children: ReactNode }) {
     return true
   }
 
+  // Inserimento manuale: la nuova Segnalazione entra subito in lista.
+  const inserisci = async (corpo: CorpoManuale, foto: File | null) => {
+    const { data, error } = await api.POST('/segnalazioni/manuale', {
+      // Il client è tipizzato con `foto: string`; il corpo vero è il FormData qui sotto.
+      body: corpo,
+      bodySerializer: () => {
+        const fd = new FormData()
+        for (const [chiave, valore] of Object.entries(corpo)) {
+          if (valore != null && valore !== '') fd.append(chiave, String(valore))
+        }
+        if (foto) fd.append('foto', foto, foto.name)
+        return fd
+      },
+    })
+    if (!data) {
+      avvisa(messaggioErrore(error, 'Segnalazione non inserita.'), true)
+      return null
+    }
+    setSegnalazioni((l) => [data, ...l])
+    avvisa(`Segnalazione ${data.codice_pratica} inserita`)
+    return data
+  }
+
   const salvaAcquaiolo = async (id: number | null, corpo: CorpoAcquaiolo) => {
     const { error } = id
       ? await api.PATCH('/acquaioli/{id}', { params: { path: { id } }, body: corpo })
@@ -140,7 +165,7 @@ export function PortaleProvider({ children }: { children: ReactNode }) {
 
   return (
     <PortaleContesto.Provider
-      value={{ segnalazioni, rubrica, zone, caricamento, errore, toast, ricarica, azione, correggi, salvaAcquaiolo, zona, acquaiolo }}
+      value={{ segnalazioni, rubrica, zone, caricamento, errore, toast, ricarica, azione, correggi, salvaAcquaiolo, inserisci, zona, acquaiolo }}
     >
       {children}
     </PortaleContesto.Provider>

@@ -420,3 +420,40 @@ button:active:not(:disabled) { transform: scale(.97); }
 .login-logo { width: 42px; height: auto; flex: none; }
 .login-errore { display: flex; align-items: center; gap: 8px; background: var(--pericolo-fondo); color: var(--pericolo-testo); border: 1px solid var(--pericolo-bordo); border-radius: 8px; padding: 8px 10px; font-size: 13px; }
 .login-errore .icona { font-size: 18px; color: var(--pericolo); }
+
+/* ---------- nuova segnalazione (inserimento manuale): modulo a sinistra, mappa per il punto a destra */
+.pagina-nuova { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(420px, 560px) 1fr; }
+.nuova-modulo { overflow: auto; padding: 22px 24px 20px; display: flex; flex-direction: column; gap: 18px; border-right: 1px solid var(--linea); }
+.nuova-testa h1 { font-size: 24px; margin: 0 0 2px; }
+.nuova-testa p { margin: 0; font-size: 13px; }
+.nuova-campo { display: flex; flex-direction: column; gap: 8px; }
+.nuova-campo textarea { font: inherit; color: var(--testo); background: var(--superficie); border: 1px solid var(--linea); border-radius: 8px; padding: 8px 10px; resize: vertical; transition: border-color .15s, box-shadow .15s; }
+.nuova-campo textarea:focus { outline: 0; border-color: var(--accento); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accento) 20%, transparent); }
+.scelte { display: flex; flex-wrap: wrap; gap: 6px; }
+.scelta { display: inline-flex; align-items: center; gap: 7px; border: 1px solid var(--linea); background: var(--superficie); border-radius: 8px; padding: 7px 12px; font-weight: 500; color: var(--testo-2); }
+.scelta .icona { font-size: 18px; }
+.scelta:hover { border-color: var(--testo-3); }
+.scelta.on { background: var(--accento-chiaro); border-color: var(--accento); color: var(--testo); }
+.scelta.on .icona { color: var(--accento-testo); }
+.scelte.categorie { display: grid; grid-template-columns: repeat(3, 1fr); }
+.scelte.categorie .scelta { font-size: 12.5px; padding: 7px 9px; text-align: left; }
+.nuova-riga { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 2px 0; }
+.segmenti { display: inline-flex; border: 1px solid var(--linea); border-radius: 8px; overflow: hidden; flex: none; }
+.segmenti button { border: 0; background: var(--superficie); padding: 5px 12px; font-size: 13px; color: var(--testo-2); }
+.segmenti button + button { border-left: 1px solid var(--linea); }
+.segmenti button.on { background: var(--accento-chiaro); color: var(--testo); font-weight: 600; }
+.segmenti button.si.on { background: var(--pericolo-fondo); color: var(--pericolo); }
+.nuova-coppia { flex-direction: row; gap: 12px; }
+.nuova-coppia label { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+.file { position: relative; display: flex; align-items: center; gap: 8px; border: 1px dashed var(--linea); border-radius: 8px; padding: 7px 10px; color: var(--testo-2); cursor: pointer; }
+.file:hover { border-color: var(--testo-3); }
+.file input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.nuova-piede { position: sticky; bottom: -20px; margin-top: auto; display: flex; align-items: center; gap: 14px; padding: 12px 0 0; border-top: 1px solid var(--linea-2); background: var(--superficie); }
+.nuova-piede .muto { flex: 1; font-size: 12.5px; }
+.nuova-mappa { position: relative; min-height: 0; }
+.nuova-mappa .mappa { cursor: crosshair; }
+.nuova-perimetro { position: absolute; top: 12px; left: 50%; transform: translateX(-50%); z-index: 1000; display: flex; gap: 8px; align-items: center; max-width: calc(100% - 120px); background: var(--superficie); border: 1px solid var(--linea); border-radius: 999px; padding: 7px 16px; font-size: 13px; color: var(--testo-2); box-shadow: var(--ombra); }
+.nuova-perimetro .icona { font-size: 18px; color: var(--verde); }
+.nuova-perimetro.fuori { background: var(--avviso-fondo); border-color: var(--avviso-bordo); color: var(--avviso-testo); border-radius: 12px; }
+.nuova-perimetro.fuori .icona { color: var(--avviso-testo); }
+.segnaposto { font-size: 34px; color: var(--pericolo); filter: drop-shadow(0 2px 3px #0006); }

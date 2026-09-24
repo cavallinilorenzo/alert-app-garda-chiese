@@ -74,6 +74,15 @@ const VALORI: Record<string, string> = {
 }
 export const valore = (v: string) => (v ? (VALORI[v] ?? v) : '—')
 
+export type CanaleIngresso = components['schemas']['CanaleIngresso']
+export const NOME_CANALE: Record<CanaleIngresso, string> = { web_app: 'web app', numero_verde: 'numero verde', email: 'email', di_persona: 'di persona' }
+/** I canali che l'Operatore inserisce a mano; la web app no. */
+export const CANALI_MANUALI: { valore: Exclude<CanaleIngresso, 'web_app'>; etichetta: string; icona: string }[] = [
+  { valore: 'numero_verde', etichetta: 'Numero verde', icona: 'call' },
+  { valore: 'email', etichetta: 'Email', icona: 'mail' },
+  { valore: 'di_persona', etichetta: 'Di persona', icona: 'record_voice_over' },
+]
+
 export const NOME_LAYER: Record<string, string> = { canale: 'Canale', condotta: 'Condotta', reticolo_principale: 'Reticolo principale' }
 
 export const PERICOLI = [
