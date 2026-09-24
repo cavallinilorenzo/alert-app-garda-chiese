@@ -44,7 +44,8 @@ Ascolta la registrazione e restituisci:
 - campi: per ogni campo il valore detto e la tua confidenza da 0 a 1.
 
 Se un'informazione non viene detta usa null, con confidenza 0. Non inventare e non \
-dedurre dal contesto quello che la persona non dice.
+dedurre dal contesto quello che la persona non dice. Usa non_so solo se la persona dice \
+esplicitamente di non saperlo: se non ne parla, il valore è null.
 
 Campi:
 - categoria, cosa ha visto: acqua_che_affiora (acqua che esce dal terreno, perdita), \
