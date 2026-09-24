@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { api } from 'shared/api'
 import { useBozza, type Posizione as PosizioneBozza } from '../bozza'
 import { Icona, Spinner } from '../comuni'
-import { CENTRO_COMPRENSORIO, Mappa } from '../Mappa'
+import { CENTRO_COMPRENSORIO, Mappa, PUNTO_SUL_RETICOLO } from '../Mappa'
 import { Schermata, useProcedura } from '../procedura'
 
 // Oltre questa precisione chiediamo di controllare bene il punto.
@@ -47,6 +47,12 @@ export function Posizione() {
     } finally {
       setCercando(false)
     }
+  }
+
+  // Per chi prova l'App lontano dal Comprensorio: il segnaposto va su un canale del Consorzio.
+  function portaSulReticolo() {
+    aggiorna({ posizione: { ...PUNTO_SUL_RETICOLO, fonte: 'mappa' } })
+    setAvviso(null)
   }
 
   function sceglieSullaMappa() {
@@ -130,6 +136,16 @@ export function Posizione() {
           <span>Controllo non riuscito. Verifica la connessione e riprova.</span>
         </div>
       )}
+      <div className="lontano">
+        <Icona n="water" />
+        <div>
+          <strong>Sei lontano dai canali del Consorzio?</strong>
+          <p>Sposta il segnaposto su una linea blu: sono i canali che gestisce il Consorzio.</p>
+          <button className="btn secondario" onClick={portaSulReticolo}>
+            <Icona n="near_me" /> Portami su un canale
+          </button>
+        </div>
+      </div>
       <div className="mappa-box">
         <Mappa posizione={posizione} onSposta={(lat, lng) => aggiorna({ posizione: { lat, lng, fonte: 'mappa' } })} />
         <span className="suggerimento">

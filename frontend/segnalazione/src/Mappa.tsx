@@ -7,6 +7,10 @@ import type { Posizione } from './bozza'
 // Centro del Comprensorio, per chi sceglie il punto senza GPS.
 export const CENTRO_COMPRENSORIO = { lat: 45.3906, lng: 10.4868 }
 
+// Un punto sul Fosso Gerra e San Vigilio, in una zona con acquaiolo: dentro il perimetro. È dove
+// si porta il segnaposto chi prova l'App lontano dal Comprensorio (ticket #139).
+export const PUNTO_SUL_RETICOLO = { lat: 45.37939, lng: 10.5037 }
+
 // Il Reticolo consortile disegnato sotto il segnaposto, per aiutare a trovare il canale giusto.
 const LAYER_RETICOLO = ['reticolo_principale', 'canale', 'condotta'] as const
 type LayerReticolo = (typeof LAYER_RETICOLO)[number]
@@ -47,7 +51,10 @@ type Props = {
   onSposta: (lat: number, lng: number) => void
 }
 
-/** Mappa con il segnaposto trascinabile. Si centra sulla posizione quando arriva dal GPS. */
+/**
+ * Mappa con il segnaposto trascinabile. Si centra sulla posizione quando arriva dal GPS o quando
+ * il punto finisce fuori dalla vista.
+ */
 export function Mappa({ posizione, onSposta }: Props) {
   const contenitore = useRef<HTMLDivElement>(null)
   const mappa = useRef<L.Map | null>(null)
@@ -98,8 +105,11 @@ export function Mappa({ posizione, onSposta }: Props) {
   }, [])
 
   useEffect(() => {
-    segnaposto.current?.setLatLng([posizione.lat, posizione.lng])
-    if (posizione.fonte === 'gps') mappa.current?.setView([posizione.lat, posizione.lng], 17)
+    const m = mappa.current
+    const punto = L.latLng(posizione.lat, posizione.lng)
+    segnaposto.current?.setLatLng(punto)
+    if (posizione.fonte === 'gps') m?.setView(punto, 17)
+    else if (m && !m.getBounds().contains(punto)) m.setView(punto, Math.max(m.getZoom(), 15))
   }, [posizione.lat, posizione.lng, posizione.fonte])
 
   return <div ref={contenitore} className="mappa" />

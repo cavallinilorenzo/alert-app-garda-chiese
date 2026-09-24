@@ -250,6 +250,12 @@ button.riga-info:active, a.riga-info:active { background: var(--primario-tenue);
 }
 .segnaposto { font-size: 48px; color: var(--rosso); filter: drop-shadow(0 2px 2px rgba(0,0,0,.35)); }
 .fab { position: absolute; right: 12px; bottom: 28px; z-index: 1000; display: grid; place-items: center; width: 56px; height: 56px; border-radius: 50%; border: 0; background: var(--superficie); color: var(--link); box-shadow: 0 2px 8px rgba(0,0,0,.25); }
+/* Sopra la mappa, per chi è lontano dal Comprensorio: si deve leggere subito. */
+.lontano { display: flex; gap: 12px; align-items: flex-start; padding: 14px 16px; margin-bottom: 12px; border-radius: var(--raggio); background: var(--giallo-tenue); }
+.lontano > .msym { font-size: 32px; color: var(--link); }
+.lontano strong { display: block; font-size: 19px; line-height: 1.25; color: var(--titolo); }
+.lontano p { margin: 4px 0 10px; font-size: 16px; }
+.lontano .btn { min-height: 48px; font-size: 17px; }
 
 /* Caricamento */
 .spinner { display: inline-block; width: 40px; height: 40px; border: 4px solid var(--primario-tenue); border-top-color: var(--primario); border-radius: 50%; animation: gira .9s linear infinite; }
@@ -267,6 +273,14 @@ button.riga-info:active, a.riga-info:active { background: var(--primario-tenue);
 .scatta strong { font-size: 20px; }
 .scatta .msym { font-size: 72px; }
 .foto img { display: block; width: 100%; aspect-ratio: 4 / 3; max-height: 52vh; object-fit: cover; border-radius: var(--raggio); }
+.scatta.compatta { min-height: 0; padding: 22px 16px; }
+.scatta.compatta .msym { font-size: 48px; }
+.sezione { font-size: 17px; font-weight: 700; color: var(--titolo); margin: 22px 0 10px; }
+.esempi { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.esempio { display: flex; flex-direction: column; padding: 0; border: 1px solid var(--bordo); border-radius: var(--raggio); overflow: hidden; background: var(--superficie); color: var(--testo); text-align: left; box-shadow: var(--ombra); }
+.esempio:active { transform: scale(.98); }
+.esempio img { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover; background: var(--sfondo); }
+.esempio span { padding: 8px 10px; font-size: 15px; font-weight: 600; line-height: 1.25; }
 
 /* Risposte: categorie in lista, opzioni in griglia o affiancate */
 .lista { display: flex; flex-direction: column; gap: 8px; }
