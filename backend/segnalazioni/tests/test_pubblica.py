@@ -1,11 +1,12 @@
-import pytest
-from rest_framework.test import APIClient
-from rest_framework import status
-from django.urls import reverse
-from segnalazioni.models import Segnalazione, Foto, Evento
 from unittest.mock import patch
+
+import pytest
 from django.core.files.uploadedfile import SimpleUploadedFile
-import uuid
+from django.urls import reverse
+from rest_framework import status
+from rest_framework.test import APIClient
+
+from segnalazioni.models import Evento, Foto, Segnalazione
 
 pytestmark = pytest.mark.django_db
 
@@ -102,7 +103,7 @@ def test_creazione_segnalazione(client, mock_estrazione, mock_geo):
     assert "codice_pratica" in response.data
     assert "token_stato" in response.data
     assert response.data["priorita"] == "alta"
-    assert response.data["pericolo_immediato"] == False
+    assert not response.data["pericolo_immediato"]
     
     # Verifica che il modello sia stato salvato
     segnalazione = Segnalazione.objects.get(id=response.data["id"])
@@ -150,5 +151,5 @@ def test_stato_segnalazione(client):
     
     assert response.status_code == status.HTTP_200_OK
     assert response.data["stato_corrente"] == "in_verifica"
-    assert response.data["is_duplicato"] == False
+    assert not response.data["is_duplicato"]
     assert len(response.data["timeline"]) == 2

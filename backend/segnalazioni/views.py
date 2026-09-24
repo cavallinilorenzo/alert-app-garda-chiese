@@ -1,12 +1,14 @@
 from rest_framework import generics, status
+from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.response import Response
-from rest_framework.parsers import MultiPartParser, FormParser
-from django.shortcuts import get_object_or_404
-from .models import Segnalazione, Foto, Evento
-from .serializers import SegnalazioneCreateSerializer, SegnalazioneStatoSerializer
-from geo.services import check_perimetro
+
 from estrazione.services import estrai_da_testo
+from geo.services import check_perimetro
+
+from .models import Evento, Foto, Segnalazione
 from .priority import calcola_priorita
+from .serializers import SegnalazioneCreateSerializer, SegnalazioneStatoSerializer
+
 
 class SegnalazioneCreateView(generics.CreateAPIView):
     parser_classes = (MultiPartParser, FormParser)

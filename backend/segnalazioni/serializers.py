@@ -1,5 +1,7 @@
 from rest_framework import serializers
-from .models import Segnalazione, Foto, Evento
+
+from .models import Segnalazione
+
 
 class SegnalazioneCreateSerializer(serializers.ModelSerializer):
     foto = serializers.ImageField(write_only=True, required=True)
