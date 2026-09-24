@@ -31,4 +31,5 @@ jobs:
       # Il client generato è committato: se il contratto è cambiato senza `npm run gen:api`, fallisce qui.
       - run: npm run gen:api && git diff --exit-code -- shared/src/api/schema.d.ts
       - run: npm run typecheck
+      - run: npm test
       - run: npm run build

@@ -1,30 +1,43 @@
-import { useState } from 'react'
 import { useBozza } from './bozza'
-import { Icona, NUMERO_VERDE, TEL_NUMERO_VERDE } from './comuni'
+import { Icona } from './comuni'
+import { pericoloDichiarato, segnaleDiPericolo } from './pericolo'
 import { DESCRIZIONE_MAX, DESCRIZIONE_MIN, type Campi, type Domanda } from './tassonomia'
 
-// Le risposte del passo Descrizione, a voce o a mano: i controlli di ogni campo e la
-// finestra del numero verde quando c'è pericolo per le persone.
+// Le risposte del passo Descrizione, a voce o a mano: i controlli di ogni campo e il segnale
+// di pericolo che apre la finestra del numero verde.
 
-/** Aggiorna le risposte nella bozza e apre la finestra del numero verde quando il pericolo per le persone diventa "sì". */
+/**
+ * Aggiorna le risposte nella bozza. Un pericolo a "sì" si segnala subito; le parole chiave
+ * della descrizione solo con `controlla`, all'uscita dal campo o al Continua, mai mentre si
+ * scrive: su mobile la finestra ruberebbe il focus e chiuderebbe la tastiera.
+ */
 export function useRisposte() {
-  const { bozza, aggiorna } = useBozza()
-  const [emergenza, setEmergenza] = useState(false)
+  const { bozza, aggiorna, segnalaPericolo } = useBozza()
 
   function rispondi(nuove: Campi) {
-    if (nuove.pericolo_persone === 'si' && bozza.campi.pericolo_persone !== 'si') setEmergenza(true)
     aggiorna({ campi: { ...bozza.campi, ...nuove } })
+    if (pericoloDichiarato(nuove)) segnalaPericolo()
   }
 
-  const finestra = emergenza ? <Emergenza onContinua={() => setEmergenza(false)} /> : null
-  return { campi: bozza.campi, rispondi, finestra }
+  /** Cerca un segnale di pericolo nelle risposte, parole chiave della descrizione comprese. */
+  function controlla(campi: Campi = bozza.campi) {
+    if (segnaleDiPericolo(campi)) segnalaPericolo()
+  }
+
+  return { campi: bozza.campi, rispondi, controlla }
 }
 
-type PropsControllo = { domanda: Domanda; valore: string | undefined; onChange: (valore: string) => void }
+type PropsControllo = {
+  domanda: Domanda
+  valore: string | undefined
+  onChange: (valore: string) => void
+  /** All'uscita dalla casella della descrizione. */
+  onBlur?: () => void
+}
 
 /** Il controllo di un campo: la lista delle categorie, la casella della descrizione o le opzioni. */
-export function Controllo({ domanda, valore, onChange }: PropsControllo) {
-  if (!domanda.opzioni) return <CasellaDescrizione valore={valore ?? ''} onChange={onChange} />
+export function Controllo({ domanda, valore, onChange, onBlur }: PropsControllo) {
+  if (!domanda.opzioni) return <CasellaDescrizione valore={valore ?? ''} onChange={onChange} onBlur={onBlur} />
 
   const conIcone = domanda.opzioni.some((o) => o.icona)
   const classe = conIcone ? 'lista' : domanda.opzioni.length <= 3 ? 'segmenti' : 'griglia'
@@ -49,7 +62,9 @@ export function Controllo({ domanda, valore, onChange }: PropsControllo) {
   )
 }
 
-function CasellaDescrizione({ valore, onChange }: { valore: string; onChange: (v: string) => void }) {
+type PropsCasella = { valore: string; onChange: (v: string) => void; onBlur?: () => void }
+
+function CasellaDescrizione({ valore, onChange, onBlur }: PropsCasella) {
   const corta = valore.trim().length < DESCRIZIONE_MIN
   return (
     <label className="campo">
@@ -59,31 +74,11 @@ function CasellaDescrizione({ valore, onChange }: { valore: string; onChange: (v
         placeholder="Ad esempio: esce acqua dal terreno vicino alla strada"
         value={valore}
         onChange={(e) => onChange(e.target.value)}
+        onBlur={onBlur}
       />
       <span className={`contatore ${valore.length > 0 && corta ? 'errore' : ''}`}>
         {corta ? `Almeno ${DESCRIZIONE_MIN} caratteri` : `${valore.length}/${DESCRIZIONE_MAX}`}
       </span>
     </label>
-  )
-}
-
-function Emergenza({ onContinua }: { onContinua: () => void }) {
-  return (
-    <div className="velo">
-      <div className="dialogo" role="alertdialog" aria-modal="true" aria-labelledby="emergenza-titolo">
-        <span className="tondo rosso"><Icona n="warning" piena /></span>
-        <h2 id="emergenza-titolo">Qualcuno è in pericolo?</h2>
-        <p>
-          Se c’è un pericolo immediato per le persone chiama subito il numero verde emergenze del Consorzio. La
-          chiamata è gratuita.
-        </p>
-        <a className="btn rosso" href={TEL_NUMERO_VERDE}>
-          <Icona n="call" piena /> Chiama {NUMERO_VERDE}
-        </a>
-        <button className="btn secondario" onClick={onContinua}>
-          Continua la segnalazione
-        </button>
-      </div>
-    </div>
   )
 }

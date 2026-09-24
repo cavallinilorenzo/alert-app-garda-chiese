@@ -13,7 +13,8 @@
     "build": "npm run build -w segnalazione -w portale",
     "typecheck": "tsc",
     "gen:api": "openapi-typescript ../api/openapi.yaml -o shared/src/api/schema.d.ts",
-    "mock": "prism mock ../api/openapi.yaml --port 4010"
+    "mock": "prism mock ../api/openapi.yaml --port 4010",
+    "test": "node --test segnalazione/src/*.test.ts"
   },
   "devDependencies": {
     "@stoplight/prism-cli": "^5.14.2",

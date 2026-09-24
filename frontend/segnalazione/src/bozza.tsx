@@ -39,6 +39,10 @@ export type Bozza = {
   cellulare: string
   /** La risposta all'invio; null finché la Segnalazione non è inviata. */
   ricevuta: Ricevuta | null
+  /** C'è stato un segnale di pericolo: resta fino alla Conferma, anche se poi le risposte cambiano. */
+  pericoloSegnalato: boolean
+  /** La finestra del numero verde è aperta. Si apre una volta sola, al primo segnale di pericolo. */
+  finestraNumeroVerde: boolean
 }
 
 const VUOTA: Bozza = {
@@ -51,9 +55,16 @@ const VUOTA: Bozza = {
   estrazione: null,
   cellulare: '',
   ricevuta: null,
+  pericoloSegnalato: false,
+  finestraNumeroVerde: false,
 }
 
-type ContestoBozza = { bozza: Bozza; aggiorna: (modifica: Partial<Bozza>) => void }
+type ContestoBozza = {
+  bozza: Bozza
+  aggiorna: (modifica: Partial<Bozza>) => void
+  /** Segna il pericolo e, se è il primo segnale della procedura, apre la finestra del numero verde. */
+  segnalaPericolo: () => void
+}
 
 const Contesto = createContext<ContestoBozza | null>(null)
 
@@ -69,7 +80,11 @@ export function BozzaProvider({ children }: { children: ReactNode }) {
     })
   }, [])
 
-  const valore = useMemo(() => ({ bozza, aggiorna }), [bozza, aggiorna])
+  const segnalaPericolo = useCallback(() => {
+    setBozza((b) => (b.pericoloSegnalato ? b : { ...b, pericoloSegnalato: true, finestraNumeroVerde: true }))
+  }, [])
+
+  const valore = useMemo(() => ({ bozza, aggiorna, segnalaPericolo }), [bozza, aggiorna, segnalaPericolo])
   return <Contesto.Provider value={valore}>{children}</Contesto.Provider>
 }
 
