@@ -130,7 +130,8 @@ def test_creazione_segnalazione(client, mock_geo):
         "pericolo_edifici": "no",
     }
 
-    response = client.post(url, data, format="multipart")
+    with patch("segnalazioni.views.invia_email_nuova_segnalazione") as invia_email:
+        response = client.post(url, data, format="multipart")
     assert response.status_code == status.HTTP_201_CREATED
 
     assert "id" in response.data
@@ -141,6 +142,7 @@ def test_creazione_segnalazione(client, mock_geo):
 
     # Verifica che il modello sia stato salvato
     segnalazione = Segnalazione.objects.get(id=response.data["id"])
+    invia_email.assert_called_once_with(segnalazione)
     assert segnalazione.priorita == "alta"
     assert segnalazione.layer == "canale"
     assert segnalazione.id_placemark == "123"

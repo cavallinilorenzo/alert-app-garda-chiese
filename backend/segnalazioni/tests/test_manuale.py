@@ -59,9 +59,11 @@ def test_serve_un_operatore():
 
 
 def test_senza_foto_ne_cellulare_e_anche_fuori_perimetro(auth_client, operatore):
-    response = inserisci(auth_client, categoria="canale_che_tracima", pericolo_strada="si")
+    with patch("segnalazioni.views.invia_email_nuova_segnalazione") as invia_email:
+        response = inserisci(auth_client, categoria="canale_che_tracima", pericolo_strada="si")
 
     assert response.status_code == 201
+    invia_email.assert_called_once()
     assert response.data["canale_ingresso"] == "numero_verde"
     assert response.data["foto"] == []
     assert response.data["cellulare"] == ""

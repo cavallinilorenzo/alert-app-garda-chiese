@@ -23,6 +23,14 @@ env = environ.Env(
     VAPID_PUBLIC_KEY=(str, ""),
     VAPID_PRIVATE_KEY=(str, ""),
     VAPID_CLAIMS_EMAIL=(str, "mailto:admin@example.com"),
+    EMAIL_HOST=(str, ""),
+    EMAIL_PORT=(int, 587),
+    EMAIL_TIMEOUT=(int, 10),
+    EMAIL_USE_TLS=(bool, True),
+    EMAIL_HOST_USER=(str, ""),
+    EMAIL_HOST_PASSWORD=(str, ""),
+    EMAIL_NOTIFICATION_RECIPIENT=(str, "garda-chiese-alert@outlook.it"),
+    DEFAULT_FROM_EMAIL=(str, "garda-chiese-alert@outlook.it"),
 )
 environ.Env.read_env(REPO_DIR / ".env")
 
@@ -112,6 +120,17 @@ GEMINI_MODELLO = env("GEMINI_MODELLO")
 VAPID_PUBLIC_KEY = env("VAPID_PUBLIC_KEY")
 VAPID_PRIVATE_KEY = env("VAPID_PRIVATE_KEY")
 VAPID_CLAIMS_EMAIL = env("VAPID_CLAIMS_EMAIL")
+
+# Email transazionali per le nuove Segnalazioni. In locale l'invio resta
+# disabilitato se EMAIL_HOST è vuoto; le credenziali non vanno nel repository.
+EMAIL_HOST = env("EMAIL_HOST")
+EMAIL_PORT = env("EMAIL_PORT")
+EMAIL_TIMEOUT = env("EMAIL_TIMEOUT")
+EMAIL_USE_TLS = env("EMAIL_USE_TLS")
+EMAIL_HOST_USER = env("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD")
+EMAIL_NOTIFICATION_RECIPIENT = env("EMAIL_NOTIFICATION_RECIPIENT")
+DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL")
 
 # API: autenticazione JWT e accesso negato di default. Gli endpoint pubblici
 # (per esempio l'invio di una Segnalazione) lo dichiarano con AllowAny.

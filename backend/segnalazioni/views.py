@@ -12,6 +12,7 @@ from contratti import GeocodingNonDisponibile
 from geo.services import check_perimetro, reverse_geocode
 
 from .models import Evento, Foto, Segnalazione
+from .notifiche import invia_email_nuova_segnalazione
 from .priority import calcola_priorita
 from .serializers import (
     SegnalazioneCreateSerializer,
@@ -158,6 +159,7 @@ class SegnalazioneListCreateView(generics.ListCreateAPIView):
         )
 
         Evento.objects.create(segnalazione=segnalazione, stato=Segnalazione.Stato.RICEVUTA)
+        invia_email_nuova_segnalazione(segnalazione)
         # Temporaneamente disabilitato: il flusso di invio deve restare indipendente dalle push.
         # invia_notifica_nuova_segnalazione(segnalazione)
 
@@ -201,6 +203,7 @@ class SegnalazioneManualeView(APIView):
             operatore=request.user,
             nota=f"Inserita dal Portale: {Segnalazione.CanaleIngresso(canale).label.lower()}",
         )
+        invia_email_nuova_segnalazione(segnalazione)
         dettaglio = SegnalazioneDetailSerializer(segnalazione, context={"request": request})
         return Response(dettaglio.data, status=status.HTTP_201_CREATED)
 
