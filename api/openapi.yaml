@@ -57,6 +57,119 @@ components:
                 type: string
                 format: date-time
 
+    Acquaiolo:
+      type: object
+      required: [id, nome, telefono, zona_id]
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        nome:
+          type: string
+          example: "BRIGNANI"
+        telefono:
+          type: string
+          example: "+39 333 7654321"
+        zona_id:
+          type: [integer, "null"]
+          description: Identificativo della Zona acquaiolo nel KML.
+          example: 21
+
+    AcquaioloInput:
+      type: object
+      required: [nome, telefono]
+      properties:
+        nome:
+          type: string
+        telefono:
+          type: string
+        zona_id:
+          type: [integer, "null"]
+
+    FeatureTracciato:
+      type: object
+      description: Un tracciato del Reticolo consortile (layer `canale`, `condotta`, `reticolo_principale`).
+      required: [type, id, properties, geometry]
+      properties:
+        type:
+          type: string
+          const: Feature
+        id:
+          type: string
+          description: Id del placemark nel KML.
+          example: "RIB_Canali_2026.68"
+        properties:
+          type: object
+          required: [nome, nome_completo, tipo, codice]
+          properties:
+            nome:
+              type: string
+            nome_completo:
+              type: string
+            tipo:
+              type: [string, "null"]
+            codice:
+              type: [string, "null"]
+        geometry:
+          type: object
+          required: [type, coordinates]
+          properties:
+            type:
+              type: string
+              enum: [LineString, MultiLineString]
+            coordinates:
+              type: array
+              description: Coordinate `[lng, lat]` in WGS84, semplificate a 5 m.
+
+    FeatureZonaAcquaiolo:
+      type: object
+      description: Una Zona acquaiolo (layer `zona_acquaiolo`).
+      required: [type, id, properties, geometry]
+      properties:
+        type:
+          type: string
+          const: Feature
+        id:
+          type: integer
+          description: Lo stesso `zona_id` di `/perimetro/check` e della Rubrica acquaioli.
+          example: 19
+        properties:
+          type: object
+          required: [nome, servita, acquaiolo]
+          properties:
+            nome:
+              type: string
+              description: Macro-zona.
+            servita:
+              type: boolean
+            acquaiolo:
+              type: [string, "null"]
+              description: Null se la zona è `NON SERVITA`.
+        geometry:
+          type: object
+          required: [type, coordinates]
+          properties:
+            type:
+              type: string
+              enum: [Polygon, MultiPolygon]
+            coordinates:
+              type: array
+              description: Coordinate `[lng, lat]` in WGS84, semplificate a 5 m.
+
+    LayerGeoJSON:
+      type: object
+      required: [type, features]
+      properties:
+        type:
+          type: string
+          const: FeatureCollection
+        features:
+          type: array
+          items:
+            oneOf:
+              - $ref: '#/components/schemas/FeatureTracciato'
+              - $ref: '#/components/schemas/FeatureZonaAcquaiolo'
+
 paths:
   /perimetro/check:
     post:
@@ -98,6 +211,112 @@ paths:
                     distanza_m: 12.5
                     zona_id: 4
                     messaggio: "Punto valido nel comune di Mantova."
+        '400':
+          description: Coordinate mancanti, non numeriche o fuori range (`lat` tra -90 e 90, `lng` tra -180 e 180)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                dati_non_validi:
+                  value:
+                    code: "dati_non_validi"
+                    message: "I dati inviati non sono validi."
+                    fields:
+                      lng: ["Questo campo è obbligatorio."]
+
+  /layer/{layer}.geojson:
+    get:
+      operationId: layerGeoJSON
+      summary: Layer GeoJSON del Reticolo consortile e delle Zone acquaiolo (App e Portale operatore)
+      description: Layer statico per disegnare la mappa con Leaflet. Le geometrie sono semplificate e servono solo al disegno.
+      security: []
+      parameters:
+        - name: layer
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [canale, condotta, reticolo_principale, zona_acquaiolo]
+      responses:
+        '200':
+          description: FeatureCollection del layer
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+              example: "public, max-age=86400"
+          content:
+            application/geo+json:
+              schema:
+                $ref: '#/components/schemas/LayerGeoJSON'
+              examples:
+                canale:
+                  value:
+                    type: FeatureCollection
+                    features:
+                      - type: Feature
+                        id: "RIB_Canali_2026.68"
+                        properties:
+                          nome: "III ramo C"
+                          nome_completo: "Dispensatore III ramo C"
+                          tipo: "Dispensatore"
+                          codice: "3203c"
+                        geometry:
+                          type: LineString
+                          coordinates: [[10.625391, 45.31095], [10.627453, 45.310316]]
+                condotta:
+                  value:
+                    type: FeatureCollection
+                    features:
+                      - type: Feature
+                        id: "RIB_Condotte_2026.13"
+                        properties:
+                          nome: "COLOMBAROLA - CAVALLARA"
+                          nome_completo: "Condotta COLOMBAROLA - CAVALLARA"
+                          tipo: "Condotta"
+                          codice: null
+                        geometry:
+                          type: LineString
+                          coordinates: [[10.65994, 45.353735], [10.661367, 45.353654], [10.661776, 45.355696], [10.662156, 45.357027], [10.662306, 45.357058], [10.662238, 45.358196], [10.662065, 45.358512], [10.660131, 45.359729], [10.659937, 45.360363], [10.659597, 45.361014], [10.658786, 45.361454]]
+                reticolo_principale:
+                  value:
+                    type: FeatureCollection
+                    features:
+                      - type: Feature
+                        id: "RIP_2026.17"
+                        properties:
+                          nome: "CACCIABELLA - AIPO"
+                          nome_completo: "Vaso CACCIABELLA - AIPO"
+                          tipo: "Vaso"
+                          codice: "7003"
+                        geometry:
+                          type: LineString
+                          coordinates: [[10.406885, 45.220643], [10.406947, 45.219672], [10.406389, 45.214738], [10.406688, 45.214221], [10.406691, 45.213941], [10.406846, 45.213685]]
+                zona_acquaiolo:
+                  value:
+                    type: FeatureCollection
+                    features:
+                      - type: Feature
+                        id: 19
+                        properties:
+                          nome: "Alto Mantovano"
+                          servita: true
+                          acquaiolo: "PEGORARO L"
+                        geometry:
+                          type: Polygon
+                          coordinates: [[[10.481381, 45.368262], [10.497071, 45.384636], [10.536655, 45.366689], [10.534789, 45.360666], [10.523236, 45.358376], [10.507222, 45.330771], [10.49796, 45.359868], [10.481381, 45.368262]]]
+                      - type: Feature
+                        id: 21
+                        properties:
+                          nome: "Alto Mantovano"
+                          servita: false
+                          acquaiolo: null
+                        geometry:
+                          type: Polygon
+                          coordinates: [[[10.465021, 45.403491], [10.484205, 45.397158], [10.485856, 45.405412], [10.498563, 45.382725], [10.481381, 45.368262], [10.451632, 45.386567], [10.465021, 45.403491]]]
+        '404':
+          description: Layer inesistente
 
   /estrazione/vocale:
     post:
@@ -114,9 +333,16 @@ paths:
                 audio:
                   type: string
                   format: binary
+                  description: |
+                    Registrazione di MediaRecorder o file audio, al massimo 10 MB. Formati:
+                    `audio/webm`, `audio/ogg`, `audio/mp4`, `audio/m4a`, `audio/x-m4a`, `audio/aac`,
+                    `audio/mpeg`, `audio/mp3`, `audio/wav`, `audio/x-wav`, `audio/flac`
+                    (parametri come `;codecs=opus` ammessi).
       responses:
         '200':
-          description: Dati estratti
+          description: |
+            Dati estratti. In `campi` ci sono solo i campi detti dal Segnalante; quelli non
+            detti sono in `mancanti`, da compilare a mano nel form.
           content:
             application/json:
               schema:
@@ -127,17 +353,81 @@ paths:
                     type: string
                   campi:
                     type: object
+                    properties:
+                      categoria:
+                        type: string
+                        enum: [acqua_che_affiora, canale_che_tracima, argine_danneggiato, ostruzione, paratoia_danneggiata, acqua_sporca, altro]
+                      descrizione:
+                        type: string
+                        maxLength: 500
+                      durata:
+                        type: string
+                        enum: [adesso, meno_di_un_ora, alcune_ore, piu_di_un_giorno, non_so, non_applicabile]
+                      quantita_acqua:
+                        type: string
+                        enum: [gocce, piccolo_flusso, molta_acqua, non_so, non_applicabile]
+                      pericolo_persone:
+                        type: string
+                        enum: ["si", "no", "non_so"]
+                      pericolo_strada:
+                        type: string
+                        enum: ["si", "no", "non_so"]
+                      pericolo_edifici:
+                        type: string
+                        enum: ["si", "no", "non_so"]
                   mancanti:
                     type: array
                     items:
                       type: string
+                      enum: [categoria, descrizione, durata, quantita_acqua, pericolo_persone, pericolo_strada, pericolo_edifici]
               examples:
                 success:
                   value:
-                    transcript: "C'è un canale rotto in via Brescia a Mantova"
+                    transcript: "Il canale in via Brescia sta uscendo sulla strada, adesso."
                     campi:
-                      categoria: "canale"
-                    mancanti: ["tipo_danno"]
+                      categoria: "canale_che_tracima"
+                      descrizione: "Il canale esce sulla strada in via Brescia"
+                      durata: "adesso"
+                      pericolo_strada: "si"
+                    mancanti: ["quantita_acqua", "pericolo_persone", "pericolo_edifici"]
+        '400':
+          description: Audio mancante, vuoto o in un formato non supportato
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                audio_non_valido:
+                  value:
+                    code: "audio_non_valido"
+                    message: "Formato audio non supportato."
+                    fields:
+                      audio: ["Formato audio non supportato."]
+        '413':
+          description: Audio oltre i 10 MB
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                audio_troppo_grande:
+                  value:
+                    code: "audio_troppo_grande"
+                    message: "La registrazione è troppo lunga."
+                    fields:
+                      audio: ["La registrazione supera i 10 MB."]
+        '503':
+          description: Assistente vocale non disponibile (provider che non risponde o non configurato); il Segnalante compila il form a mano
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                estrazione_non_disponibile:
+                  value:
+                    code: "estrazione_non_disponibile"
+                    message: "L'assistente vocale non è disponibile: compila il modulo a mano."
+                    fields: {}
 
   /segnalazioni:
     post:
@@ -374,3 +664,100 @@ paths:
                 success:
                   value:
                     success: true
+
+  /acquaioli:
+    get:
+      operationId: listaAcquaioli
+      summary: Lista della Rubrica acquaioli (Portale operatore)
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Elenco degli Acquaioli
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Acquaiolo'
+        '401':
+          description: Autenticazione richiesta
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    post:
+      operationId: creaAcquaiolo
+      summary: Crea un Acquaiolo nella Rubrica (Portale operatore)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AcquaioloInput'
+      responses:
+        '201':
+          description: Acquaiolo creato
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Acquaiolo'
+        '400':
+          description: Dati non validi
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Autenticazione richiesta
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /acquaioli/{id}:
+    patch:
+      operationId: modificaAcquaiolo
+      summary: Modifica un Acquaiolo nella Rubrica (Portale operatore)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                nome:
+                  type: string
+                telefono:
+                  type: string
+                zona_id:
+                  type: [integer, "null"]
+      responses:
+        '200':
+          description: Acquaiolo aggiornato
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Acquaiolo'
+        '400':
+          description: Dati non validi
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Autenticazione richiesta
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'

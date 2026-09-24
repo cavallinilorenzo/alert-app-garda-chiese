@@ -1,9 +1,9 @@
 import pytest
 from django.core.files.uploadedfile import SimpleUploadedFile
-from rest_framework.test import APIClient
 
 from contratti import CampoEstratto, EstrazioneNonDisponibile, RisultatoEstrazione
 from estrazione import services
+from tests.contratto import ClientContratto
 
 URL = "/api/estrazione/vocale"
 
@@ -44,7 +44,7 @@ def audio(nome="nota.webm", contenuto=b"\x1aE\xdf\xa3audio", mime="audio/webm"):
 
 
 def invia(file):
-    return APIClient().post(URL, {"audio": file} if file else {}, format="multipart")
+    return ClientContratto().post(URL, {"audio": file} if file else {}, format="multipart")
 
 
 def test_restituisce_transcript_campi_detti_e_mancanti(estrattore):
