@@ -6,6 +6,7 @@ import { Schermata, useProcedura } from '../procedura'
 import { Controllo, useRisposte } from '../risposte'
 import {
   DOMANDE,
+  domandeDa,
   etichettaValore,
   obbligatoriCompleti,
   risposto,
@@ -33,7 +34,9 @@ function Domande() {
   const { vai } = useProcedura()
   const { campi, rispondi, controlla } = useRisposte()
   const [indice, setIndice] = useState(0)
-  const domanda = DOMANDE[indice]
+  // La categoria è la prima domanda: quando si arriva alla quantità d'acqua è già scelta.
+  const domande = domandeDa(campi)
+  const domanda = domande[indice]
   const ok = risposto(campi, domanda.campo)
 
   function vaiA(i: number) {
@@ -42,7 +45,7 @@ function Domande() {
   }
   function avanti() {
     controlla()
-    if (indice < DOMANDE.length - 1) vaiA(indice + 1)
+    if (indice < domande.length - 1) vaiA(indice + 1)
     else vai('contatto')
   }
 
@@ -65,7 +68,7 @@ function Domande() {
       }
     >
       <p className="contadomande">
-        Domanda {indice + 1} di {DOMANDE.length}
+        Domanda {indice + 1} di {domande.length}
       </p>
       <Controllo
         key={domanda.campo}
@@ -222,10 +225,12 @@ function Completa({ estrazione }: { estrazione: Estrazione }) {
 
   // Si calcolano dall'estrazione e non dalle risposte attuali, così una domanda non cambia
   // gruppo mentre la si compila. Un obbligatorio capito male (descrizione corta) va completato.
-  const daCompletare = DOMANDE.filter(
+  // La quantità d'acqua invece segue la categoria attuale: compare o sparisce quando cambia.
+  const domande = domandeDa(campi)
+  const daCompletare = domande.filter(
     (d) => estrazione.mancanti.includes(d.campo) || (d.obbligatorio && !risposto(estrazione.campi, d.campo)),
   )
-  const capiti = DOMANDE.filter((d) => !daCompletare.includes(d))
+  const capiti = domande.filter((d) => !daCompletare.includes(d))
   const completa = obbligatoriCompleti(campi)
 
   const correggi = (d: Domanda, v: string) => {
@@ -288,7 +293,7 @@ function Completa({ estrazione }: { estrazione: Estrazione }) {
           <details className="capito">
             <summary>
               <Icona n="check_circle" piena className="verde" /> Abbiamo capito {capiti.length} cose su{' '}
-              {DOMANDE.length}
+              {domande.length}
               <Icona n="keyboard_arrow_down" className="grigio freccia" />
             </summary>
             {righeCapite}
