@@ -7,6 +7,8 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer, Toke
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import (
     TokenObtainPairView as SimpleJWTTokenObtainPairView,
+)
+from rest_framework_simplejwt.views import (
     TokenRefreshView as SimpleJWTTokenRefreshView,
 )
 

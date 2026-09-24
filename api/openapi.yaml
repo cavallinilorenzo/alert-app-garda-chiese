@@ -71,8 +71,7 @@ components:
           type: string
           example: "+39 333 7654321"
         zona_id:
-          type: integer
-          nullable: true
+          type: [integer, "null"]
           description: Identificativo della Zona acquaiolo nel KML.
           example: 21
 
@@ -85,8 +84,7 @@ components:
         telefono:
           type: string
         zona_id:
-          type: integer
-          nullable: true
+          type: [integer, "null"]
 
 paths:
   /perimetro/check:
@@ -461,8 +459,7 @@ paths:
                 telefono:
                   type: string
                 zona_id:
-                  type: integer
-                  nullable: true
+                  type: [integer, "null"]
       responses:
         '200':
           description: Acquaiolo aggiornato
