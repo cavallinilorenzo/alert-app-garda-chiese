@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react'
-import { Icona, Logo, Simbolo } from './comuni'
+import { useBozza } from './bozza'
+import { FinestraNumeroVerde, Icona, Logo, Simbolo } from './comuni'
 
 // Procedura guidata dell'App di segnalazione (variante A del ticket #9): una cosa per
 // schermata, barra di avanzamento a 5 passi, azione principale fissa in basso.
@@ -81,9 +82,13 @@ type PropsSchermata = {
   children?: ReactNode
 }
 
-/** Impaginazione comune a ogni schermata: barra, avanzamento, corpo e azione fissa. */
+/**
+ * Impaginazione comune a ogni schermata: barra, avanzamento, corpo e azione fissa. Qui sta anche
+ * la finestra del numero verde, che così resta aperta se il pericolo si scopre al Continua.
+ */
 export function Schermata({ titolo, sotto, azione, onIndietro, children }: PropsSchermata) {
   const { passo, vai, dalRiepilogo } = useProcedura()
+  const { bozza, aggiorna } = useBozza()
   const precedente = dalRiepilogo && passo !== 'fuori_perimetro' ? 'riepilogo' : INDIETRO[passo]
   const indietro = onIndietro ?? (precedente ? () => vai(precedente) : null)
   const indice = ordine(passo)
@@ -126,6 +131,7 @@ export function Schermata({ titolo, sotto, azione, onIndietro, children }: Props
         {children}
       </main>
       {azione && <footer className="azioni">{azione}</footer>}
+      {bozza.finestraNumeroVerde && <FinestraNumeroVerde onContinua={() => aggiorna({ finestraNumeroVerde: false })} />}
     </div>
   )
 }

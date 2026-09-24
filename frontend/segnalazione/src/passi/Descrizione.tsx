@@ -31,7 +31,7 @@ export function Descrizione() {
 function Domande() {
   const { bozza } = useBozza()
   const { vai } = useProcedura()
-  const { campi, rispondi, finestra } = useRisposte()
+  const { campi, rispondi, controlla } = useRisposte()
   const [indice, setIndice] = useState(0)
   const domanda = DOMANDE[indice]
   const ok = risposto(campi, domanda.campo)
@@ -40,7 +40,11 @@ function Domande() {
     setIndice(i)
     window.scrollTo(0, 0)
   }
-  const avanti = () => (indice < DOMANDE.length - 1 ? vaiA(indice + 1) : vai('contatto'))
+  function avanti() {
+    controlla()
+    if (indice < DOMANDE.length - 1) vaiA(indice + 1)
+    else vai('contatto')
+  }
 
   return (
     <Schermata
@@ -68,6 +72,7 @@ function Domande() {
         domanda={domanda}
         valore={campi[domanda.campo]}
         onChange={(v) => rispondi({ [domanda.campo]: v })}
+        onBlur={() => controlla()}
       />
       {dallaFoto(campi, bozza.campiFoto, domanda.campo) && (
         <p className="nota">
@@ -75,7 +80,6 @@ function Domande() {
           <span>Risposta presa dalla foto. Cambiala se non è giusta.</span>
         </p>
       )}
-      {finestra}
     </Schermata>
   )
 }
@@ -100,7 +104,7 @@ const ARGOMENTI = [
 
 function AVoce() {
   const { bozza, aggiorna } = useBozza()
-  const { rispondi, finestra } = useRisposte()
+  const { rispondi, controlla } = useRisposte()
   const [analizzo, setAnalizzo] = useState(false)
   const [problema, setProblema] = useState<Problema | null>(registrazioneSupportata() ? null : 'microfono')
   const ultimoAudio = useRef<Blob | null>(null)
@@ -115,6 +119,8 @@ function AVoce() {
     // Quello che non ha detto ma si vede nella foto è già nelle risposte, dal passo Foto.
     aggiorna({ estrazione: completaConFoto(esito.estrazione, bozza.campiFoto) })
     rispondi(esito.estrazione.campi)
+    // Rete di sicurezza: le parole chiave contano anche se l'estrazione non ha messo un pericolo a "sì".
+    controlla(esito.estrazione.campi)
   }
 
   const registrazione = useRegistrazione(invia)
@@ -132,14 +138,7 @@ function AVoce() {
 
   const aMano = () => aggiorna({ modalita: 'domande' })
 
-  // La finestra resta qui: il pericolo detto a voce la apre mentre si passa ai risultati.
-  if (bozza.estrazione)
-    return (
-      <>
-        <Completa estrazione={bozza.estrazione} />
-        {finestra}
-      </>
-    )
+  if (bozza.estrazione) return <Completa estrazione={bozza.estrazione} />
 
   const senzaVoce = problema === 'microfono' || problema === 'non_disponibile'
   return (
@@ -207,7 +206,6 @@ function AVoce() {
           </div>
         </>
       )}
-      {finestra}
     </Schermata>
   )
 }
@@ -219,7 +217,7 @@ const minuti = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2
 function Completa({ estrazione }: { estrazione: Estrazione }) {
   const { bozza } = useBozza()
   const { vai } = useProcedura()
-  const { campi, rispondi, finestra } = useRisposte()
+  const { campi, rispondi, controlla } = useRisposte()
   const [inCorrezione, setInCorrezione] = useState<Campo | null>(null)
 
   // Si calcolano dall'estrazione e non dalle risposte attuali, così una domanda non cambia
@@ -255,7 +253,7 @@ function Completa({ estrazione }: { estrazione: Estrazione }) {
       </button>
       {inCorrezione === d.campo && (
         <div className="capito-correzione">
-          <Controllo domanda={d} valore={campi[d.campo]} onChange={(v) => correggi(d, v)} />
+          <Controllo domanda={d} valore={campi[d.campo]} onChange={(v) => correggi(d, v)} onBlur={() => controlla()} />
         </div>
       )}
     </div>
@@ -272,7 +270,14 @@ function Completa({ estrazione }: { estrazione: Estrazione }) {
       azione={
         <>
           {!completa && <p className="azione-nota">Per continuare servono “Cosa hai visto” e una descrizione.</p>}
-          <button className="btn" disabled={!completa} onClick={() => vai('contatto')}>
+          <button
+            className="btn"
+            disabled={!completa}
+            onClick={() => {
+              controlla()
+              vai('contatto')
+            }}
+          >
             Continua
           </button>
         </>
@@ -297,10 +302,14 @@ function Completa({ estrazione }: { estrazione: Estrazione }) {
             {d.testo}
             {!d.obbligatorio && <span className="facoltativo"> · facoltativo</span>}
           </h2>
-          <Controllo domanda={d} valore={campi[d.campo]} onChange={(v) => rispondi({ [d.campo]: v })} />
+          <Controllo
+            domanda={d}
+            valore={campi[d.campo]}
+            onChange={(v) => rispondi({ [d.campo]: v })}
+            onBlur={() => controlla()}
+          />
         </div>
       ))}
-      {finestra}
     </Schermata>
   )
 }
