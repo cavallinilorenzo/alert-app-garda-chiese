@@ -5,6 +5,7 @@ La configurazione arriva dalle variabili d'ambiente, lette anche dal file `.env`
 nella root della repo (vedi `.env.example`). I segreti non stanno mai nel codice.
 """
 
+from datetime import timedelta
 from pathlib import Path
 
 import environ
@@ -35,6 +36,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "rest_framework",
     "rest_framework_simplejwt",
+    "rest_framework_simplejwt.token_blacklist",
     "segnalazioni",
     "accounts",
     "geo",
@@ -112,4 +114,10 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.IsAuthenticated",
     ],
+}
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),
+    "REFRESH_TOKEN_LIFETIME": timedelta(hours=24),
+    "BLACKLIST_AFTER_ROTATION": True,
 }

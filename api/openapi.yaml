@@ -57,6 +57,35 @@ components:
                 type: string
                 format: date-time
 
+    Acquaiolo:
+      type: object
+      required: [id, nome, telefono, zona_id]
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        nome:
+          type: string
+          example: "BRIGNANI"
+        telefono:
+          type: string
+          example: "+39 333 7654321"
+        zona_id:
+          type: [integer, "null"]
+          description: Identificativo della Zona acquaiolo nel KML.
+          example: 21
+
+    AcquaioloInput:
+      type: object
+      required: [nome, telefono]
+      properties:
+        nome:
+          type: string
+        telefono:
+          type: string
+        zona_id:
+          type: [integer, "null"]
+
 paths:
   /perimetro/check:
     post:
@@ -374,3 +403,100 @@ paths:
                 success:
                   value:
                     success: true
+
+  /acquaioli:
+    get:
+      operationId: listaAcquaioli
+      summary: Lista della Rubrica acquaioli (Portale operatore)
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Elenco degli Acquaioli
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Acquaiolo'
+        '401':
+          description: Autenticazione richiesta
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    post:
+      operationId: creaAcquaiolo
+      summary: Crea un Acquaiolo nella Rubrica (Portale operatore)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AcquaioloInput'
+      responses:
+        '201':
+          description: Acquaiolo creato
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Acquaiolo'
+        '400':
+          description: Dati non validi
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Autenticazione richiesta
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /acquaioli/{id}:
+    patch:
+      operationId: modificaAcquaiolo
+      summary: Modifica un Acquaiolo nella Rubrica (Portale operatore)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                nome:
+                  type: string
+                telefono:
+                  type: string
+                zona_id:
+                  type: [integer, "null"]
+      responses:
+        '200':
+          description: Acquaiolo aggiornato
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Acquaiolo'
+        '400':
+          description: Dati non validi
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Autenticazione richiesta
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
