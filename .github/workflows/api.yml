@@ -1,0 +1,25 @@
+# CI solo informativa: non è un check obbligatorio per il merge.
+name: api
+
+on:
+  pull_request:
+    paths:
+      - "api/**"
+      - ".github/workflows/api.yml"
+  push:
+    branches: [main]
+    paths:
+      - "api/**"
+      - ".github/workflows/api.yml"
+
+jobs:
+  redocly-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      # Finché il contratto non è su main il file può mancare: niente da validare.
+      - if: hashFiles('api/openapi.yaml') != ''
+        run: npx --yes @redocly/cli@latest lint api/openapi.yaml
