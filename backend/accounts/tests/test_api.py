@@ -83,3 +83,15 @@ def test_logout_invalida_il_refresh_token():
 
     renewed = APIClient().post("/api/auth/token/refresh", {"refresh": refresh}, format="json")
     assert renewed.status_code == 401
+
+
+def test_operatore_registra_e_rimuove_un_dispositivo_push():
+    client, _ = autenticato(utente())
+    dati = {"endpoint": "https://push.example/device-1", "p256dh": "chiave-pubblica", "auth": "segreto"}
+
+    registrata = client.post("/api/auth/push-subscription", dati, format="json")
+    assert registrata.status_code == 201
+    assert registrata.json() == {"success": True}
+
+    rimossa = client.delete("/api/auth/push-subscription", {"endpoint": dati["endpoint"]}, format="json")
+    assert rimossa.status_code == 204

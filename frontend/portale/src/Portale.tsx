@@ -30,6 +30,7 @@ import {
 import { Rubrica } from './Rubrica'
 import { Scheda, StatoPill } from './Scheda'
 import { allontana, movimentoRidotto, ondaTema, transizione } from './transizioni'
+import { attivaNotifiche, disattivaNotifiche, notificheAttive } from './push'
 
 type Pagina = 'coda' | 'mappa' | 'rubrica'
 type Tema = 'chiaro' | 'scuro'
@@ -78,6 +79,34 @@ type PropsMenu = {
 function Menu({ pagina, setPagina, nuove, tema, setTema, operatore, onEsci }: PropsMenu) {
   const [compresso, setCompresso] = useState(false)
   const [utente, setUtente] = useState(false)
+  const [notifiche, setNotifiche] = useState(false)
+  const [notificheInCorso, setNotificheInCorso] = useState(false)
+  useEffect(() => {
+    let attivo = true
+    const configuraNotifiche = async () => {
+      const giaAttive = await notificheAttive()
+      if (giaAttive) {
+        if (attivo) setNotifiche(true)
+        return
+      }
+      // Su Chrome/Android la richiesta può partire all'apertura del Portale.
+      // Safari/iOS può rifiutarla senza gesto: in quel caso resta disponibile il pulsante.
+      if ('Notification' in window && Notification.permission !== 'denied') {
+        const abilitate = await attivaNotifiche()
+        if (attivo && abilitate) setNotifiche(true)
+      }
+    }
+    configuraNotifiche().catch(() => {})
+    return () => {
+      attivo = false
+    }
+  }, [])
+  const toggleNotifiche = async () => {
+    setNotificheInCorso(true)
+    const ok = notifiche ? await disattivaNotifiche() : await attivaNotifiche()
+    if (ok) setNotifiche(!notifiche)
+    setNotificheInCorso(false)
+  }
   const voce = (k: Pagina, testo: string, icona: string, badge?: number) => (
     <button key={k} className={`voce ${pagina === k ? 'on' : ''}`} onClick={() => setPagina(k)} title={compresso ? testo : undefined}>
       <Icona nome={icona} piena={pagina === k} />
@@ -114,6 +143,10 @@ function Menu({ pagina, setPagina, nuove, tema, setTema, operatore, onEsci }: Pr
 
       <span className="spazio" />
       <div className="menu-piede">
+        <button className="voce" onClick={toggleNotifiche} disabled={notificheInCorso} title={compresso ? 'Notifiche' : undefined}>
+          <Icona nome={notifiche ? 'notifications_active' : 'notifications_none'} />
+          <span className="testo">{notifiche ? 'Disattiva notifiche' : 'Attiva notifiche'}</span>
+        </button>
         <button className="voce" onClick={() => ondaTema(() => setTema(tema === 'scuro' ? 'chiaro' : 'scuro'))} title={compresso ? 'Tema' : undefined}>
           <Icona nome={tema === 'scuro' ? 'light_mode' : 'dark_mode'} />
           <span className="testo">{tema === 'scuro' ? 'Tema chiaro' : 'Tema scuro'}</span>
