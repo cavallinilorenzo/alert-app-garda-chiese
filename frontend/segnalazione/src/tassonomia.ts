@@ -29,11 +29,9 @@ export const CATEGORIE: { valore: Categoria; etichetta: string; icona: string }[
 
 const DURATE: { valore: Durata; etichetta: string }[] = [
   { valore: 'adesso', etichetta: 'Adesso' },
-  { valore: 'meno_di_un_ora', etichetta: 'Da meno di un’ora' },
   { valore: 'alcune_ore', etichetta: 'Da alcune ore' },
   { valore: 'piu_di_un_giorno', etichetta: 'Da più di un giorno' },
   { valore: 'non_so', etichetta: 'Non so' },
-  { valore: 'non_applicabile', etichetta: 'Non applicabile' },
 ]
 
 const QUANTITA: { valore: QuantitaAcqua; etichetta: string }[] = [

@@ -325,17 +325,17 @@ components:
             description: URL dell'immagine.
         categoria:
           type: string
-          enum: [acqua_che_affiora, canale_che_tracima, argine_danneggiato, ostruzione, paratoia_danneggiata, acqua_sporca, altro, ""]
+          enum: [acqua_che_affiora, perdita_dal_canale, canale_che_tracima, argine_danneggiato, ostruzione, canale_asciutto, paratoia_danneggiata, acqua_sporca, altro, ""]
         categoria_originale:
           type: string
-          enum: [acqua_che_affiora, canale_che_tracima, argine_danneggiato, ostruzione, paratoia_danneggiata, acqua_sporca, altro, ""]
+          enum: [acqua_che_affiora, perdita_dal_canale, canale_che_tracima, argine_danneggiato, ostruzione, canale_asciutto, paratoia_danneggiata, acqua_sporca, altro, ""]
           description: Categoria inviata, conservata alla prima correzione. Vuota se mai corretta.
         durata:
           type: string
-          enum: [adesso, meno_di_un_ora, alcune_ore, piu_di_un_giorno, non_so, non_applicabile, ""]
+          enum: [adesso, alcune_ore, piu_di_un_giorno, da_settimane, non_so, ""]
         quantita_acqua:
           type: string
-          enum: [gocce, piccolo_flusso, molta_acqua, non_so, non_applicabile, ""]
+          enum: [gocce, piccolo_flusso, molta_acqua, getto, non_so, non_applicabile, ""]
         pericolo_persone:
           type: string
           enum: ["si", "no", "non_so", ""]
@@ -690,16 +690,17 @@ paths:
                     properties:
                       categoria:
                         type: string
-                        enum: [acqua_che_affiora, canale_che_tracima, argine_danneggiato, ostruzione, paratoia_danneggiata, acqua_sporca, altro]
+                        enum: [acqua_che_affiora, perdita_dal_canale, canale_che_tracima, argine_danneggiato, ostruzione, canale_asciutto, paratoia_danneggiata, acqua_sporca, altro]
                       descrizione:
                         type: string
                         maxLength: 500
                       durata:
                         type: string
-                        enum: [adesso, meno_di_un_ora, alcune_ore, piu_di_un_giorno, non_so, non_applicabile]
+                        enum: [adesso, alcune_ore, piu_di_un_giorno, da_settimane, non_so]
                       quantita_acqua:
                         type: string
-                        enum: [gocce, piccolo_flusso, molta_acqua, non_so, non_applicabile]
+                        enum: [gocce, piccolo_flusso, molta_acqua, getto, non_so, non_applicabile]
+                        description: non_applicabile se la categoria non prevede la domanda sulla quantità d'acqua.
                       pericolo_persone:
                         type: string
                         enum: ["si", "no", "non_so"]
@@ -811,13 +812,13 @@ paths:
                     properties:
                       categoria:
                         type: string
-                        enum: [acqua_che_affiora, canale_che_tracima, argine_danneggiato, ostruzione, paratoia_danneggiata, acqua_sporca, altro]
+                        enum: [acqua_che_affiora, perdita_dal_canale, canale_che_tracima, argine_danneggiato, ostruzione, canale_asciutto, paratoia_danneggiata, acqua_sporca, altro]
                       descrizione:
                         type: string
                         maxLength: 500
                       quantita_acqua:
                         type: string
-                        enum: [gocce, piccolo_flusso, molta_acqua]
+                        enum: [gocce, piccolo_flusso, molta_acqua, getto]
                       pericolo_strada:
                         type: string
                         enum: ["si"]
@@ -907,13 +908,16 @@ paths:
                   type: string
                 categoria:
                   type: string
-                  enum: [acqua_che_affiora, canale_che_tracima, argine_danneggiato, ostruzione, paratoia_danneggiata, acqua_sporca, altro]
+                  enum: [acqua_che_affiora, perdita_dal_canale, canale_che_tracima, argine_danneggiato, ostruzione, canale_asciutto, paratoia_danneggiata, acqua_sporca, altro]
                 durata:
                   type: string
-                  enum: [adesso, meno_di_un_ora, alcune_ore, piu_di_un_giorno, non_so, non_applicabile]
+                  enum: [adesso, alcune_ore, piu_di_un_giorno, da_settimane, non_so]
                 quantita_acqua:
                   type: string
-                  enum: [gocce, piccolo_flusso, molta_acqua, non_so, non_applicabile]
+                  enum: [gocce, piccolo_flusso, molta_acqua, getto, non_so, non_applicabile]
+                  description: |
+                    Si chiede solo per acqua_che_affiora, perdita_dal_canale, canale_che_tracima e
+                    argine_danneggiato; per le altre categorie vale non_applicabile.
                 pericolo_persone:
                   type: string
                   enum: ["si", "no", "non_so"]
@@ -1051,7 +1055,7 @@ paths:
                   type: number
                 categoria:
                   type: string
-                  enum: [acqua_che_affiora, canale_che_tracima, argine_danneggiato, ostruzione, paratoia_danneggiata, acqua_sporca, altro]
+                  enum: [acqua_che_affiora, perdita_dal_canale, canale_che_tracima, argine_danneggiato, ostruzione, canale_asciutto, paratoia_danneggiata, acqua_sporca, altro]
                 priorita:
                   $ref: '#/components/schemas/Priorita'
                 override_motivazione:

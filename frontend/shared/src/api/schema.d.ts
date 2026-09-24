@@ -126,12 +126,15 @@ export interface paths {
                             transcript: string;
                             campi: {
                                 /** @enum {string} */
-                                categoria?: "acqua_che_affiora" | "canale_che_tracima" | "argine_danneggiato" | "ostruzione" | "paratoia_danneggiata" | "acqua_sporca" | "altro";
+                                categoria?: "acqua_che_affiora" | "perdita_dal_canale" | "canale_che_tracima" | "argine_danneggiato" | "ostruzione" | "canale_asciutto" | "paratoia_danneggiata" | "acqua_sporca" | "altro";
                                 descrizione?: string;
                                 /** @enum {string} */
-                                durata?: "adesso" | "meno_di_un_ora" | "alcune_ore" | "piu_di_un_giorno" | "non_so" | "non_applicabile";
-                                /** @enum {string} */
-                                quantita_acqua?: "gocce" | "piccolo_flusso" | "molta_acqua" | "non_so" | "non_applicabile";
+                                durata?: "adesso" | "alcune_ore" | "piu_di_un_giorno" | "da_settimane" | "non_so";
+                                /**
+                                 * @description non_applicabile se la categoria non prevede la domanda sulla quantità d'acqua.
+                                 * @enum {string}
+                                 */
+                                quantita_acqua?: "gocce" | "piccolo_flusso" | "molta_acqua" | "getto" | "non_so" | "non_applicabile";
                                 /** @enum {string} */
                                 pericolo_persone?: "si" | "no" | "non_so";
                                 /** @enum {string} */
@@ -234,10 +237,10 @@ export interface paths {
                              */
                             campi: {
                                 /** @enum {string} */
-                                categoria?: "acqua_che_affiora" | "canale_che_tracima" | "argine_danneggiato" | "ostruzione" | "paratoia_danneggiata" | "acqua_sporca" | "altro";
+                                categoria?: "acqua_che_affiora" | "perdita_dal_canale" | "canale_che_tracima" | "argine_danneggiato" | "ostruzione" | "canale_asciutto" | "paratoia_danneggiata" | "acqua_sporca" | "altro";
                                 descrizione?: string;
                                 /** @enum {string} */
-                                quantita_acqua?: "gocce" | "piccolo_flusso" | "molta_acqua";
+                                quantita_acqua?: "gocce" | "piccolo_flusso" | "molta_acqua" | "getto";
                                 /** @enum {string} */
                                 pericolo_strada?: "si";
                                 /** @enum {string} */
@@ -332,11 +335,15 @@ export interface paths {
                         cellulare: string;
                         transcript_ai?: string;
                         /** @enum {string} */
-                        categoria?: "acqua_che_affiora" | "canale_che_tracima" | "argine_danneggiato" | "ostruzione" | "paratoia_danneggiata" | "acqua_sporca" | "altro";
+                        categoria?: "acqua_che_affiora" | "perdita_dal_canale" | "canale_che_tracima" | "argine_danneggiato" | "ostruzione" | "canale_asciutto" | "paratoia_danneggiata" | "acqua_sporca" | "altro";
                         /** @enum {string} */
-                        durata?: "adesso" | "meno_di_un_ora" | "alcune_ore" | "piu_di_un_giorno" | "non_so" | "non_applicabile";
-                        /** @enum {string} */
-                        quantita_acqua?: "gocce" | "piccolo_flusso" | "molta_acqua" | "non_so" | "non_applicabile";
+                        durata?: "adesso" | "alcune_ore" | "piu_di_un_giorno" | "da_settimane" | "non_so";
+                        /**
+                         * @description Si chiede solo per acqua_che_affiora, perdita_dal_canale, canale_che_tracima e
+                         *     argine_danneggiato; per le altre categorie vale non_applicabile.
+                         * @enum {string}
+                         */
+                        quantita_acqua?: "gocce" | "piccolo_flusso" | "molta_acqua" | "getto" | "non_so" | "non_applicabile";
                         /** @enum {string} */
                         pericolo_persone?: "si" | "no" | "non_so";
                         /** @enum {string} */
@@ -789,16 +796,16 @@ export interface components {
             transcript_ai: string;
             foto: string[];
             /** @enum {string} */
-            categoria: "acqua_che_affiora" | "canale_che_tracima" | "argine_danneggiato" | "ostruzione" | "paratoia_danneggiata" | "acqua_sporca" | "altro" | "";
+            categoria: "acqua_che_affiora" | "perdita_dal_canale" | "canale_che_tracima" | "argine_danneggiato" | "ostruzione" | "canale_asciutto" | "paratoia_danneggiata" | "acqua_sporca" | "altro" | "";
             /**
              * @description Categoria inviata, conservata alla prima correzione. Vuota se mai corretta.
              * @enum {string}
              */
-            categoria_originale: "acqua_che_affiora" | "canale_che_tracima" | "argine_danneggiato" | "ostruzione" | "paratoia_danneggiata" | "acqua_sporca" | "altro" | "";
+            categoria_originale: "acqua_che_affiora" | "perdita_dal_canale" | "canale_che_tracima" | "argine_danneggiato" | "ostruzione" | "canale_asciutto" | "paratoia_danneggiata" | "acqua_sporca" | "altro" | "";
             /** @enum {string} */
-            durata: "adesso" | "meno_di_un_ora" | "alcune_ore" | "piu_di_un_giorno" | "non_so" | "non_applicabile" | "";
+            durata: "adesso" | "alcune_ore" | "piu_di_un_giorno" | "da_settimane" | "non_so" | "";
             /** @enum {string} */
-            quantita_acqua: "gocce" | "piccolo_flusso" | "molta_acqua" | "non_so" | "non_applicabile" | "";
+            quantita_acqua: "gocce" | "piccolo_flusso" | "molta_acqua" | "getto" | "non_so" | "non_applicabile" | "";
             /** @enum {string} */
             pericolo_persone: "si" | "no" | "non_so" | "";
             /** @enum {string} */
@@ -998,7 +1005,7 @@ export interface operations {
                     lat?: number;
                     lng?: number;
                     /** @enum {string} */
-                    categoria?: "acqua_che_affiora" | "canale_che_tracima" | "argine_danneggiato" | "ostruzione" | "paratoia_danneggiata" | "acqua_sporca" | "altro";
+                    categoria?: "acqua_che_affiora" | "perdita_dal_canale" | "canale_che_tracima" | "argine_danneggiato" | "ostruzione" | "canale_asciutto" | "paratoia_danneggiata" | "acqua_sporca" | "altro";
                     priorita?: components["schemas"]["Priorita"];
                     override_motivazione?: string;
                     acquaiolo_competente_id?: number | null;
