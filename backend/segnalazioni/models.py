@@ -23,9 +23,9 @@ class Segnalazione(models.Model):
         CRITICA = 'critica', _('Critica')
 
     class Layer(models.TextChoices):
-        CANALI = 'canali', _('Canali')
-        CONDOTTE = 'condotte', _('Condotte')
-        RIP = 'rip', _('Reticolo Idrico Principale')
+        CANALE = 'canale', _('Canale')
+        CONDOTTA = 'condotta', _('Condotta')
+        RIP = 'reticolo_principale', _('Reticolo Idrico Principale')
 
     codice_pratica = models.CharField(max_length=15, default=generate_codice_pratica, unique=True)
     token_stato = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)

@@ -30,18 +30,28 @@ def mock_estrazione():
 
 @pytest.fixture
 def mock_geo():
+    from contratti import RisultatoPerimetro, Tracciato, ZonaAcquaiolo
     with patch('segnalazioni.views.check_perimetro') as mock:
-        mock.return_value = {
-            "accettato": True,
-            "layer": "canali",
-            "id_placemark": "123",
-            "nome_tracciato": "Canale di test",
-            "nome_completo_tracciato": "Canale di test completo",
-            "tipo_tracciato": "Primario",
-            "distanza_m": 12.5,
-            "zona_id": 4,
-            "acquaiolo_competente_id": 1,
-        }
+        mock.return_value = RisultatoPerimetro(
+            accettato=True,
+            tracciato=Tracciato(
+                layer="canale",
+                id_placemark="123",
+                nome="Canale di test",
+                nome_completo="Canale di test completo",
+                tipo="Primario",
+                codice=None
+            ),
+            distanza_m=12.5,
+            zona=ZonaAcquaiolo(
+                id=4,
+                nome="Zona 4",
+                servita=True,
+                acquaiolo="Acquaiolo Test"
+            ),
+            acquaiolo_suggerito="Acquaiolo Test",
+            messaggio="La posizione è sul reticolo consortile: Canale di test completo."
+        )
         yield mock
 
 def test_calcolo_priorita_critica():
@@ -97,13 +107,21 @@ def test_creazione_segnalazione(client, mock_estrazione, mock_geo):
     # Verifica che il modello sia stato salvato
     segnalazione = Segnalazione.objects.get(id=response.data["id"])
     assert segnalazione.priorita == "alta"
-    assert segnalazione.layer == "canali"
+    assert segnalazione.layer == "canale"
     assert segnalazione.id_placemark == "123"
     assert Foto.objects.filter(segnalazione=segnalazione).exists()
     assert Evento.objects.filter(segnalazione=segnalazione).count() == 1
 
 def test_creazione_segnalazione_fuori_perimetro(client, mock_estrazione, mock_geo):
-    mock_geo.return_value = {"accettato": False}
+    from contratti import RisultatoPerimetro
+    mock_geo.return_value = RisultatoPerimetro(
+        accettato=False,
+        tracciato=None,
+        distanza_m=400,
+        zona=None,
+        acquaiolo_suggerito=None,
+        messaggio="Fuori perimetro"
+    )
     url = reverse('segnalazioni-create')
     foto = SimpleUploadedFile("foto.jpg", b"file_content", content_type="image/jpeg")
     data = {
