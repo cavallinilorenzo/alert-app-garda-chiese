@@ -8,7 +8,6 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from accounts.models import Acquaiolo
-from accounts.push import invia_notifica_nuova_segnalazione
 from contratti import GeocodingNonDisponibile
 from geo.services import check_perimetro, reverse_geocode
 
@@ -156,7 +155,8 @@ class SegnalazioneListCreateView(generics.ListCreateAPIView):
 
         # 6. Evento iniziale
         Evento.objects.create(segnalazione=segnalazione, stato=Segnalazione.Stato.RICEVUTA)
-        invia_notifica_nuova_segnalazione(segnalazione)
+        # Temporaneamente disabilitato: il flusso di invio deve restare indipendente dalle push.
+        # invia_notifica_nuova_segnalazione(segnalazione)
 
         return Response(
             {
