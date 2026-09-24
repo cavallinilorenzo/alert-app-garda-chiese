@@ -1,80 +1,108 @@
-# Garda Chiese Alert App
+<p align="center">
+  <img src="./frontend/shared/marchio/logo.png" alt="Garda Chiese Logo" width="250" />
+</p>
 
-A complete platform for reporting and managing hydrogeological and infrastructure alerts within the Garda-Chiese consortium network.
+<h1 align="center">💧 Garda Chiese Alert App</h1>
 
-The system is split into three main components:
-1. **Citizen Reporting App** (Frontend): A mobile-first web app for citizens to report issues (leaks, blockages, damaged banks, etc.) with photos, voice messages, and GPS coordinates.
-2. **Operator Portal** (Frontend): A dashboard for operators to triage, assign, and track reports.
-3. **Backend API**: A Django-powered REST API backed by a PostgreSQL database, managing users, permissions, report lifecycle, and AI integrations (Gemini) for voice transcriptions.
+<p align="center">
+  <i>A unified platform for citizen reporting and infrastructure triage.<br/>Developed with ❤️ for the <strong>Hack4Water</strong> Hackathon.</i>
+</p>
 
-## System Architecture
+<p align="center">
+  <a href="#-about-the-project"><strong>About</strong></a> ·
+  <a href="#-key-features"><strong>Features</strong></a> ·
+  <a href="#-public-access"><strong>Live Site</strong></a> ·
+  <a href="#-local-setup--hosting"><strong>Local Setup</strong></a> ·
+  <a href="#-architecture"><strong>Architecture</strong></a>
+</p>
 
-- **Backend**: Python / Django / Django REST Framework
-- **Database**: PostgreSQL
-- **Frontend**: React (TypeScript + Vite)
-- **Deployment**: Docker Compose via GitHub Container Registry (GHCR)
+<hr />
+
+## 📖 About the Project
+
+The **Garda Chiese Alert App** was conceptualized and built during the **Hack4Water** challenge. It aims to modernize the way the *Consorzio di bonifica Garda Chiese* handles infrastructural anomalies within its network. 
+
+Before this project, citizens lacked a streamlined way to report issues like broken pipes, flooded fields, or damaged banks. This system bridges the gap by offering a two-sided platform:
+1. **Citizen Reporting App**: A frictionless, geo-localized reporting tool.
+2. **Operator Portal**: A dashboard for internal triage, assignment, and management.
 
 ---
 
-## 🚀 Deployment Guide (via Portainer)
+## ✨ Key Features
 
-The project is configured for automated deployment via Docker Compose.
-Images are automatically built by GitHub Actions and pushed to the GitHub Container Registry (`ghcr.io`) upon pushing to the `main` branch.
+### 📱 Citizen Reporting App (Frontend)
+- **Mobile-First Experience**: Designed to be responsive, fast, and easy to use on the field.
+- **AI Voice Extraction**: Powered by **Google Gemini AI**, users can simply record a voice message detailing the problem, and the system automatically extracts the relevant information.
+- **Rich Media & Geolocation**: Supports photo uploads and accurate GPS coordinate tracking to pinpoint the exact location of the anomaly.
+- **Real-Time Status Tracking**: Citizens receive a link to track the lifecycle of their report without needing an account.
 
-Follow these steps to deploy the application on a **Portainer** instance (e.g., on TrueNAS, CasaOS, or a standard VPS):
+### 💻 Operator Portal (Dashboard)
+- **Triage & Priority Management**: Operators can categorize reports, assign priorities based on danger levels, and filter out out-of-bounds reports.
+- **Interactive Map Integration**: GeoJSON map layers displaying the entire consortium's network, borders, and zones using **Leaflet**.
+- **Issue Lifecycle Management**: Full control over report statuses (Received, In Verification, Assigned, In Progress, Closed).
+- **Push Notifications**: Real-time alerts for incoming critical reports.
+- **Operator Directory**: Built-in contact list for field operators (*acquaioli*).
 
-### 1. Prerequisites
-- A running instance of Portainer.
-- A reverse proxy (e.g., Nginx Proxy Manager, Traefik, Cloudflare Tunnel) to handle HTTPS. **Note:** Features like Geolocation and Microphone recording in the Citizen App strictly require an `https://` connection to work in modern browsers.
+---
 
-### 2. Create the Stack
-1. Open Portainer and go to **Stacks** > **Add stack**.
-2. Set a name for the stack (e.g., `garda-chiese`).
-3. Under **Build method**, select **Repository**.
-4. Fill in the repository details:
-   - **Repository URL**: `https://github.com/cavallinilorenzo/alert-app-garda-chiese.git`
-   - **Repository reference**: `refs/heads/main`
-   - **Compose path**: `docker-compose.prod.yml`
+## 🌍 Public Access
 
-### 3. Environment Variables
-Scroll down to the **Environment variables** section, click **Advanced mode**, and paste the following configuration. Replace the placeholder values with your actual secure data:
+The project is publicly accessible and ready to be used! You can reach the live environments at the following links:
 
-```env
-# The port exposed on the host machine by the Nginx container
-NGINX_PORT=8080
+> 🔗 **Citizen App**: `[Insert Public URL Here]`  
+> 🔗 **Operator Portal**: `[Insert Portal URL Here]/portale`
 
-# Django Security (Set a strong, random 50+ chars string)
-DJANGO_SECRET_KEY=your_super_secret_key_here
-DJANGO_ALLOWED_HOSTS=*
+*(Note: Replace the placeholders above with the actual deployed domain).*
 
-# PostgreSQL Database Configuration
-POSTGRES_DB=garda_chiese
-POSTGRES_USER=garda_chiese
-POSTGRES_PASSWORD=your_secure_db_password
+---
 
-# Optional: Google Gemini API for voice extraction
-# Leave empty if you don't want AI voice transcription
-GEMINI_API_KEY=your_gemini_api_key
-GEMINI_MODELLO=gemini-3.1-flash-lite
-```
+## 🚀 Local Setup & Hosting
 
-### 4. Deploy
-Click on **Deploy the stack**. 
+Want to run the platform locally or host it on your own server? We've made it incredibly simple using Docker.
 
-Portainer will pull the pre-built Docker images from GitHub Packages and start the application. 
-Once running, the app will be accessible on your server's IP at the port specified in `NGINX_PORT` (e.g., `http://YOUR-IP:8080`).
+### Prerequisites
+- [Docker](https://www.docker.com/) and [Docker Compose](https://docs.docker.com/compose/) installed on your machine.
+- A reverse proxy (e.g., Nginx Proxy Manager) if deploying for production.
+- (Optional) A Google Gemini API key for the voice extraction feature.
 
-### Routing
-The internal Nginx container automatically routes traffic based on the URL path:
-- `http://YOUR-IP:8080/` ➔ **Citizen Reporting App**
-- `http://YOUR-IP:8080/portale/` ➔ **Operator Portal**
-- `http://YOUR-IP:8080/api/` ➔ **Backend API**
-- `http://YOUR-IP:8080/admin/` ➔ **Django Admin Dashboard**
+### Running Locally
 
-## Persistent Data (Volumes)
-The `docker-compose.prod.yml` uses Docker Named Volumes to ensure your data is safe:
-- `postgres_data`: Contains the database.
-- `static_data`: Contains Django admin static files.
-- `media_data`: Contains user uploads (photos and audio).
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/cavallinilorenzo/alert-app-garda-chiese.git
+   cd alert-app-garda-chiese
+   ```
 
-These volumes are managed by Docker and will persist across container restarts, image updates, and deployments. They will only be deleted if you explicitly delete the volumes when removing the stack in Portainer.
+2. **Configure Environment Variables:**
+   ```bash
+   cp .env.example .env
+   # Edit the .env file with your specific configurations
+   ```
+
+3. **Start the containers:**
+   ```bash
+   docker-compose up --build -d
+   ```
+
+4. **Access the application:**
+   - 📱 **Citizen App**: `http://localhost:8080/`
+   - 💻 **Operator Portal**: `http://localhost:8080/portale/`
+   - ⚙️ **Backend API**: `http://localhost:8080/api/`
+
+---
+
+## 🏗️ Architecture
+
+The platform follows a modern, decoupled architecture:
+
+<div align="center">
+
+| Component | Technology Stack |
+| :--- | :--- |
+| **Backend** | Python, Django, Django REST Framework |
+| **Database** | PostgreSQL + PostGIS (for spatial data) |
+| **Frontend** | React, TypeScript, Vite, Leaflet |
+| **AI Integration**| Google Gemini API (`gemini-3.1-flash-lite`) |
+| **Deployment**| Docker, Docker Compose, GitHub Container Registry |
+
+</div>
