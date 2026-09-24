@@ -86,6 +86,90 @@ components:
         zona_id:
           type: [integer, "null"]
 
+    FeatureTracciato:
+      type: object
+      description: Un tracciato del Reticolo consortile (layer `canale`, `condotta`, `reticolo_principale`).
+      required: [type, id, properties, geometry]
+      properties:
+        type:
+          type: string
+          const: Feature
+        id:
+          type: string
+          description: Id del placemark nel KML.
+          example: "RIB_Canali_2026.68"
+        properties:
+          type: object
+          required: [nome, nome_completo, tipo, codice]
+          properties:
+            nome:
+              type: string
+            nome_completo:
+              type: string
+            tipo:
+              type: [string, "null"]
+            codice:
+              type: [string, "null"]
+        geometry:
+          type: object
+          required: [type, coordinates]
+          properties:
+            type:
+              type: string
+              enum: [LineString, MultiLineString]
+            coordinates:
+              type: array
+              description: Coordinate `[lng, lat]` in WGS84, semplificate a 5 m.
+
+    FeatureZonaAcquaiolo:
+      type: object
+      description: Una Zona acquaiolo (layer `zona_acquaiolo`).
+      required: [type, id, properties, geometry]
+      properties:
+        type:
+          type: string
+          const: Feature
+        id:
+          type: integer
+          description: Lo stesso `zona_id` di `/perimetro/check` e della Rubrica acquaioli.
+          example: 19
+        properties:
+          type: object
+          required: [nome, servita, acquaiolo]
+          properties:
+            nome:
+              type: string
+              description: Macro-zona.
+            servita:
+              type: boolean
+            acquaiolo:
+              type: [string, "null"]
+              description: Null se la zona è `NON SERVITA`.
+        geometry:
+          type: object
+          required: [type, coordinates]
+          properties:
+            type:
+              type: string
+              enum: [Polygon, MultiPolygon]
+            coordinates:
+              type: array
+              description: Coordinate `[lng, lat]` in WGS84, semplificate a 5 m.
+
+    LayerGeoJSON:
+      type: object
+      required: [type, features]
+      properties:
+        type:
+          type: string
+          const: FeatureCollection
+        features:
+          type: array
+          items:
+            oneOf:
+              - $ref: '#/components/schemas/FeatureTracciato'
+              - $ref: '#/components/schemas/FeatureZonaAcquaiolo'
+
 paths:
   /perimetro/check:
     post:
@@ -127,6 +211,99 @@ paths:
                     distanza_m: 12.5
                     zona_id: 4
                     messaggio: "Punto valido nel comune di Mantova."
+
+  /layer/{layer}.geojson:
+    get:
+      operationId: layerGeoJSON
+      summary: Layer GeoJSON del Reticolo consortile e delle Zone acquaiolo (App e Portale operatore)
+      description: Layer statico per disegnare la mappa con Leaflet. Le geometrie sono semplificate e servono solo al disegno.
+      security: []
+      parameters:
+        - name: layer
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [canale, condotta, reticolo_principale, zona_acquaiolo]
+      responses:
+        '200':
+          description: FeatureCollection del layer
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+              example: "public, max-age=86400"
+          content:
+            application/geo+json:
+              schema:
+                $ref: '#/components/schemas/LayerGeoJSON'
+              examples:
+                canale:
+                  value:
+                    type: FeatureCollection
+                    features:
+                      - type: Feature
+                        id: "RIB_Canali_2026.68"
+                        properties:
+                          nome: "III ramo C"
+                          nome_completo: "Dispensatore III ramo C"
+                          tipo: "Dispensatore"
+                          codice: "3203c"
+                        geometry:
+                          type: LineString
+                          coordinates: [[10.625391, 45.31095], [10.627453, 45.310316]]
+                condotta:
+                  value:
+                    type: FeatureCollection
+                    features:
+                      - type: Feature
+                        id: "RIB_Condotte_2026.13"
+                        properties:
+                          nome: "COLOMBAROLA - CAVALLARA"
+                          nome_completo: "Condotta COLOMBAROLA - CAVALLARA"
+                          tipo: "Condotta"
+                          codice: null
+                        geometry:
+                          type: LineString
+                          coordinates: [[10.65994, 45.353735], [10.661367, 45.353654], [10.661776, 45.355696], [10.662156, 45.357027], [10.662306, 45.357058], [10.662238, 45.358196], [10.662065, 45.358512], [10.660131, 45.359729], [10.659937, 45.360363], [10.659597, 45.361014], [10.658786, 45.361454]]
+                reticolo_principale:
+                  value:
+                    type: FeatureCollection
+                    features:
+                      - type: Feature
+                        id: "RIP_2026.17"
+                        properties:
+                          nome: "CACCIABELLA - AIPO"
+                          nome_completo: "Vaso CACCIABELLA - AIPO"
+                          tipo: "Vaso"
+                          codice: "7003"
+                        geometry:
+                          type: LineString
+                          coordinates: [[10.406885, 45.220643], [10.406947, 45.219672], [10.406389, 45.214738], [10.406688, 45.214221], [10.406691, 45.213941], [10.406846, 45.213685]]
+                zona_acquaiolo:
+                  value:
+                    type: FeatureCollection
+                    features:
+                      - type: Feature
+                        id: 19
+                        properties:
+                          nome: "Alto Mantovano"
+                          servita: true
+                          acquaiolo: "PEGORARO L"
+                        geometry:
+                          type: Polygon
+                          coordinates: [[[10.481381, 45.368262], [10.497071, 45.384636], [10.536655, 45.366689], [10.534789, 45.360666], [10.523236, 45.358376], [10.507222, 45.330771], [10.49796, 45.359868], [10.481381, 45.368262]]]
+                      - type: Feature
+                        id: 21
+                        properties:
+                          nome: "Alto Mantovano"
+                          servita: false
+                          acquaiolo: null
+                        geometry:
+                          type: Polygon
+                          coordinates: [[[10.465021, 45.403491], [10.484205, 45.397158], [10.485856, 45.405412], [10.498563, 45.382725], [10.481381, 45.368262], [10.451632, 45.386567], [10.465021, 45.403491]]]
+        '404':
+          description: Layer inesistente
 
   /estrazione/vocale:
     post:
