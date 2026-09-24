@@ -20,4 +20,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - run: npx --yes @redocly/cli@latest lint api/openapi.yaml
+      # Finché il contratto non è su main il file può mancare: niente da validare.
+      - if: hashFiles('api/openapi.yaml') != ''
+        run: npx --yes @redocly/cli@latest lint api/openapi.yaml
