@@ -8,6 +8,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from accounts.models import Acquaiolo
+from accounts.push import invia_notifica_nuova_segnalazione
 from geo.services import check_perimetro
 
 from .models import Evento, Foto, Segnalazione
@@ -144,6 +145,7 @@ class SegnalazioneListCreateView(generics.ListCreateAPIView):
 
         # 6. Evento iniziale
         Evento.objects.create(segnalazione=segnalazione, stato=Segnalazione.Stato.RICEVUTA)
+        invia_notifica_nuova_segnalazione(segnalazione)
 
         return Response(
             {

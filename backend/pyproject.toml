@@ -12,6 +12,7 @@ dependencies = [
     "google-genai>=2.25.0",
     "gunicorn>=23",
     "pillow>=12.3.0",
+    "pywebpush>=2.0.0",
     "psycopg[binary]>=3.2",
     "pyproj>=3.7",
     "shapely>=2.1",

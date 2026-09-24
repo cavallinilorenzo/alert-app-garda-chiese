@@ -1,9 +1,10 @@
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react'
 import { useBozza } from './bozza'
-import { FinestraNumeroVerde, Icona, Logo, Simbolo } from './comuni'
+import { FinestraNumeroVerde, Icona, Logo, NUMERO_VERDE, TEL_NUMERO_VERDE } from './comuni'
 
-// Procedura guidata dell'App di segnalazione (variante A del ticket #9): una cosa per
-// schermata, barra di avanzamento a 5 passi, azione principale fissa in basso.
+// Procedura guidata dell'App di segnalazione: una cosa per schermata, azione principale fissa in
+// basso. La cornice è la variante A del prototipo del ticket #102: barra traslucida con indietro,
+// logo ridotto e n/5, segmenti di avanzamento, tastone del numero verde dal primo pericolo.
 
 export type Passo =
   | 'inizio'
@@ -83,8 +84,9 @@ type PropsSchermata = {
 }
 
 /**
- * Impaginazione comune a ogni schermata: barra, avanzamento, corpo e azione fissa. Qui sta anche
- * la finestra del numero verde, che così resta aperta se il pericolo si scopre al Continua.
+ * Impaginazione comune a ogni schermata: barra, avanzamento, corpo e azione fissa. Inizio ha solo il
+ * logo grande. Qui stanno anche il tastone del numero verde, che resta dal primo segnale di pericolo
+ * fino alla Conferma, e la finestra, che così resta aperta se il pericolo si scopre al Continua.
  */
 export function Schermata({ titolo, sotto, azione, onIndietro, children }: PropsSchermata) {
   const { passo, vai, dalRiepilogo } = useProcedura()
@@ -92,38 +94,43 @@ export function Schermata({ titolo, sotto, azione, onIndietro, children }: Props
   const precedente = dalRiepilogo && passo !== 'fuori_perimetro' ? 'riepilogo' : INDIETRO[passo]
   const indietro = onIndietro ?? (precedente ? () => vai(precedente) : null)
   const indice = ordine(passo)
-  const dentroLaProcedura = passo !== 'inizio' && passo !== 'conferma'
+  const tastone = bozza.pericoloSegnalato && passo !== 'conferma'
 
   return (
     <div className="app">
-      <header className="barra">
-        {indietro ? (
-          <button className="icona-btn" onClick={indietro} aria-label="Indietro">
-            <Icona n="arrow_back" />
-          </button>
-        ) : (
-          dentroLaProcedura && <Simbolo />
-        )}
-        {dentroLaProcedura ? (
-          <div className="barra-testo">
-            <strong>Nuova segnalazione</strong>
-            <span>Consorzio di bonifica Garda Chiese</span>
-          </div>
-        ) : (
+      {passo === 'inizio' ? (
+        <header className="testata">
           <Logo />
-        )}
-      </header>
-      {indice >= 0 && (
-        <div className="avanzamento" aria-label={`Passo ${indice + 1} di ${NUMERATI.length}`}>
-          <div className="avanzamento-segmenti">
-            {NUMERATI.map(([p], i) => (
-              <span key={p} className={i <= indice ? 'fatto' : ''} />
-            ))}
+        </header>
+      ) : (
+        <header className="barra">
+          <div className="barra-riga">
+            {indietro ? (
+              <button className="indietro" onClick={indietro} aria-label="Indietro">
+                <Icona n="arrow_back" />
+              </button>
+            ) : (
+              <span />
+            )}
+            <Logo piccolo />
+            <span className="barra-passo">{indice >= 0 && `${indice + 1}/${NUMERATI.length}`}</span>
           </div>
-          <span className="avanzamento-testo">
-            Passo {indice + 1} di {NUMERATI.length} · {NUMERATI[indice][1]}
-          </span>
-        </div>
+          {indice >= 0 && (
+            <div className="avanzamento" aria-label={`Passo ${indice + 1} di ${NUMERATI.length} · ${NUMERATI[indice][1]}`}>
+              {NUMERATI.map(([p], i) => (
+                <span key={p} className={i <= indice ? 'fatto' : ''} />
+              ))}
+            </div>
+          )}
+          {tastone && (
+            <a className="tastone" href={TEL_NUMERO_VERDE}>
+              <Icona n="call" piena />
+              <span>
+                Numero verde <b>{NUMERO_VERDE}</b>
+              </span>
+            </a>
+          )}
+        </header>
       )}
       <main className="corpo">
         {titolo && <h1>{titolo}</h1>}

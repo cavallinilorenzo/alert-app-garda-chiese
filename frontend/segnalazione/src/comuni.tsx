@@ -1,5 +1,5 @@
 import logo from 'shared/marchio/logo.png'
-import simbolo from 'shared/marchio/simbolo.png'
+import logoScuro from 'shared/marchio/logo-scuro.png'
 
 /** Numero verde emergenze del Consorzio, da chiamare quando c'è pericolo per persone, strade o case. */
 export const NUMERO_VERDE = '800 608 309'
@@ -16,14 +16,14 @@ export function Icona({ n, piena, className = '' }: { n: string; piena?: boolean
   )
 }
 
-/** Simbolo del Consorzio, per le barre dove accanto c'è già il nome. */
-export function Simbolo() {
-  return <img className="logo" src={simbolo} alt="" />
-}
-
-/** Logo completo del Consorzio, con il nome. */
-export function Logo() {
-  return <img className="logo-esteso" src={logo} alt="Consorzio di bonifica Garda Chiese" />
+/** Logo completo del Consorzio, con il nome; in tema scuro quello con le scritte bianche. */
+export function Logo({ piccolo }: { piccolo?: boolean }) {
+  return (
+    <picture>
+      <source srcSet={logoScuro} media="(prefers-color-scheme: dark)" />
+      <img className={`logo ${piccolo ? 'piccolo' : ''}`} src={logo} alt="Consorzio di bonifica Garda Chiese" />
+    </picture>
+  )
 }
 
 /** La finestra del numero verde, al primo segnale di pericolo della procedura. */

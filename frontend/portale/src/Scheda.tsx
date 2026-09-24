@@ -6,6 +6,7 @@ import { Avatar, Copia, Icona, Mappa, Pallino, titoloNome } from './comuni'
 import { usePortale } from './dati'
 import {
   AVANZA,
+  CATEGORIE,
   COLORI,
   ESITI,
   LIVELLI,
@@ -19,10 +20,12 @@ import {
   dataOra,
   eta,
   inRitardo,
+  nomeCategoria,
   nomeEsito,
   pericoliSi,
   titolo,
   valore,
+  type Categoria,
   type Esito,
   type Priorita,
   type Segnalazione,
@@ -270,7 +273,7 @@ function Avanzamento({ s }: { s: Segnalazione }) {
   )
 }
 
-const Fatto = ({ nome, valore, conf, forte }: { nome: string; valore: string; conf?: number; forte?: boolean }) => (
+const Fatto = ({ nome, valore, conf, forte, children }: { nome: string; valore: string; conf?: number; forte?: boolean; children?: ReactNode }) => (
   <div className={`dato ${forte ? 'forte' : ''}`}>
     <dt>{nome}</dt>
     <dd>
@@ -280,9 +283,71 @@ const Fatto = ({ nome, valore, conf, forte }: { nome: string; valore: string; co
           da verificare
         </span>
       )}
+      {children}
     </dd>
   </div>
 )
+
+// Cosa ha detto il Segnalante. La categoria si corregge qui: alla prima correzione il backend conserva
+// quella inviata in `categoria_originale`, e la priorità non si ricalcola.
+function CosaESuccesso({ s }: { s: Segnalazione }) {
+  const { correggi } = usePortale()
+  const [apri, setApri] = useState(false)
+  const [categoria, setCategoria] = useState(s.categoria)
+  const conf = s.estratti_confidenza ?? {}
+  const corretta = !!s.categoria_originale && s.categoria_originale !== s.categoria
+  return (
+    <>
+      <p className="descrizione">{s.descrizione}</p>
+      <dl className="fatti">
+        {PERICOLI.map((p) => (
+          <Fatto key={p.campo} nome={p.nome} valore={valore(s[p.campo])} conf={conf[p.campo]} forte={s[p.campo] === 'si'} />
+        ))}
+        <Fatto nome="Quanta acqua" valore={valore(s.quantita_acqua)} conf={conf.quantita_acqua} />
+        <Fatto nome="Da quanto" valore={valore(s.durata)} conf={conf.durata} />
+        <Fatto nome="Categoria" valore={titolo(s)} conf={s.categoria_originale ? undefined : conf.categoria}>
+          {corretta && <span className="inviata">inviata: {nomeCategoria(s.categoria_originale)}</span>}
+          {!apri && (
+            <button className="btn-link" onClick={() => setApri(true)}>
+              <Icona nome="edit" /> Correggi
+            </button>
+          )}
+        </Fatto>
+      </dl>
+      {apri && (
+        <div className="riga-form correggi-categoria">
+          <select value={categoria} onChange={(e) => setCategoria(e.target.value as Categoria)}>
+            {!s.categoria && <option value="">Scegli la categoria…</option>}
+            {CATEGORIE.map((c) => (
+              <option key={c.valore} value={c.valore}>
+                {c.etichetta}
+              </option>
+            ))}
+          </select>
+          <button
+            className="btn"
+            disabled={!categoria || categoria === s.categoria}
+            onClick={async () => {
+              if (categoria && (await correggi(s.id, { categoria }))) setApri(false)
+            }}
+          >
+            Salva
+          </button>
+          <button
+            className="btn-link"
+            onClick={() => {
+              setApri(false)
+              setCategoria(s.categoria)
+            }}
+          >
+            Annulla
+          </button>
+        </div>
+      )}
+      <Trascrizione s={s} />
+    </>
+  )
+}
 
 function Trascrizione({ s }: { s: Segnalazione }) {
   const [aperta, setAperta] = useState(false)
@@ -421,7 +486,6 @@ export function Scheda({ s, onChiudi, onApri, daMappa, ritardo }: PropsScheda) {
   const rottura = s.layer === 'condotta' && s.categoria === 'acqua_che_affiora'
   const acq = acquaiolo(s.acquaiolo_competente_id)
   const ultimo = s.registro[s.registro.length - 1]
-  const conf = s.estratti_confidenza ?? {}
   let n = 0
   // ogni blocco entra dopo il precedente
   const entra = (extra = '') => ({ className: `entra ${extra}`, style: { '--i': n++ } as React.CSSProperties })
@@ -515,16 +579,7 @@ export function Scheda({ s, onChiudi, onApri, daMappa, ritardo }: PropsScheda) {
       <div {...entra('griglia')}>
         <div className="card">
           <h2>Cosa è successo</h2>
-          <p className="descrizione">{s.descrizione}</p>
-          <dl className="fatti">
-            {PERICOLI.map((p) => (
-              <Fatto key={p.campo} nome={p.nome} valore={valore(s[p.campo])} conf={conf[p.campo]} forte={s[p.campo] === 'si'} />
-            ))}
-            <Fatto nome="Quanta acqua" valore={valore(s.quantita_acqua)} conf={conf.quantita_acqua} />
-            <Fatto nome="Da quanto" valore={valore(s.durata)} conf={conf.durata} />
-            <Fatto nome="Categoria" valore={titolo(s)} conf={conf.categoria} />
-          </dl>
-          <Trascrizione s={s} />
+          <CosaESuccesso s={s} />
         </div>
         <div className="card colonna">
           <h2>Contatti</h2>

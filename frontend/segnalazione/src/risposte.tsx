@@ -48,7 +48,7 @@ export function Controllo({ domanda, valore, onChange, onBlur }: PropsControllo)
           key={o.valore}
           role="radio"
           aria-checked={valore === o.valore}
-          className={`riga ${valore === o.valore ? 'scelta' : ''}`}
+          className={`riga ${valore === o.valore ? 'attiva' : ''}`}
           onClick={() => onChange(o.valore)}
         >
           {o.icona && <span className="riga-icona"><Icona n={o.icona} /></span>}

@@ -1393,6 +1393,66 @@ paths:
                   value:
                     success: true
 
+  /auth/push-subscription:
+    get:
+      operationId: chiavePush
+      summary: Chiave pubblica per le notifiche push
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Configurazione push
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [public_key]
+                properties:
+                  public_key: {type: string}
+    post:
+      operationId: registraPush
+      summary: Registra il dispositivo dell'operatore per le notifiche push
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [endpoint, p256dh, auth]
+              properties:
+                endpoint: {type: string}
+                p256dh: {type: string}
+                auth: {type: string}
+      responses:
+        '201':
+          description: Dispositivo registrato
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success]
+                properties:
+                  success: {type: boolean}
+    delete:
+      operationId: eliminaPush
+      summary: Disattiva le notifiche push sul dispositivo corrente
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [endpoint]
+              properties:
+                endpoint: {type: string}
+      responses:
+        '204':
+          description: Dispositivo disattivato
+
   /acquaioli:
     get:
       operationId: listaAcquaioli

@@ -3,7 +3,7 @@ import { useBozza } from '../bozza'
 import { Icona, Spinner } from '../comuni'
 import { cifreCellulare, invia, type ErroreInvio } from '../invio'
 import { Schermata, useProcedura, type Passo } from '../procedura'
-import { CATEGORIE, DOMANDE, etichettaValore } from '../tassonomia'
+import { CATEGORIE, domandeDa, etichettaValore } from '../tassonomia'
 
 const MESSAGGI: Record<Exclude<ErroreInvio, 'fuori_perimetro'>, string> = {
   dati_non_validi: 'Alcuni dati non vanno bene. Controllali e riprova.',
@@ -56,7 +56,7 @@ export function Riepilogo() {
 
   const { campi, posizione } = bozza
   const categoria = CATEGORIE.find((c) => c.valore === campi.categoria)
-  const dettagli = DOMANDE.filter((d) => !d.obbligatorio && campi[d.campo] != null)
+  const dettagli = domandeDa(campi).filter((d) => !d.obbligatorio && campi[d.campo] != null)
 
   return (
     <Schermata

@@ -21,3 +21,23 @@ class Acquaiolo(models.Model):
 
     def __str__(self) -> str:
         return self.nome
+
+
+class SottoscrizionePush(models.Model):
+    """Un dispositivo autorizzato a ricevere le notifiche del Portale operatore."""
+
+    operatore = models.ForeignKey(
+        "auth.User", on_delete=models.CASCADE, related_name="push_subscriptions"
+    )
+    endpoint = models.TextField(unique=True)
+    p256dh = models.TextField()
+    auth = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Sottoscrizione push"
+        verbose_name_plural = "Sottoscrizioni push"
+
+    def __str__(self) -> str:
+        return f"Push {self.operatore}"
