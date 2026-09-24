@@ -721,7 +721,29 @@ export interface components {
                 [key: string]: string[];
             };
         };
+        /**
+         * @description Quello che vede chi ha il link della Pagina di stato, senza login. Oltre allo Stato
+         *     c'è un riassunto della Segnalazione (codice, foto, categoria, luogo, data d'invio)
+         *     per riconoscerla quando si riapre il link. Il cellulare e la descrizione non ci sono.
+         */
         SegnalazioneStatoPubblico: {
+            codice_pratica: string;
+            /**
+             * Format: date-time
+             * @description Data d'invio.
+             */
+            created_at: string;
+            /** @description Le foto inviate. Chiunque abbia il token le può vedere: gli URL si aprono senza JWT. */
+            foto: string[];
+            /**
+             * @description La categoria attuale, anche se l'Operatore l'ha corretta. Vuota se non indicata.
+             * @enum {string}
+             */
+            categoria: "acqua_che_affiora" | "canale_che_tracima" | "argine_danneggiato" | "ostruzione" | "paratoia_danneggiata" | "acqua_sporca" | "altro" | "";
+            /** @description Il comune del punto segnalato. Vuoto se non si riesce a ricavarlo. */
+            comune: string;
+            /** @description Il tracciato più vicino, come nella scheda del Portale operatore. */
+            nome_completo_tracciato: string;
             /** @enum {string} */
             stato_corrente: "ricevuta" | "in_verifica" | "assegnata" | "in_intervento" | "chiusa";
             is_duplicato: boolean;
