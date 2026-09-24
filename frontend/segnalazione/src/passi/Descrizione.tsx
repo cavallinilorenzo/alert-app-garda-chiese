@@ -1,26 +1,25 @@
-import { useRef, useState } from 'react'
+import { useRef, useState, type ReactNode } from 'react'
 import { useBozza } from '../bozza'
 import { Icona, Spinner } from '../comuni'
 import { completaConFoto, dallaFoto } from '../foto'
 import { Schermata, useProcedura } from '../procedura'
-import { Controllo, useRisposte } from '../risposte'
+import { Controllo, Pericoli, useRisposte } from '../risposte'
 import {
-  DOMANDE,
+  DOMANDA_PERICOLI,
+  PERICOLI,
+  campiPericoli,
   domandeDa,
   etichettaValore,
+  isPericolo,
   obbligatoriCompleti,
+  riassuntoPericoli,
+  rispostaPericoli,
   risposto,
   type Campo,
   type Domanda,
   type Estrazione,
 } from '../tassonomia'
-import {
-  REGISTRAZIONE_MAX_S,
-  estrai,
-  registrazioneSupportata,
-  useRegistrazione,
-  type ErroreEstrazione,
-} from '../voce'
+import { estrai, registrazioneSupportata, useRegistrazione, type ErroreEstrazione } from '../voce'
 
 export function Descrizione() {
   const { bozza } = useBozza()
@@ -29,15 +28,18 @@ export function Descrizione() {
 
 // ---------- Rispondendo alle domande: una domanda per schermata ----------
 
+// Il pericolo è la prima domanda, con i tre pericoli insieme; poi le altre in ordine.
+type PassoDomande = 'pericoli' | Domanda
+
 function Domande() {
   const { bozza } = useBozza()
   const { vai } = useProcedura()
   const { campi, rispondi, controlla } = useRisposte()
   const [indice, setIndice] = useState(0)
-  // La categoria è la prima domanda: quando si arriva alla quantità d'acqua è già scelta.
-  const domande = domandeDa(campi)
-  const domanda = domande[indice]
-  const ok = risposto(campi, domanda.campo)
+  // La categoria viene prima della quantità d'acqua: quando ci si arriva è già scelta.
+  const passi: PassoDomande[] = ['pericoli', ...domandeDa(campi).filter((d) => !isPericolo(d.campo))]
+  const passo = passi[indice]
+  const occhiello = `Domanda ${indice + 1} di ${passi.length}`
 
   function vaiA(i: number) {
     setIndice(i)
@@ -45,21 +47,63 @@ function Domande() {
   }
   function avanti() {
     controlla()
-    if (indice < domande.length - 1) vaiA(indice + 1)
+    if (indice < passi.length - 1) vaiA(indice + 1)
     else vai('contatto')
   }
+  const indietro = indice > 0 ? () => vaiA(indice - 1) : undefined
 
+  if (passo === 'pericoli') {
+    const acceso = Array.isArray(rispostaPericoli(campi))
+    return (
+      <Schermata
+        occhiello={occhiello}
+        titolo={DOMANDA_PERICOLI}
+        azione={
+          acceso ? (
+            <button className="btn" onClick={avanti}>
+              Continua
+            </button>
+          ) : (
+            <>
+              <button
+                className="btn secondario"
+                onClick={() => {
+                  rispondi(campiPericoli('no'))
+                  avanti()
+                }}
+              >
+                Nessun pericolo
+              </button>
+              <button
+                className="btn testo"
+                onClick={() => {
+                  rispondi(campiPericoli('non_so'))
+                  avanti()
+                }}
+              >
+                Non lo so
+              </button>
+            </>
+          )
+        }
+      >
+        <Pericoli campi={campi} onChange={rispondi} />
+      </Schermata>
+    )
+  }
+
+  const ok = risposto(campi, passo.campo)
   return (
     <Schermata
-      titolo={domanda.testo}
-      sotto={domanda.obbligatorio ? undefined : 'Se non lo sai, puoi saltare questa domanda.'}
-      onIndietro={indice > 0 ? () => vaiA(indice - 1) : undefined}
+      occhiello={occhiello}
+      titolo={passo.testo}
+      onIndietro={indietro}
       azione={
         <>
           <button className="btn" disabled={!ok} onClick={avanti}>
             Continua
           </button>
-          {!domanda.obbligatorio && !ok && (
+          {!passo.obbligatorio && !ok && (
             <button className="btn testo" onClick={avanti}>
               Salta
             </button>
@@ -67,20 +111,17 @@ function Domande() {
         </>
       }
     >
-      <p className="contadomande">
-        Domanda {indice + 1} di {domande.length}
-      </p>
       <Controllo
-        key={domanda.campo}
-        domanda={domanda}
-        valore={campi[domanda.campo]}
-        onChange={(v) => rispondi({ [domanda.campo]: v })}
+        key={passo.campo}
+        domanda={passo}
+        valore={campi[passo.campo]}
+        onChange={(v) => rispondi({ [passo.campo]: v })}
         onBlur={() => controlla()}
       />
-      {dallaFoto(campi, bozza.campiFoto, domanda.campo) && (
+      {dallaFoto(campi, bozza.campiFoto, passo.campo) && (
         <p className="nota">
           <Icona n="photo_camera" />
-          <span>Risposta presa dalla foto. Cambiala se non è giusta.</span>
+          <span>Presa dalla foto. Cambiala se non va.</span>
         </p>
       )}
     </Schermata>
@@ -92,18 +133,15 @@ function Domande() {
 type Problema = ErroreEstrazione | 'microfono'
 
 const MESSAGGI: Record<Problema, string> = {
-  microfono: 'Non possiamo usare il microfono. Puoi rispondere alle domande.',
-  audio_non_valido: 'Non siamo riusciti ad ascoltare il messaggio. Riprova, oppure rispondi alle domande.',
-  audio_troppo_grande: 'Il messaggio è troppo lungo. Riprova in meno di un minuto, oppure rispondi alle domande.',
-  non_disponibile: 'L’assistente vocale non è disponibile in questo momento. Rispondi alle domande: ci vuole un minuto.',
-  rete: 'Non riusciamo a inviare il messaggio. Verifica la connessione e riprova.',
+  microfono: 'Il microfono non è disponibile. Rispondi alle domande.',
+  audio_non_valido: 'Non abbiamo sentito bene. Riprova, oppure rispondi alle domande.',
+  audio_troppo_grande: 'È troppo lungo. Riprova in meno di un minuto.',
+  non_disponibile: 'L’ascolto non è disponibile adesso. Rispondi alle domande.',
+  rete: 'Invio non riuscito. Verifica la connessione e riprova.',
 }
 
-// Gli argomenti da dire. I tre pericoli sono un argomento solo, per tenere corta la lista.
-const ARGOMENTI = [
-  ...DOMANDE.filter((d) => !d.campo.startsWith('pericolo_')).map((d) => d.testo),
-  'C’è pericolo per persone, strade o case?',
-]
+// Di cosa parlare, in breve.
+const TEMI = ['Cosa vedi', 'Da quando', 'Quanta acqua', 'Pericoli']
 
 function AVoce() {
   const { bozza, aggiorna } = useBozza()
@@ -146,12 +184,11 @@ function AVoce() {
   const senzaVoce = problema === 'microfono' || problema === 'non_disponibile'
   return (
     <Schermata
-      titolo="Raccontaci cosa vedi"
-      sotto={senzaVoce ? undefined : 'Tocca il microfono e parla con calma. Prova a dire:'}
+      titolo="Racconta cosa vedi"
       azione={
         senzaVoce ? (
           <button className="btn" onClick={aMano}>
-            <Icona n="edit_note" /> Rispondi alle domande
+            <Icona n="checklist" /> Rispondi alle domande
           </button>
         ) : (
           <>
@@ -161,7 +198,7 @@ function AVoce() {
               </button>
             )}
             <button className="btn testo" onClick={aMano} disabled={registro || analizzo}>
-              <Icona n="keyboard" /> Rispondo alle domande
+              <Icona n="checklist" /> Preferisco le domande
             </button>
           </>
         )
@@ -175,35 +212,30 @@ function AVoce() {
       )}
       {!senzaVoce && (
         <>
-          <ul className="temi">
-            {ARGOMENTI.map((a) => (
-              <li key={a}>
-                <Icona n="chat_bubble" />
-                <span>{a}</span>
-              </li>
+          <div className="temi">
+            {TEMI.map((t) => (
+              <span key={t}>{t}</span>
             ))}
-          </ul>
+          </div>
           <div className="registratore">
             <button
               className={`microfono ${registro ? 'ascolto' : ''} ${analizzo ? 'analizzo' : ''}`}
               onClick={tocca}
               disabled={analizzo}
-              aria-label={registro ? 'Ho finito' : 'Tocca per parlare'}
+              aria-label={registro ? 'Ho finito' : 'Tocca e parla'}
             >
               {analizzo ? <Spinner chiaro /> : <Icona n={registro ? 'stop' : 'mic'} piena />}
             </button>
             <div className="registratore-testo">
               {analizzo ? (
-                'Stiamo analizzando il messaggio…'
+                'Sto ascoltando il messaggio…'
               ) : registro ? (
                 <>
                   <span className="in-onda" /> In ascolto · {minuti(registrazione.secondi!)}
-                  <span className="registratore-sotto">
-                    Tocca di nuovo quando hai finito. Si ferma da sola dopo {minuti(REGISTRAZIONE_MAX_S)}.
-                  </span>
+                  <span className="registratore-sotto">Tocca quando hai finito</span>
                 </>
               ) : (
-                'Tocca per parlare'
+                'Tocca e parla'
               )}
             </div>
           </div>
@@ -215,22 +247,55 @@ function AVoce() {
 
 const minuti = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`
 
+type PropsRigaCapita = {
+  etichetta: string
+  valore: string
+  dallaFoto: boolean
+  aperta: boolean
+  onTocca: () => void
+  children: ReactNode
+}
+
+/** Un campo capito: chiuso in una riga, si apre per correggerlo. */
+function RigaCapita({ etichetta, valore, dallaFoto, aperta, onTocca, children }: PropsRigaCapita) {
+  return (
+    <div>
+      <button className="capito-riga" onClick={onTocca} aria-expanded={aperta}>
+        {dallaFoto ? (
+          <span role="img" aria-label="Dalla foto">
+            <Icona n="photo_camera" piena className="verde" />
+          </span>
+        ) : (
+          <Icona n="check_circle" piena className="verde" />
+        )}
+        <span className="capito-etichetta">{etichetta}</span>
+        <span className="capito-valore">{valore}</span>
+        <Icona n={aperta ? 'close' : 'edit'} className="grigio" />
+      </button>
+      {aperta && <div className="capito-correzione">{children}</div>}
+    </div>
+  )
+}
+
 // Dopo l'ascolto: i campi capiti chiusi in una riga e correggibili, i mancanti da scegliere a mano.
-// L'estrazione non è iterativa: niente secondo messaggio vocale.
+// L'estrazione non è iterativa: niente secondo messaggio vocale. I tre pericoli stanno insieme.
 function Completa({ estrazione }: { estrazione: Estrazione }) {
   const { bozza } = useBozza()
   const { vai } = useProcedura()
   const { campi, rispondi, controlla } = useRisposte()
-  const [inCorrezione, setInCorrezione] = useState<Campo | null>(null)
+  const [inCorrezione, setInCorrezione] = useState<Campo | 'pericoli' | null>(null)
+  const apri = (c: Campo | 'pericoli') => setInCorrezione(inCorrezione === c ? null : c)
 
   // Si calcolano dall'estrazione e non dalle risposte attuali, così una domanda non cambia
   // gruppo mentre la si compila. Un obbligatorio capito male (descrizione corta) va completato.
   // La quantità d'acqua invece segue la categoria attuale: compare o sparisce quando cambia.
-  const domande = domandeDa(campi)
+  const domande = domandeDa(campi).filter((d) => !isPericolo(d.campo))
   const daCompletare = domande.filter(
     (d) => estrazione.mancanti.includes(d.campo) || (d.obbligatorio && !risposto(estrazione.campi, d.campo)),
   )
   const capiti = domande.filter((d) => !daCompletare.includes(d))
+  const pericoliMancanti = PERICOLI.some((p) => estrazione.mancanti.includes(p.campo))
+  const manca = pericoliMancanti || daCompletare.length > 0
   const completa = obbligatoriCompleti(campi)
 
   const correggi = (d: Domanda, v: string) => {
@@ -238,43 +303,41 @@ function Completa({ estrazione }: { estrazione: Estrazione }) {
     if (d.opzioni) setInCorrezione(null)
   }
 
-  const righeCapite = capiti.map((d) => (
-    <div key={d.campo}>
-      <button
-        className="capito-riga"
-        onClick={() => setInCorrezione(inCorrezione === d.campo ? null : d.campo)}
-        aria-expanded={inCorrezione === d.campo}
+  const righeCapite = [
+    ...(pericoliMancanti
+      ? []
+      : [
+          <RigaCapita
+            key="pericoli"
+            etichetta="Pericoli"
+            valore={riassuntoPericoli(campi) ?? '—'}
+            dallaFoto={PERICOLI.some((p) => dallaFoto(campi, bozza.campiFoto, p.campo))}
+            aperta={inCorrezione === 'pericoli'}
+            onTocca={() => apri('pericoli')}
+          >
+            <Pericoli campi={campi} onChange={rispondi} alternative />
+          </RigaCapita>,
+        ]),
+    ...capiti.map((d) => (
+      <RigaCapita
+        key={d.campo}
+        etichetta={d.etichetta}
+        valore={campi[d.campo] ? etichettaValore(d, campi[d.campo]!) : '—'}
+        dallaFoto={dallaFoto(campi, bozza.campiFoto, d.campo)}
+        aperta={inCorrezione === d.campo}
+        onTocca={() => apri(d.campo)}
       >
-        {dallaFoto(campi, bozza.campiFoto, d.campo) ? (
-          <span role="img" aria-label="Dalla foto">
-            <Icona n="photo_camera" piena className="verde" />
-          </span>
-        ) : (
-          <Icona n="check_circle" piena className="verde" />
-        )}
-        <span className="capito-etichetta">{d.etichetta}</span>
-        <span className="capito-valore">{campi[d.campo] ? etichettaValore(d, campi[d.campo]!) : '—'}</span>
-        <Icona n={inCorrezione === d.campo ? 'close' : 'edit'} className="grigio" />
-      </button>
-      {inCorrezione === d.campo && (
-        <div className="capito-correzione">
-          <Controllo domanda={d} valore={campi[d.campo]} onChange={(v) => correggi(d, v)} onBlur={() => controlla()} />
-        </div>
-      )}
-    </div>
-  ))
+        <Controllo domanda={d} valore={campi[d.campo]} onChange={(v) => correggi(d, v)} onBlur={() => controlla()} />
+      </RigaCapita>
+    )),
+  ]
 
   return (
     <Schermata
-      titolo={daCompletare.length ? 'Ci manca qualche dettaglio' : 'Abbiamo capito tutto'}
-      sotto={
-        daCompletare.length
-          ? 'Scegli le risposte qui sotto. Quelle facoltative puoi lasciarle vuote.'
-          : 'Controlla le risposte. Toccane una per cambiarla.'
-      }
+      titolo={manca ? 'Manca solo questo' : 'Ho capito bene?'}
       azione={
         <>
-          {!completa && <p className="azione-nota">Per continuare servono “Cosa hai visto” e una descrizione.</p>}
+          {!completa && <p className="azione-nota">Servono “Cosa hai visto” e la descrizione.</p>}
           <button
             className="btn"
             disabled={!completa}
@@ -288,19 +351,12 @@ function Completa({ estrazione }: { estrazione: Estrazione }) {
         </>
       }
     >
-      {capiti.length > 0 &&
-        (daCompletare.length ? (
-          <details className="capito">
-            <summary>
-              <Icona n="check_circle" piena className="verde" /> Abbiamo capito {capiti.length} cose su{' '}
-              {domande.length}
-              <Icona n="keyboard_arrow_down" className="grigio freccia" />
-            </summary>
-            {righeCapite}
-          </details>
-        ) : (
-          <div className="capito aperto">{righeCapite}</div>
-        ))}
+      {pericoliMancanti && (
+        <div className="domanda">
+          <h2>{DOMANDA_PERICOLI}</h2>
+          <Pericoli campi={campi} onChange={rispondi} alternative />
+        </div>
+      )}
       {daCompletare.map((d) => (
         <div key={d.campo} className="domanda">
           <h2>
@@ -315,6 +371,18 @@ function Completa({ estrazione }: { estrazione: Estrazione }) {
           />
         </div>
       ))}
+      {righeCapite.length > 0 &&
+        (manca ? (
+          <details className="capito">
+            <summary>
+              <Icona n="check_circle" piena className="verde" /> Capito {righeCapite.length} cose su {domande.length + 1}
+              <Icona n="keyboard_arrow_down" className="grigio freccia" />
+            </summary>
+            {righeCapite}
+          </details>
+        ) : (
+          <div className="capito aperto">{righeCapite}</div>
+        ))}
     </Schermata>
   )
 }
