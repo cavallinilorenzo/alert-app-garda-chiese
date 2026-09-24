@@ -32,6 +32,39 @@ class Segnalazione(models.Model):
         ALTA = "alta", _("Alta")
         CRITICA = "critica", _("Critica")
 
+    # Valori degli enum di `api/openapi.yaml`, etichette dell'App di segnalazione
+    # (ticket "Revisione delle opzioni di ogni passo dell'App di segnalazione", #100).
+    class Categoria(models.TextChoices):
+        ACQUA_CHE_AFFIORA = "acqua_che_affiora", _("Acqua che esce dal terreno")
+        PERDITA_DAL_CANALE = "perdita_dal_canale", _("Canale che perde")
+        CANALE_CHE_TRACIMA = "canale_che_tracima", _("Canale che esonda o allaga")
+        ARGINE_DANNEGGIATO = "argine_danneggiato", _("Argine o sponda franata")
+        OSTRUZIONE = "ostruzione", _("Qualcosa blocca l'acqua")
+        CANALE_ASCIUTTO = "canale_asciutto", _("Canale senz'acqua")
+        PARATOIA_DANNEGGIATA = "paratoia_danneggiata", _("Paratoia o impianto rotto")
+        ACQUA_SPORCA = "acqua_sporca", _("Acqua sporca o rifiuti")
+        ALTRO = "altro", _("Altro")
+
+    class Durata(models.TextChoices):
+        ADESSO = "adesso", _("L'ho appena notato")
+        ALCUNE_ORE = "alcune_ore", _("Da qualche ora")
+        PIU_DI_UN_GIORNO = "piu_di_un_giorno", _("Da qualche giorno")
+        DA_SETTIMANE = "da_settimane", _("Da settimane")
+        NON_SO = "non_so", _("Non so")
+
+    class QuantitaAcqua(models.TextChoices):
+        GOCCE = "gocce", _("Gocciola")
+        PICCOLO_FLUSSO = "piccolo_flusso", _("Un filo, come un rubinetto")
+        MOLTA_ACQUA = "molta_acqua", _("Tanta, scorre forte")
+        GETTO = "getto", _("Zampilla con forza")
+        NON_SO = "non_so", _("Non so")
+        NON_APPLICABILE = "non_applicabile", _("Non applicabile")
+
+    class Risposta(models.TextChoices):
+        SI = "si", _("Sì")
+        NO = "no", _("No")
+        NON_SO = "non_so", _("Non so")
+
     class Layer(models.TextChoices):
         CANALE = "canale", _("Canale")
         CONDOTTA = "condotta", _("Condotta")
@@ -66,13 +99,19 @@ class Segnalazione(models.Model):
 
     # Dati estratti
     transcript_ai = models.TextField(blank=True)
-    categoria = models.CharField(max_length=100, blank=True)
-    categoria_originale = models.CharField(max_length=100, blank=True)
-    durata = models.CharField(max_length=100, blank=True)
-    quantita_acqua = models.CharField(max_length=100, blank=True)
-    pericolo_persone = models.CharField(max_length=20, blank=True, default="")
-    pericolo_strada = models.CharField(max_length=20, blank=True, default="")
-    pericolo_edifici = models.CharField(max_length=20, blank=True, default="")
+    categoria = models.CharField(max_length=100, choices=Categoria.choices, blank=True)
+    categoria_originale = models.CharField(max_length=100, choices=Categoria.choices, blank=True)
+    durata = models.CharField(max_length=100, choices=Durata.choices, blank=True)
+    quantita_acqua = models.CharField(max_length=100, choices=QuantitaAcqua.choices, blank=True)
+    pericolo_persone = models.CharField(
+        max_length=20, choices=Risposta.choices, blank=True, default=""
+    )
+    pericolo_strada = models.CharField(
+        max_length=20, choices=Risposta.choices, blank=True, default=""
+    )
+    pericolo_edifici = models.CharField(
+        max_length=20, choices=Risposta.choices, blank=True, default=""
+    )
 
     # Confidenze (potremmo usare JSONField o campi separati)
     estratti_confidenza = models.JSONField(default=dict, blank=True)

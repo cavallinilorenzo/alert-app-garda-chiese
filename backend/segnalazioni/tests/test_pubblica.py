@@ -1,3 +1,4 @@
+import importlib
 from io import BytesIO
 from unittest.mock import patch
 
@@ -67,6 +68,8 @@ def test_calcolo_priorita_critica(pericoli):
         ("argine_danneggiato", ""),
         ("paratoia_danneggiata", ""),
         ("altro", "molta_acqua"),
+        ("perdita_dal_canale", "getto"),
+        ("acqua_che_affiora", "getto"),
     ],
 )
 def test_calcolo_priorita_alta(categoria, quantita_acqua):
@@ -81,6 +84,8 @@ def test_calcolo_priorita_alta(categoria, quantita_acqua):
         ("acqua_che_affiora", ""),
         ("ostruzione", "non_so"),
         ("acqua_sporca", "piccolo_flusso"),
+        ("perdita_dal_canale", "gocce"),
+        ("canale_asciutto", "non_applicabile"),
     ],
 )
 def test_calcolo_priorita_media(categoria, quantita_acqua):
@@ -137,6 +142,84 @@ def test_creazione_segnalazione(client, mock_geo):
     assert Evento.objects.filter(segnalazione=segnalazione).count() == 1
     # l'Acquaiolo della zona 4 nella Rubrica è proposto come competente
     assert segnalazione.acquaiolo_competente_id == Acquaiolo.objects.filter(zona_id=4).first().id
+
+
+def dati_invio(**campi):
+    return {
+        "lat": 45.0,
+        "lng": 10.0,
+        "foto": foto_jpeg(),
+        "descrizione": "Il canale perde acqua dalla sponda",
+        "cellulare": "3331234567",
+        **campi,
+    }
+
+
+def test_creazione_con_le_opzioni_nuove(client, mock_geo):
+    response = client.post(
+        reverse("segnalazioni-list"),
+        dati_invio(
+            categoria="canale_asciutto", durata="da_settimane", quantita_acqua="non_applicabile"
+        ),
+        format="multipart",
+    )
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.data["priorita"] == "media"
+    segnalazione = Segnalazione.objects.get(id=response.data["id"])
+    assert segnalazione.categoria == "canale_asciutto"
+    assert segnalazione.durata == "da_settimane"
+    assert segnalazione.quantita_acqua == "non_applicabile"
+
+
+@pytest.mark.parametrize(
+    "campo,valore",
+    [
+        ("categoria", "tubo_rotto"),
+        ("categoria", "Canale che perde"),
+        ("durata", "meno_di_un_ora"),
+        ("durata", "non_applicabile"),
+        ("quantita_acqua", "tanta"),
+        ("pericolo_persone", "forse"),
+    ],
+)
+def test_creazione_rifiuta_i_valori_fuori_dal_contratto(client, mock_geo, campo, valore):
+    response = client.post(
+        reverse("segnalazioni-list"), dati_invio(**{campo: valore}), format="multipart"
+    )
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert campo in response.data
+    assert Segnalazione.objects.count() == 0
+
+
+def test_migrazione_delle_durate_tolte():
+    from django.apps import apps
+
+    migrazione = importlib.import_module("segnalazioni.migrations.0004_nuove_opzioni")
+    vecchie = {
+        durata: Segnalazione.objects.create(
+            lat=45.0,
+            lng=10.0,
+            descrizione="Test",
+            cellulare="123",
+            durata=durata,
+            categoria="ostruzione",
+            priorita="alta",
+            priorita_calcolata="bassa",
+        )
+        for durata in ["meno_di_un_ora", "non_applicabile", "alcune_ore"]
+    }
+
+    migrazione.aggiorna_durate(apps, None)
+
+    for segnalazione in vecchie.values():
+        segnalazione.refresh_from_db()
+        # Nessun ricalcolo: la priorità calcolata e quella decisa restano quelle salvate.
+        assert (segnalazione.priorita, segnalazione.priorita_calcolata) == ("alta", "bassa")
+    assert vecchie["meno_di_un_ora"].durata == "adesso"
+    assert vecchie["non_applicabile"].durata == ""
+    assert vecchie["alcune_ore"].durata == "alcune_ore"
 
 
 def test_creazione_segnalazione_fuori_perimetro(client, mock_geo):

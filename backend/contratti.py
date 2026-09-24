@@ -95,29 +95,41 @@ class Geo(Protocol):
 # (ticket "Tassonomia delle criticità e campi di una segnalazione", #5), con i valori
 # ammessi. `None` = testo libero.
 CAMPI_ESTRAZIONE: Mapping[str, tuple[str, ...] | None] = {
+    # Nell'ordine della griglia 3×3 dell'App di segnalazione (ticket #100).
     "categoria": (
         "acqua_che_affiora",
+        "perdita_dal_canale",
         "canale_che_tracima",
         "argine_danneggiato",
         "ostruzione",
+        "canale_asciutto",
         "paratoia_danneggiata",
         "acqua_sporca",
         "altro",
     ),
     "descrizione": None,
-    "durata": (
-        "adesso",
-        "meno_di_un_ora",
-        "alcune_ore",
-        "piu_di_un_giorno",
+    "durata": ("adesso", "alcune_ore", "piu_di_un_giorno", "da_settimane", "non_so"),
+    "quantita_acqua": (
+        "gocce",
+        "piccolo_flusso",
+        "molta_acqua",
+        "getto",
         "non_so",
         "non_applicabile",
     ),
-    "quantita_acqua": ("gocce", "piccolo_flusso", "molta_acqua", "non_so", "non_applicabile"),
     "pericolo_persone": ("si", "no", "non_so"),
     "pericolo_strada": ("si", "no", "non_so"),
     "pericolo_edifici": ("si", "no", "non_so"),
 }
+
+# Le categorie in cui l'acqua esce: solo per queste si chiede la quantità d'acqua.
+# Per le altre `quantita_acqua` vale `non_applicabile`.
+CATEGORIE_CON_QUANTITA_ACQUA: tuple[str, ...] = (
+    "acqua_che_affiora",
+    "perdita_dal_canale",
+    "canale_che_tracima",
+    "argine_danneggiato",
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -148,7 +160,7 @@ class RisultatoEstrazione:
 CAMPI_FOTO: Mapping[str, tuple[str, ...] | None] = {
     "categoria": CAMPI_ESTRAZIONE["categoria"],
     "descrizione": None,
-    "quantita_acqua": ("gocce", "piccolo_flusso", "molta_acqua"),
+    "quantita_acqua": ("gocce", "piccolo_flusso", "molta_acqua", "getto"),
     "pericolo_strada": ("si",),
     "pericolo_edifici": ("si",),
 }

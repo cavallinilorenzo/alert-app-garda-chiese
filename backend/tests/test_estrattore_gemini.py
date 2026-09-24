@@ -163,3 +163,103 @@ def test_i_guasti_del_provider_sulla_foto_diventano_estrazione_non_disponibile()
 
     with pytest.raises(EstrazioneNonDisponibile):
         EstrattoreGemini(client, "m").analizza_foto(b"f", "image/jpeg")
+
+
+def test_la_voce_riconosce_i_valori_nuovi():
+    client = ClientGeminiFinto(
+        risposta_gemini(
+            categoria={"valore": "perdita_dal_canale", "confidenza": 0.9},
+            durata={"valore": "da_settimane", "confidenza": 0.8},
+            quantita_acqua={"valore": "getto", "confidenza": 0.7},
+        )
+    )
+
+    risultato = EstrattoreGemini(client, "m").estrai(b"aac", "audio/mp4")
+
+    assert risultato.campi["categoria"] == CampoEstratto("perdita_dal_canale", 0.9)
+    assert risultato.campi["durata"] == CampoEstratto("da_settimane", 0.8)
+    assert risultato.campi["quantita_acqua"] == CampoEstratto("getto", 0.7)
+
+
+@pytest.mark.parametrize("durata", ["meno_di_un_ora", "non_applicabile"])
+def test_le_durate_tolte_valgono_come_non_dette(durata):
+    client = ClientGeminiFinto(risposta_gemini(durata={"valore": durata, "confidenza": 1}))
+
+    risultato = EstrattoreGemini(client, "m").estrai(b"aac", "audio/mp4")
+
+    assert risultato.campi["durata"].valore is None
+
+
+@pytest.mark.parametrize(
+    "categoria", ["ostruzione", "canale_asciutto", "paratoia_danneggiata", "acqua_sporca", "altro"]
+)
+def test_dalla_voce_senz_acqua_in_uscita_la_quantita_non_si_applica(categoria):
+    client = ClientGeminiFinto(
+        risposta_gemini(
+            categoria={"valore": categoria, "confidenza": 0.8},
+            quantita_acqua={"valore": "molta_acqua", "confidenza": 0.9},
+        )
+    )
+
+    risultato = EstrattoreGemini(client, "m").estrai(b"aac", "audio/mp4")
+
+    assert risultato.campi["quantita_acqua"] == CampoEstratto("non_applicabile", 0.8)
+    assert "quantita_acqua" not in risultato.mancanti
+
+
+@pytest.mark.parametrize(
+    "categoria",
+    ["acqua_che_affiora", "perdita_dal_canale", "canale_che_tracima", "argine_danneggiato"],
+)
+def test_dalla_voce_con_l_acqua_che_esce_la_quantita_resta_da_chiedere(categoria):
+    client = ClientGeminiFinto(
+        risposta_gemini(
+            categoria={"valore": categoria, "confidenza": 0.8},
+            quantita_acqua={"valore": "non_applicabile", "confidenza": 0.9},
+        )
+    )
+
+    risultato = EstrattoreGemini(client, "m").estrai(b"aac", "audio/mp4")
+
+    assert risultato.campi["quantita_acqua"].valore is None
+    assert "quantita_acqua" in risultato.mancanti
+
+
+def test_senza_categoria_la_quantita_detta_resta():
+    client = ClientGeminiFinto(
+        risposta_gemini(
+            categoria={"valore": None, "confidenza": 0},
+            quantita_acqua={"valore": "gocce", "confidenza": 0.6},
+        )
+    )
+
+    risultato = EstrattoreGemini(client, "m").estrai(b"aac", "audio/mp4")
+
+    assert risultato.campi["quantita_acqua"] == CampoEstratto("gocce", 0.6)
+
+
+def test_la_foto_riconosce_i_valori_nuovi():
+    client = ClientGeminiFinto(
+        risposta_foto(
+            categoria={"valore": "perdita_dal_canale", "confidenza": 0.9},
+            quantita_acqua={"valore": "getto", "confidenza": 0.8},
+        )
+    )
+
+    risultato = EstrattoreGemini(client, "m").analizza_foto(b"f", "image/jpeg")
+
+    assert risultato.campi["categoria"] == CampoEstratto("perdita_dal_canale", 0.9)
+    assert risultato.campi["quantita_acqua"] == CampoEstratto("getto", 0.8)
+
+
+def test_dalla_foto_di_un_canale_asciutto_non_si_ricava_la_quantita():
+    client = ClientGeminiFinto(
+        risposta_foto(
+            categoria={"valore": "canale_asciutto", "confidenza": 0.9},
+            quantita_acqua={"valore": "gocce", "confidenza": 0.8},
+        )
+    )
+
+    risultato = EstrattoreGemini(client, "m").analizza_foto(b"f", "image/jpeg")
+
+    assert risultato.campi["quantita_acqua"] == CampoEstratto(None, 0.0)
