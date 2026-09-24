@@ -146,7 +146,7 @@ class SegnalazioneListCreateView(generics.ListCreateAPIView):
 class SegnalazioneStatoView(generics.RetrieveAPIView):
     authentication_classes = []
     permission_classes = []
-    serializer_class = SegnalazioneStatoSerializer, SegnalazioneDetailSerializer
+    serializer_class = SegnalazioneStatoSerializer
     lookup_field = "token_stato"
     lookup_url_kwarg = "token"
     queryset = Segnalazione.objects.all()
