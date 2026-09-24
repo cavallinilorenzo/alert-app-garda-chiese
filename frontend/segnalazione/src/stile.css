@@ -230,3 +230,52 @@ a { color: var(--primario); font-weight: 600; }
 .dialogo h2 { font-size: 22px; margin: 14px 0 8px; }
 .dialogo p { color: var(--testo-2); margin: 0 0 20px; }
 .dialogo .btn + .btn { margin-top: 8px; }
+
+/* Contatto */
+.telefono { display: flex; align-items: stretch; background: var(--superficie); border: 1.5px solid var(--bordo); border-radius: 12px; overflow: hidden; }
+.telefono:focus-within { border-color: var(--primario); box-shadow: 0 0 0 3px var(--primario-tenue); }
+.telefono.errore { border-color: var(--rosso); }
+.telefono input { flex: 1; min-width: 0; min-height: 60px; padding: 0 16px; border: 0; outline: none; background: transparent; font: inherit; font-size: 20px; letter-spacing: .02em; color: var(--testo); }
+.prefisso { display: grid; place-items: center; padding: 0 16px; background: var(--sfondo); border-right: 1px solid var(--bordo); font-size: 18px; font-weight: 600; color: var(--testo-2); }
+.errore-campo { font-size: 15px; color: var(--rosso); margin: 8px 0 0; }
+
+/* Controlla e invia */
+.sezione { background: var(--superficie); border: 1px solid var(--bordo); border-radius: var(--raggio); padding: 14px 16px; margin-bottom: 12px; }
+.sezione header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.sezione h2 { font-size: 13px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--testo-2); margin: 0; }
+.sezione p { margin: 4px 0; }
+.modifica { display: inline-flex; align-items: center; gap: 4px; min-height: 40px; padding: 0 8px; border: 0; background: transparent; color: var(--primario); font-weight: 600; font-size: 15px; }
+.modifica .msym { font-size: 18px; }
+.punto.piatto { padding: 0; margin: 0; border: 0; }
+.foto-mini { display: block; width: 100%; max-height: 180px; object-fit: cover; border-radius: 10px; }
+.categoria { display: flex; align-items: center; gap: 12px; font-weight: 600; }
+.descrizione { color: var(--testo-2); overflow-wrap: anywhere; }
+.dettagli { margin: 10px 0 0; border-top: 1px solid var(--bordo); }
+.dettagli div { display: flex; justify-content: space-between; gap: 12px; padding: 8px 0; border-bottom: 1px solid #eef1f4; font-size: 15px; }
+.dettagli dt { color: var(--testo-2); }
+.dettagli dd { margin: 0; font-weight: 600; text-align: right; }
+
+/* Conferma */
+.conferma { padding-top: 16px; text-align: center; }
+.conferma .card { text-align: left; }
+.card.rossa { background: var(--rosso-tenue); border-color: #f3c3bd; }
+.card.rossa p { margin: 0 0 12px; }
+.codice { font-size: 24px; font-weight: 700; letter-spacing: .04em; margin: 0; }
+.link { display: flex; align-items: center; gap: 8px; padding: 10px 12px; background: var(--sfondo); border-radius: 10px; }
+.link > span { flex: 1; min-width: 0; font-size: 14px; word-break: break-all; user-select: all; }
+.link button { display: grid; place-items: center; width: 44px; height: 44px; border: 0; border-radius: 10px; background: var(--superficie); color: var(--primario); }
+
+/* Pagina di stato */
+.corpo h1.stato-attuale { font-size: 30px; margin: 0 0 4px; color: var(--primario); }
+.messaggio { margin: 0; white-space: pre-line; }
+.tappe { list-style: none; margin: 24px 0 0; padding: 0; }
+.tappe li { position: relative; display: flex; gap: 14px; padding-bottom: 22px; }
+.tappe li:not(:last-child)::before { content: ''; position: absolute; left: 13px; top: 30px; bottom: 2px; width: 2px; background: var(--bordo); }
+.tappe li.fatta:not(:last-child)::before { background: var(--primario); }
+.tappe div { display: flex; flex-direction: column; padding-top: 2px; }
+.tappe div span { font-size: 14px; color: var(--testo-2); }
+.tappa-punto { display: grid; place-items: center; flex-shrink: 0; width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--bordo); background: var(--superficie); color: #fff; }
+.tappa-punto .msym { font-size: 18px; }
+.tappe .fatta .tappa-punto { border-color: var(--primario); background: var(--primario); }
+.tappe .attuale .tappa-punto { border: 7px solid var(--primario); }
+.tappe .futura strong { color: var(--testo-2); font-weight: 400; }

@@ -32,7 +32,15 @@ const INDIETRO: Partial<Record<Passo, Passo>> = {
   riepilogo: 'contatto',
 }
 
-type ContestoProcedura = { passo: Passo; vai: (passo: Passo) => void }
+const ordine = (p: Passo) => NUMERATI.findIndex(([n]) => n === p)
+
+type ContestoProcedura = {
+  passo: Passo
+  vai: (passo: Passo) => void
+  /** Apre un passo dal riepilogo: appena si va avanti, o indietro, si torna al riepilogo. */
+  modifica: (passo: Passo) => void
+  dalRiepilogo: boolean
+}
 
 const Contesto = createContext<ContestoProcedura | null>(null)
 
@@ -43,12 +51,23 @@ export function useProcedura() {
 }
 
 export function ProceduraProvider({ children }: { children: ReactNode }) {
-  const [passo, setPasso] = useState<Passo>('inizio')
+  const [stato, setStato] = useState<{ passo: Passo; dalRiepilogo: boolean }>({ passo: 'inizio', dalRiepilogo: false })
+
   const vai = useCallback((p: Passo) => {
-    setPasso(p)
+    setStato(({ passo, dalRiepilogo }) => {
+      // Chi corregge un passo dal riepilogo non rifà tutti quelli dopo.
+      if (dalRiepilogo && ordine(passo) >= 0 && ordine(p) > ordine(passo)) return { passo: 'riepilogo', dalRiepilogo: false }
+      return { passo: p, dalRiepilogo: dalRiepilogo && p !== 'riepilogo' }
+    })
     window.scrollTo(0, 0)
   }, [])
-  const valore = useMemo(() => ({ passo, vai }), [passo, vai])
+
+  const modifica = useCallback((p: Passo) => {
+    setStato({ passo: p, dalRiepilogo: true })
+    window.scrollTo(0, 0)
+  }, [])
+
+  const valore = useMemo(() => ({ ...stato, vai, modifica }), [stato, vai, modifica])
   return <Contesto.Provider value={valore}>{children}</Contesto.Provider>
 }
 
@@ -64,10 +83,10 @@ type PropsSchermata = {
 
 /** Impaginazione comune a ogni schermata: barra, avanzamento, corpo e azione fissa. */
 export function Schermata({ titolo, sotto, azione, onIndietro, children }: PropsSchermata) {
-  const { passo, vai } = useProcedura()
-  const precedente = INDIETRO[passo]
+  const { passo, vai, dalRiepilogo } = useProcedura()
+  const precedente = dalRiepilogo && passo !== 'fuori_perimetro' ? 'riepilogo' : INDIETRO[passo]
   const indietro = onIndietro ?? (precedente ? () => vai(precedente) : null)
-  const indice = NUMERATI.findIndex(([p]) => p === passo)
+  const indice = ordine(passo)
   const dentroLaProcedura = passo !== 'inizio' && passo !== 'conferma'
 
   return (

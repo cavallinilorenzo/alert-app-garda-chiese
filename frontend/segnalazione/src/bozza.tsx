@@ -18,6 +18,10 @@ export type Posizione = {
 export type EsitoPerimetro =
   paths['/perimetro/check']['post']['responses'][200]['content']['application/json']
 
+/** Risposta di `POST /segnalazioni`: codice pratica e token della Pagina di stato. */
+export type Ricevuta =
+  paths['/segnalazioni']['post']['responses'][201]['content']['application/json']
+
 export type Bozza = {
   modalita: Modalita | null
   posizione: Posizione | null
@@ -29,9 +33,22 @@ export type Bozza = {
   campi: Campi
   /** Risposta di `/estrazione/vocale`; null finché il Segnalante non ha parlato. Si parla una volta sola. */
   estrazione: Estrazione | null
+  /** Il cellulare senza prefisso, come l'ha scritto il Segnalante. Il +39 si aggiunge all'invio. */
+  cellulare: string
+  /** La risposta all'invio; null finché la Segnalazione non è inviata. */
+  ricevuta: Ricevuta | null
 }
 
-const VUOTA: Bozza = { modalita: null, posizione: null, perimetro: null, foto: null, campi: {}, estrazione: null }
+const VUOTA: Bozza = {
+  modalita: null,
+  posizione: null,
+  perimetro: null,
+  foto: null,
+  campi: {},
+  estrazione: null,
+  cellulare: '',
+  ricevuta: null,
+}
 
 type ContestoBozza = { bozza: Bozza; aggiorna: (modifica: Partial<Bozza>) => void }
 
