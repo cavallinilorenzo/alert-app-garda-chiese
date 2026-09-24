@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react'
 import type { paths } from 'shared/api'
+import type { Campi, Estrazione } from './tassonomia'
 
 // La Segnalazione in corso, condivisa tra i passi della procedura guidata. Vive solo in
 // memoria: si invia alla fine, e i passi successivi aggiungono qui i loro campi.
@@ -22,9 +23,15 @@ export type Bozza = {
   posizione: Posizione | null
   /** Esito di `/perimetro/check` per la posizione attuale; null se il punto non è ancora controllato. */
   perimetro: EsitoPerimetro | null
+  /** La foto del problema, già ridotta per l'invio. */
+  foto: File | null
+  /** Le risposte, dette a voce o scelte a mano. */
+  campi: Campi
+  /** Risposta di `/estrazione/vocale`; null finché il Segnalante non ha parlato. Si parla una volta sola. */
+  estrazione: Estrazione | null
 }
 
-const VUOTA: Bozza = { modalita: null, posizione: null, perimetro: null }
+const VUOTA: Bozza = { modalita: null, posizione: null, perimetro: null, foto: null, campi: {}, estrazione: null }
 
 type ContestoBozza = { bozza: Bozza; aggiorna: (modifica: Partial<Bozza>) => void }
 

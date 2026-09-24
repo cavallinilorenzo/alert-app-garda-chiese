@@ -5,13 +5,15 @@ import { Inizio } from './passi/Inizio'
 import { Posizione } from './passi/Posizione'
 import { FuoriPerimetro } from './passi/FuoriPerimetro'
 import { InArrivo } from './passi/InArrivo'
+import { Foto } from './passi/Foto'
+import { Descrizione } from './passi/Descrizione'
 
 const SCHERMATE: Record<Passo, ComponentType> = {
   inizio: Inizio,
   posizione: Posizione,
   fuori_perimetro: FuoriPerimetro,
-  foto: InArrivo,
-  descrizione: InArrivo,
+  foto: Foto,
+  descrizione: Descrizione,
   contatto: InArrivo,
   riepilogo: InArrivo,
   conferma: InArrivo,
