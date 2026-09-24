@@ -381,10 +381,10 @@ button:active:not(:disabled) { transform: scale(.97); }
 :root[data-vt='mappa']::view-transition-new(root) { animation: none; transform-origin: 0 0; }
 .pagina.fermo { animation: none; }
 
-/* tema: l'onda è disegnata con clip-path in transizioni.ts; qui solo il colore della cresta tra i due temi */
+/* tema: lo tsunami è disegnato con clip-path in transizioni.ts; qui solo il colore della schiuma tra i due temi */
 :root[data-vt='tema']::view-transition-old(root), :root[data-vt='tema']::view-transition-new(root) { animation: none; }
 :root[data-vt='tema']::view-transition-image-pair(root) { isolation: auto; }
-:root[data-vt='tema']::view-transition-group(root) { background: linear-gradient(180deg, #7fd6fb, #00a3e8 45%, #0075b3); }
+:root[data-vt='tema']::view-transition-group(root) { background: linear-gradient(180deg, #e3f6ff, #7fd6fb); }
 :root[data-vt='tema'] *, :root[data-vt='tema'] *::before, :root[data-vt='tema'] *::after { transition: none !important; }
 
 @keyframes vt-sparisci { to { opacity: 0; } }
