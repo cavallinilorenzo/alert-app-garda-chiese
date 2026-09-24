@@ -44,8 +44,8 @@ def test_check_con_dati_non_validi(client_contratto, dati, campo):
     "layer, n_feature",
     [("canale", 237), ("condotta", 38), ("reticolo_principale", 27), ("zona_acquaiolo", 24)],
 )
-def test_layer_geojson(client, layer, n_feature):
-    response = client.get(f"/api/layer/{layer}.geojson")
+def test_layer_geojson(client_contratto, layer, n_feature):
+    response = client_contratto.get(f"/api/layer/{layer}.geojson")
 
     assert response.status_code == 200
     assert response["Content-Type"] == "application/geo+json"
@@ -55,8 +55,8 @@ def test_layer_geojson(client, layer, n_feature):
     assert len(body["features"]) == n_feature
 
 
-def test_layer_geojson_di_un_tracciato(client):
-    feature = client.get("/api/layer/canale.geojson").json()["features"][0]
+def test_layer_geojson_di_un_tracciato(client_contratto):
+    feature = client_contratto.get("/api/layer/canale.geojson").json()["features"][0]
 
     assert feature["id"] == "RIB_Canali_2026.1"
     assert set(feature["properties"]) == {"nome", "nome_completo", "tipo", "codice"}
@@ -67,12 +67,12 @@ def test_layer_geojson_di_un_tracciato(client):
     assert round(lon, 6) == lon and round(lat, 6) == lat
 
 
-def test_layer_geojson_di_una_zona_non_servita(client):
-    feature = client.get("/api/layer/zona_acquaiolo.geojson").json()["features"][1]
+def test_layer_geojson_di_una_zona_non_servita(client_contratto):
+    feature = client_contratto.get("/api/layer/zona_acquaiolo.geojson").json()["features"][1]
 
     assert feature["id"] == 2
     assert feature["properties"] == {"nome": "Colli Morenici", "servita": False, "acquaiolo": None}
 
 
-def test_layer_sconosciuto(client):
-    assert client.get("/api/layer/acquedotto.geojson").status_code == 404
+def test_layer_sconosciuto(client_contratto):
+    assert client_contratto.get("/api/layer/acquedotto.geojson").status_code == 404
