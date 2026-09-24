@@ -5,8 +5,8 @@ import pytest
 URL_CHECK = "/api/perimetro/check"
 
 
-def test_check_di_un_punto_sul_reticolo(client):
-    response = client.post(URL_CHECK, {"lat": 45.3905, "lng": 10.4870}, "application/json")
+def test_check_di_un_punto_sul_reticolo(client_contratto):
+    response = client_contratto.post(URL_CHECK, {"lat": 45.3905, "lng": 10.4870}, format="json")
 
     assert response.status_code == 200
     body = response.json()
@@ -16,8 +16,8 @@ def test_check_di_un_punto_sul_reticolo(client):
     assert body["messaggio"]
 
 
-def test_check_di_un_punto_fuori_perimetro(client):
-    response = client.post(URL_CHECK, {"lat": 45.4642, "lng": 9.19}, "application/json")
+def test_check_di_un_punto_fuori_perimetro(client_contratto):
+    response = client_contratto.post(URL_CHECK, {"lat": 45.4642, "lng": 9.19}, format="json")
 
     assert response.status_code == 200
     body = response.json()
@@ -30,8 +30,8 @@ def test_check_di_un_punto_fuori_perimetro(client):
     "dati, campo",
     [({"lat": 45.39}, "lng"), ({"lat": 95, "lng": 10.48}, "lat"), ({"lat": "x", "lng": 1}, "lat")],
 )
-def test_check_con_dati_non_validi(client, dati, campo):
-    response = client.post(URL_CHECK, dati, "application/json")
+def test_check_con_dati_non_validi(client_contratto, dati, campo):
+    response = client_contratto.post(URL_CHECK, dati, format="json")
 
     assert response.status_code == 400
     body = response.json()
