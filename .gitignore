@@ -8,3 +8,17 @@ __pycache__/
 .pytest_cache/
 .ruff_cache/
 backend/staticfiles/
+
+# Symlinks tools
+.claude/
+
+# Cartelle per dati locali o deploy
+var/
+
+# DB
+backend/db.sqlite3
+
+# IDE
+.idea/
+.vscode/
+
