@@ -83,7 +83,7 @@ def test_calcolo_priorita_bassa():
 
 
 def test_creazione_segnalazione(client, mock_geo):
-    url = reverse("segnalazioni-create")
+    url = reverse("segnalazioni-list")
     foto = foto_jpeg()
     data = {
         "lat": 45.0,
@@ -127,7 +127,7 @@ def test_creazione_segnalazione_fuori_perimetro(client, mock_geo):
         acquaiolo_suggerito=None,
         messaggio="Fuori perimetro",
     )
-    url = reverse("segnalazioni-create")
+    url = reverse("segnalazioni-list")
     foto = foto_jpeg()
     data = {
         "lat": 45.0,

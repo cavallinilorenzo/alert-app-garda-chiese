@@ -12,6 +12,13 @@ def generate_codice_pratica():
 
 
 class Segnalazione(models.Model):
+    class Esito(models.TextChoices):
+        RISOLTA = "risolta", _("Risolta")
+        DUPLICATA = "duplicata", _("Duplicata")
+        NON_COMPETENZA = "non_di_competenza", _("Non di competenza")
+        NON_RISCONTRATA = "non_riscontrata", _("Non riscontrata")
+        FALSA = "falsa", _("Falsa")
+
     class Stato(models.TextChoices):
         RICEVUTA = "ricevuta", _("Ricevuta")
         IN_VERIFICA = "in_verifica", _("In verifica")
@@ -42,15 +49,25 @@ class Segnalazione(models.Model):
 
     lat = models.FloatField()
     lng = models.FloatField()
+    lat_originale = models.FloatField(null=True, blank=True)
+    lng_originale = models.FloatField(null=True, blank=True)
     descrizione = models.TextField()
     cellulare = models.CharField(max_length=20)
 
     is_duplicato = models.BooleanField(default=False)
     messaggio_al_segnalante = models.TextField(blank=True)
+    esito = models.CharField(max_length=20, choices=Esito.choices, blank=True, default="")
+    duplicato_di = models.ForeignKey(
+        "self", null=True, blank=True, on_delete=models.SET_NULL, related_name="duplicati"
+    )
+    operatore_riferimento = models.ForeignKey(
+        "auth.User", null=True, blank=True, on_delete=models.SET_NULL
+    )
 
     # Dati estratti
     transcript_ai = models.TextField(blank=True)
     categoria = models.CharField(max_length=100, blank=True)
+    categoria_originale = models.CharField(max_length=100, blank=True)
     durata = models.CharField(max_length=100, blank=True)
     quantita_acqua = models.CharField(max_length=100, blank=True)
     pericolo_persone = models.CharField(max_length=20, blank=True, default="")
@@ -95,7 +112,9 @@ class Evento(models.Model):
     segnalazione = models.ForeignKey(
         Segnalazione, on_delete=models.CASCADE, related_name="timeline"
     )
-    stato = models.CharField(max_length=20, choices=Segnalazione.Stato.choices)
+    stato = models.CharField(max_length=50)
+    tipo_evento = models.CharField(max_length=50, default="cambio_stato")
+    operatore = models.ForeignKey("auth.User", null=True, blank=True, on_delete=models.SET_NULL)
     nota = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
