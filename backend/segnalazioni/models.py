@@ -57,8 +57,12 @@ class Segnalazione(models.Model):
     is_duplicato = models.BooleanField(default=False)
     messaggio_al_segnalante = models.TextField(blank=True)
     esito = models.CharField(max_length=20, choices=Esito.choices, blank=True, default="")
-    duplicato_di = models.ForeignKey("self", null=True, blank=True, on_delete=models.SET_NULL, related_name="duplicati")
-    operatore_riferimento = models.ForeignKey("auth.User", null=True, blank=True, on_delete=models.SET_NULL)
+    duplicato_di = models.ForeignKey(
+        "self", null=True, blank=True, on_delete=models.SET_NULL, related_name="duplicati"
+    )
+    operatore_riferimento = models.ForeignKey(
+        "auth.User", null=True, blank=True, on_delete=models.SET_NULL
+    )
 
     # Dati estratti
     transcript_ai = models.TextField(blank=True)

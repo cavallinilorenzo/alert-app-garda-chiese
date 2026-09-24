@@ -1,15 +1,23 @@
 from django.db.models import Case, IntegerField, Value, When
+from django.shortcuts import get_object_or_404
 from rest_framework import generics, status
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from geo.services import check_perimetro
 
 from .models import Evento, Foto, Segnalazione
 from .priority import calcola_priorita
-from .serializers import SegnalazioneCreateSerializer, SegnalazioneListSerializer, SegnalazioneStatoSerializer, SegnalazioneDetailSerializer
+from .serializers import (
+    SegnalazioneCreateSerializer,
+    SegnalazioneDetailSerializer,
+    SegnalazioneListSerializer,
+    SegnalazioneStatoSerializer,
+    SegnalazioneUpdateSerializer,
+)
 
 
 class PortalePagination(PageNumberPagination):
@@ -18,10 +26,8 @@ class PortalePagination(PageNumberPagination):
     max_page_size = 100
 
     def get_paginated_response(self, data):
-        return Response({
-            "items": data,
-            "total": self.page.paginator.count
-        })
+        return Response({"items": data, "total": self.page.paginator.count})
+
 
 class SegnalazioneListCreateView(generics.ListCreateAPIView):
     pagination_class = PortalePagination
@@ -57,11 +63,11 @@ class SegnalazioneListCreateView(generics.ListCreateAPIView):
                 output_field=IntegerField(),
             )
         )
-        
+
         stato = self.request.query_params.get("stato_corrente")
         if stato:
             qs = qs.filter(stato_corrente=stato)
-            
+
         return qs.order_by("priorita_order", "-created_at")
 
     def create(self, request, *args, **kwargs):
@@ -152,118 +158,110 @@ class SegnalazioneStatoView(generics.RetrieveAPIView):
     queryset = Segnalazione.objects.all()
 
 
-from .serializers import SegnalazioneCreateSerializer, SegnalazioneListSerializer, SegnalazioneStatoSerializer, SegnalazioneDetailSerializer, SegnalazioneUpdateSerializer
-
 class SegnalazioneDetailView(generics.RetrieveUpdateAPIView):
     queryset = Segnalazione.objects.all()
 
     def get_serializer_class(self):
-        if self.request.method in ['PUT', 'PATCH']:
+        if self.request.method in ["PUT", "PATCH"]:
             return SegnalazioneUpdateSerializer
         return SegnalazioneDetailSerializer
 
     def perform_update(self, serializer):
         instance = self.get_object()
         data = serializer.validated_data
-        
+
         campi_modificati = []
-        
+
         # Gestione lat/lng
-        new_lat = data.get('lat')
-        new_lng = data.get('lng')
+        new_lat = data.get("lat")
+        new_lng = data.get("lng")
         if (new_lat and new_lat != instance.lat) or (new_lng and new_lng != instance.lng):
             if instance.lat_originale is None:
                 instance.lat_originale = instance.lat
                 instance.lng_originale = instance.lng
-            
+
             geo_data = check_perimetro(new_lat or instance.lat, new_lng or instance.lng)
             instance.layer = geo_data.tracciato.layer if geo_data.tracciato else None
             instance.id_placemark = geo_data.tracciato.id_placemark if geo_data.tracciato else ""
             instance.nome_tracciato = geo_data.tracciato.nome if geo_data.tracciato else ""
             instance.distanza_m = geo_data.distanza_m
             instance.zona_id = geo_data.zona.id if geo_data.zona else None
-            
+
             # Non sovrascrivere l'acquaiolo se giA  assegnato
             if not instance.acquaiolo_competente_id and geo_data.zona:
-                instance.acquaiolo_competente_id = geo_data.zona.id # o l'ID dell'acquaiolo
-                
+                instance.acquaiolo_competente_id = geo_data.zona.id  # o l'ID dell'acquaiolo
+
             campi_modificati.append("posizione")
 
-        new_cat = data.get('categoria')
+        new_cat = data.get("categoria")
         if new_cat and new_cat != instance.categoria:
             if not instance.categoria_originale:
                 instance.categoria_originale = instance.categoria
             campi_modificati.append("categoria")
-            
-        new_prio = data.get('priorita')
+
+        new_prio = data.get("priorita")
         if new_prio and new_prio != instance.priorita:
             campi_modificati.append("priorita")
-            
-        new_acq = data.get('acquaiolo_competente_id')
+
+        new_acq = data.get("acquaiolo_competente_id")
         if new_acq and new_acq != instance.acquaiolo_competente_id:
             campi_modificati.append("acquaiolo")
 
         serializer.save()
-        
+
         if campi_modificati:
             Evento.objects.create(
                 segnalazione=instance,
                 stato=instance.stato_corrente,
                 tipo_evento="correzione_campo",
                 operatore=self.request.user,
-                nota=f"Modificati: {', '.join(campi_modificati)}"
+                nota=f"Modificati: {', '.join(campi_modificati)}",
             )
 
-
-
-
-from django.shortcuts import get_object_or_404
-from rest_framework.views import APIView
 
 class SegnalazioneAzioniView(APIView):
     def post(self, request, pk):
         seg = get_object_or_404(Segnalazione, pk=pk)
-        azione = request.data.get('azione')
-        nota = request.data.get('nota', '')
-        tipo = 'cambio_stato'
-        
-        if azione == 'prendi_in_carico':
+        azione = request.data.get("azione")
+        nota = request.data.get("nota", "")
+        tipo = "cambio_stato"
+
+        if azione == "prendi_in_carico":
             seg.stato_corrente = Segnalazione.Stato.IN_VERIFICA
             seg.operatore_riferimento = request.user
-        elif azione == 'assegna':
+        elif azione == "assegna":
             seg.stato_corrente = Segnalazione.Stato.ASSEGNATA
-            seg.acquaiolo_competente_id = request.data.get('acquaiolo_id')
-        elif azione == 'avvia_intervento':
+            seg.acquaiolo_competente_id = request.data.get("acquaiolo_id")
+        elif azione == "avvia_intervento":
             seg.stato_corrente = Segnalazione.Stato.IN_INTERVENTO
-        elif azione == 'chiudi':
+        elif azione == "chiudi":
             seg.stato_corrente = Segnalazione.Stato.CHIUSA
-            seg.esito = request.data.get('esito')
-            if seg.esito == 'duplicata':
-                seg.duplicato_di_id = request.data.get('duplicato_di')
+            seg.esito = request.data.get("esito")
+            if seg.esito == "duplicata":
+                seg.duplicato_di_id = request.data.get("duplicato_di")
                 seg.is_duplicato = True
-        elif azione == 'indietro':
+        elif azione == "indietro":
             if seg.stato_corrente == Segnalazione.Stato.IN_INTERVENTO:
                 seg.stato_corrente = Segnalazione.Stato.ASSEGNATA
             elif seg.stato_corrente == Segnalazione.Stato.ASSEGNATA:
                 seg.stato_corrente = Segnalazione.Stato.IN_VERIFICA
             elif seg.stato_corrente == Segnalazione.Stato.IN_VERIFICA:
                 seg.stato_corrente = Segnalazione.Stato.RICEVUTA
-        elif azione == 'riapri':
+        elif azione == "riapri":
             seg.stato_corrente = Segnalazione.Stato.IN_VERIFICA
-        elif azione == 'nota':
-            tipo = 'nota'
-        elif azione == 'messaggio_segnalante':
+        elif azione == "nota":
+            tipo = "nota"
+        elif azione == "messaggio_segnalante":
             seg.messaggio_al_segnalante = nota
-            tipo = 'nota'
-            
+            tipo = "nota"
+
         seg.save()
-        
+
         Evento.objects.create(
             segnalazione=seg,
             stato=seg.stato_corrente,
             tipo_evento=tipo,
             operatore=request.user,
-            nota=nota
+            nota=nota,
         )
-        return Response({'status': 'ok'})
-
+        return Response({"status": "ok"})

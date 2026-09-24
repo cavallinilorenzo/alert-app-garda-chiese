@@ -1,16 +1,18 @@
+import pytest
+from django.contrib.auth.models import User
+from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
-import pytest
-from django.urls import reverse
-from django.contrib.auth.models import User
 
-from segnalazioni.models import Segnalazione, Evento
+from segnalazioni.models import Evento, Segnalazione
 
 pytestmark = pytest.mark.django_db
+
 
 @pytest.fixture
 def operatore():
     return User.objects.create_user(username="test_op", password="password")
+
 
 @pytest.fixture
 def auth_client(operatore):
@@ -18,10 +20,12 @@ def auth_client(operatore):
     client.force_authenticate(user=operatore)
     return client
 
+
 def test_lista_segnalazioni_senza_auth(client):
     url = reverse("segnalazioni-list")
     response = client.get(url)
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
 
 def test_lista_segnalazioni_vuota(auth_client):
     url = reverse("segnalazioni-list")
@@ -32,54 +36,74 @@ def test_lista_segnalazioni_vuota(auth_client):
 
 
 def test_lista_ordinamento(auth_client):
-    Segnalazione.objects.create(lat=45.0, lng=10.0, descrizione='Test', priorita='bassa', cellulare='123')
-    Segnalazione.objects.create(lat=45.0, lng=10.0, descrizione='Test', priorita='critica', cellulare='123')
-    Segnalazione.objects.create(lat=45.0, lng=10.0, descrizione='Test', priorita='alta', cellulare='123')
-    
-    url = reverse('segnalazioni-list')
-    response = auth_client.get(url)
-    items = response.data['items']
-    assert len(items) == 3
-    assert items[0]['priorita'] == 'critica'
-    assert items[1]['priorita'] == 'alta'
-    assert items[2]['priorita'] == 'bassa'
+    Segnalazione.objects.create(
+        lat=45.0, lng=10.0, descrizione="Test", priorita="bassa", cellulare="123"
+    )
+    Segnalazione.objects.create(
+        lat=45.0, lng=10.0, descrizione="Test", priorita="critica", cellulare="123"
+    )
+    Segnalazione.objects.create(
+        lat=45.0, lng=10.0, descrizione="Test", priorita="alta", cellulare="123"
+    )
 
+    url = reverse("segnalazioni-list")
+    response = auth_client.get(url)
+    items = response.data["items"]
+    assert len(items) == 3
+    assert items[0]["priorita"] == "critica"
+    assert items[1]["priorita"] == "alta"
+    assert items[2]["priorita"] == "bassa"
 
 
 def test_lista_filtri(auth_client):
-    Segnalazione.objects.create(lat=45.0, lng=10.0, descrizione='Test1', priorita='bassa', cellulare='123', stato_corrente='in_verifica')
-    Segnalazione.objects.create(lat=45.0, lng=10.0, descrizione='Test2', priorita='bassa', cellulare='123', stato_corrente='chiusa')
-    
-    url = reverse('segnalazioni-list') + '?stato_corrente=in_verifica'
-    response = auth_client.get(url)
-    items = response.data['items']
-    assert len(items) == 1
-    assert items[0]['stato_corrente'] == 'in_verifica'
+    Segnalazione.objects.create(
+        lat=45.0,
+        lng=10.0,
+        descrizione="Test1",
+        priorita="bassa",
+        cellulare="123",
+        stato_corrente="in_verifica",
+    )
+    Segnalazione.objects.create(
+        lat=45.0,
+        lng=10.0,
+        descrizione="Test2",
+        priorita="bassa",
+        cellulare="123",
+        stato_corrente="chiusa",
+    )
 
+    url = reverse("segnalazioni-list") + "?stato_corrente=in_verifica"
+    response = auth_client.get(url)
+    items = response.data["items"]
+    assert len(items) == 1
+    assert items[0]["stato_corrente"] == "in_verifica"
 
 
 def test_dettaglio_segnalazione(auth_client):
-    s = Segnalazione.objects.create(lat=45.0, lng=10.0, descrizione='Test', priorita='bassa', cellulare='123')
-    url = reverse('segnalazioni-detail', kwargs={'pk': s.id})
+    s = Segnalazione.objects.create(
+        lat=45.0, lng=10.0, descrizione="Test", priorita="bassa", cellulare="123"
+    )
+    url = reverse("segnalazioni-detail", kwargs={"pk": s.id})
     response = auth_client.get(url)
     assert response.status_code == 200
-    assert response.data['descrizione'] == 'Test'
-
+    assert response.data["descrizione"] == "Test"
 
 
 def test_azioni_segnalazione(auth_client):
-    s = Segnalazione.objects.create(lat=45.0, lng=10.0, descrizione='Test', priorita='bassa', cellulare='123')
-    url = reverse('segnalazioni-azioni', kwargs={'pk': s.id})
-    
-    response = auth_client.post(url, {'azione': 'prendi_in_carico', 'nota': 'Presa'})
+    s = Segnalazione.objects.create(
+        lat=45.0, lng=10.0, descrizione="Test", priorita="bassa", cellulare="123"
+    )
+    url = reverse("segnalazioni-azioni", kwargs={"pk": s.id})
+
+    response = auth_client.post(url, {"azione": "prendi_in_carico", "nota": "Presa"})
     assert response.status_code == 200
     s.refresh_from_db()
-    assert s.stato_corrente == 'in_verifica'
-    assert s.operatore_riferimento.username == 'test_op'
-    
-    response = auth_client.post(url, {'azione': 'chiudi', 'esito': 'falsa'})
-    s.refresh_from_db()
-    assert s.stato_corrente == 'chiusa'
-    assert s.esito == 'falsa'
-    assert Evento.objects.count() == 2
+    assert s.stato_corrente == "in_verifica"
+    assert s.operatore_riferimento.username == "test_op"
 
+    response = auth_client.post(url, {"azione": "chiudi", "esito": "falsa"})
+    s.refresh_from_db()
+    assert s.stato_corrente == "chiusa"
+    assert s.esito == "falsa"
+    assert Evento.objects.count() == 2

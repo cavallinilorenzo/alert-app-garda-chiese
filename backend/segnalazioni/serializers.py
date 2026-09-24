@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import Segnalazione, Evento
+from .models import Evento, Segnalazione
 
 
 class SegnalazioneCreateSerializer(serializers.ModelSerializer):
@@ -34,6 +34,7 @@ class SegnalazioneCreateSerializer(serializers.ModelSerializer):
             "estratti_confidenza": {"required": False},
         }
 
+
 class SegnalazioneListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Segnalazione
@@ -48,6 +49,7 @@ class SegnalazioneListSerializer(serializers.ModelSerializer):
             "categoria",
             "is_duplicato",
         ]
+
 
 class SegnalazioneStatoSerializer(serializers.ModelSerializer):
     timeline = serializers.SerializerMethodField()
@@ -66,22 +68,31 @@ class SegnalazioneStatoSerializer(serializers.ModelSerializer):
 class EventoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Evento
-        fields = ['id', 'stato', 'nota', 'created_at']
+        fields = ["id", "stato", "nota", "created_at"]
+
 
 class SegnalazioneDetailSerializer(serializers.ModelSerializer):
-    registro = EventoSerializer(source='timeline', many=True, read_only=True)
+    registro = EventoSerializer(source="timeline", many=True, read_only=True)
+
     class Meta:
         model = Segnalazione
         fields = [
-            'id', 'codice_pratica', 'stato_corrente', 'priorita', 'lat', 'lng', 
-            'descrizione', 'cellulare', 'categoria', 'is_duplicato', 'registro',
-            'messaggio_al_segnalante'
+            "id",
+            "codice_pratica",
+            "stato_corrente",
+            "priorita",
+            "lat",
+            "lng",
+            "descrizione",
+            "cellulare",
+            "categoria",
+            "is_duplicato",
+            "registro",
+            "messaggio_al_segnalante",
         ]
-
 
 
 class SegnalazioneUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Segnalazione
-        fields = ['lat', 'lng', 'categoria', 'priorita', 'acquaiolo_competente_id']
-
+        fields = ["lat", "lng", "categoria", "priorita", "acquaiolo_competente_id"]
