@@ -92,14 +92,21 @@ const LIMITE_MIN: Record<Priorita, number> = { critica: 15, alta: 240, media: 14
 export const inRitardo = (s: Segnalazione) =>
   s.stato_corrente === 'ricevuta' && (Date.now() - new Date(s.created_at).getTime()) / 60000 > LIMITE_MIN[s.priorita]
 
-export const eta = (iso: string) => {
-  const min = Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 60000))
+export const eta = (iso?: string | null) => {
+  if (!iso) return '—'
+  const time = new Date(iso).getTime()
+  if (isNaN(time)) return '—'
+  const min = Math.max(0, Math.round((Date.now() - time) / 60000))
   if (min < 60) return `${min} min fa`
   if (min < 60 * 24) return `${Math.round(min / 60)} h fa`
   return `${Math.round(min / 60 / 24)} g fa`
 }
-export const dataOra = (iso: string) =>
-  new Date(iso).toLocaleString('it-IT', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
+export const dataOra = (iso?: string | null) => {
+  if (!iso) return '—'
+  const d = new Date(iso)
+  if (isNaN(d.getTime())) return '—'
+  return d.toLocaleString('it-IT', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
+}
 
 // Ordine della lista (ticket #8): Critica → Bassa, a parità di livello le più vecchie prima.
 export const ordina = (lista: Segnalazione[]) =>
