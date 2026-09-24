@@ -145,6 +145,53 @@ def test_correggere_la_posizione_aggiorna_comune_e_tracciato(auth_client):
     assert s.nome_completo_tracciato == "Nuovo tracciato"
 
 
+def test_patch_priorita_salva_la_motivazione_e_la_scrive_nel_registro(auth_client):
+    s = Segnalazione.objects.create(
+        lat=45.0,
+        lng=10.0,
+        descrizione="Test",
+        priorita="alta",
+        priorita_calcolata="alta",
+        cellulare="123",
+    )
+    url = reverse("segnalazioni-detail", kwargs={"pk": s.id})
+    response = auth_client.patch(
+        url,
+        {"priorita": "media", "override_motivazione": "Verificato al telefono"},
+        format="json",
+    )
+
+    assert response.status_code == 200
+    # la risposta è la Segnalazione completa, come nel contratto
+    assert response.data["registro"]
+    assert response.data["priorita_calcolata"] == "alta"
+    s.refresh_from_db()
+    assert s.priorita == "media"
+    assert s.override_motivazione == "Verificato al telefono"
+    evento = Evento.objects.get(segnalazione=s, tipo_evento="correzione_campo")
+    assert "da alta a media" in evento.nota
+    assert "Verificato al telefono" in evento.nota
+
+
+def test_patch_priorita_senza_motivazione(auth_client):
+    s = Segnalazione.objects.create(
+        lat=45.0,
+        lng=10.0,
+        descrizione="Test",
+        priorita="alta",
+        priorita_calcolata="alta",
+        cellulare="123",
+    )
+    url = reverse("segnalazioni-detail", kwargs={"pk": s.id})
+    response = auth_client.patch(url, {"priorita": "bassa"}, format="json")
+
+    assert response.status_code == 400
+    assert response.data["code"] == "dati_non_validi"
+    assert "override_motivazione" in response.data["fields"]
+    s.refresh_from_db()
+    assert s.priorita == "alta"
+
+
 def test_azioni_segnalazione(auth_client):
     s = Segnalazione.objects.create(
         lat=45.0, lng=10.0, descrizione="Test", priorita="bassa", cellulare="123"

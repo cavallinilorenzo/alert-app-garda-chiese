@@ -187,6 +187,25 @@ class SegnalazioneDetailView(generics.RetrieveUpdateAPIView):
             return SegnalazioneUpdateSerializer
         return SegnalazioneDetailSerializer
 
+    # Il contratto risponde con la Segnalazione completa e con gli errori nel formato `Error`.
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(
+            instance, data=request.data, partial=kwargs.get("partial", False)
+        )
+        if not serializer.is_valid():
+            return Response(
+                {
+                    "code": "dati_non_validi",
+                    "message": "I dati inviati non sono validi.",
+                    "fields": serializer.errors,
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        self.perform_update(serializer)
+        dettaglio = SegnalazioneDetailSerializer(instance, context=self.get_serializer_context())
+        return Response(dettaglio.data)
+
     def perform_update(self, serializer):
         # Lo stesso oggetto che `serializer.save()` salva: una copia da get_object()
         # perderebbe i campi ricalcolati qui sotto.
@@ -228,7 +247,12 @@ class SegnalazioneDetailView(generics.RetrieveUpdateAPIView):
 
         new_prio = data.get("priorita")
         if new_prio and new_prio != instance.priorita:
-            campi_modificati.append("priorita")
+            # nel Registro anche i livelli e il perché, non solo il nome del campo
+            motivazione = data.get("override_motivazione", "").strip()
+            campi_modificati.append(
+                f"priorità da {instance.priorita} a {new_prio}"
+                + (f": «{motivazione}»" if motivazione else "")
+            )
 
         new_acq = data.get("acquaiolo_competente_id")
         if new_acq and new_acq != instance.acquaiolo_competente_id:
