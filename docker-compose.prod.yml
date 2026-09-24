@@ -15,9 +15,7 @@ services:
       retries: 12
 
   backend:
-    build:
-      context: .
-      dockerfile: backend/Dockerfile
+    image: ghcr.io/cavallinilorenzo/alert-app-garda-chiese/backend:latest
     restart: unless-stopped
     environment:
       - DJANGO_DEBUG=false
@@ -38,9 +36,7 @@ services:
       - media_data:/app/backend/media
 
   nginx:
-    build:
-      context: .
-      dockerfile: deploy/Dockerfile.nginx
+    image: ghcr.io/cavallinilorenzo/alert-app-garda-chiese/nginx:latest
     restart: unless-stopped
     ports:
       # Modifica "8080:80" se vuoi esporre Nginx su un'altra porta dell'host
