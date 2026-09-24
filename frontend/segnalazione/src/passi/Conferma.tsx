@@ -31,7 +31,7 @@ export function Conferma() {
         <>
           {puoCondividere && (
             <button className="btn secondario" onClick={condividi}>
-              <Icona n="share" /> Salva o condividi il link
+              <Icona n="share" /> Salva il link
             </button>
           )}
           <a className="btn testo" href={link}>
@@ -43,36 +43,28 @@ export function Conferma() {
       <div className="conferma">
         <span className="tondo verde grande"><Icona n="check" /></span>
         <h1>Segnalazione inviata</h1>
-        <p className="lead">
-          Grazie. Il Consorzio l’ha ricevuta e la prenderà in carico. Se serve, ti chiameremo al numero che ci hai dato.
-        </p>
-        {ricevuta.pericolo_immediato && (
-          <div className="card rossa" role="alert">
-            <p>
-              <strong>Hai indicato un pericolo.</strong> Se qualcuno è in pericolo adesso, chiama subito il numero verde
-              emergenze del Consorzio: non aspettare che la segnalazione venga presa in carico.
-            </p>
-            <a className="btn rosso" href={TEL_NUMERO_VERDE}>
-              <Icona n="call" piena /> Chiama {NUMERO_VERDE}
-            </a>
-          </div>
-        )}
-        <div className="card">
-          <p className="card-titolo">Codice della segnalazione</p>
-          <p className="codice">{ricevuta.codice_pratica}</p>
-          <p className="nota">Se chiami il Consorzio, comunica questo codice.</p>
-          <p className="card-titolo">Segui lo stato della tua segnalazione</p>
-          <div className="link">
-            <span>{link}</span>
-            <button onClick={copia} aria-label="Copia il link">
-              <Icona n={copiato ? 'check' : 'content_copy'} />
-            </button>
-          </div>
-          <p className="nota">
-            {copiato ? 'Link copiato.' : 'Salva questo link: è l’unico modo per vedere a che punto è la segnalazione.'}
-          </p>
-        </div>
       </div>
+      {ricevuta.pericolo_immediato && (
+        <a className="chiama-grande" href={TEL_NUMERO_VERDE}>
+          <span className="chiama-icona"><Icona n="call" piena /></span>
+          <span>
+            <small>Hai indicato un pericolo</small>
+            <strong>Chiama adesso</strong>
+            <b>{NUMERO_VERDE}</b>
+          </span>
+        </a>
+      )}
+      <div className="codice">
+        <small>Codice</small>
+        <strong>{ricevuta.codice_pratica}</strong>
+      </div>
+      <div className="link">
+        <span>{link}</span>
+        <button onClick={copia} aria-label="Copia il link">
+          <Icona n={copiato ? 'check' : 'content_copy'} />
+        </button>
+      </div>
+      <p className="nota centrata">{copiato ? 'Link copiato.' : 'Con questo link vedi a che punto è.'}</p>
     </Schermata>
   )
 }

@@ -72,7 +72,7 @@ export function Posizione() {
 
   if (!posizione && cercando) {
     return (
-      <Schermata titolo="Dove si trova il problema?">
+      <Schermata titolo="Dove si trova?">
         <div className="centro">
           <Spinner />
           <p>Stiamo cercando la tua posizione…</p>
@@ -84,23 +84,24 @@ export function Posizione() {
   if (!posizione) {
     return (
       <Schermata
-        titolo="Dove si trova il problema?"
-        sotto="Usiamo la posizione del telefono per trovare il punto. Potrai correggerlo sulla mappa."
+        titolo="Dove si trova?"
         azione={
           <>
             <button className="btn" onClick={cercaPosizione}>
               <Icona n="my_location" /> Usa la mia posizione
             </button>
             <button className="btn testo" onClick={sceglieSullaMappa}>
-              Scelgo il punto sulla mappa
+              Scelgo sulla mappa
             </button>
           </>
         }
       >
         <div className="centro">
           <span className="tondo grande"><Icona n="my_location" /></span>
-          <p className="nota">
-            Il telefono ti chiederà il permesso di usare la posizione: tocca <strong>Consenti</strong>.
+          <p className="nota centrata">
+            <span>
+              Poi tocca <strong>Consenti</strong>.
+            </span>
           </p>
         </div>
       </Schermata>
@@ -110,54 +111,46 @@ export function Posizione() {
   const precisione = posizione.fonte === 'gps' ? posizione.precisione_m : undefined
   return (
     <Schermata
-      titolo="Dove si trova il problema?"
-      sotto={
-        avviso === null
-          ? 'Controlla che il segnaposto sia sul punto giusto. Se non lo è, trascinalo o tocca la mappa.'
-          : undefined
-      }
+      titolo="Il punto è giusto?"
       azione={
         <button className="btn" onClick={confermaPosizione} disabled={controllo || cercando}>
-          {controllo ? <><Spinner chiaro piccolo /> Controllo la zona…</> : 'Conferma la posizione'}
+          {controllo ? <><Spinner chiaro piccolo /> Controllo la zona…</> : 'Sì, è qui'}
         </button>
       }
     >
       {avviso === 'senza_gps' && (
         <div className="banner giallo">
           <Icona n="location_off" />
-          <span>Non riusciamo a sapere dove ti trovi. Cerca il punto sulla mappa e toccalo.</span>
-        </div>
-      )}
-      {avviso === 'manuale' && (
-        <div className="banner">
-          <Icona n="touch_app" />
-          <span>Avvicina la mappa con due dita e tocca il punto del problema.</span>
+          <span>Posizione non trovata. Tocca il punto sulla mappa.</span>
         </div>
       )}
       {avviso === 'controllo_fallito' && (
         <div className="banner giallo" role="alert">
           <Icona n="wifi_off" />
-          <span>Non riusciamo a controllare il punto. Verifica la connessione e riprova.</span>
+          <span>Controllo non riuscito. Verifica la connessione e riprova.</span>
         </div>
       )}
       <div className="mappa-box">
         <Mappa posizione={posizione} onSposta={(lat, lng) => aggiorna({ posizione: { lat, lng, fonte: 'mappa' } })} />
+        <span className="suggerimento">
+          <Icona n="touch_app" /> {avviso === 'manuale' ? 'Tocca il punto del problema' : 'Trascina il segnaposto'}
+        </span>
         <button className="fab" onClick={cercaPosizione} disabled={cercando} aria-label="Torna alla mia posizione">
           {cercando ? <Spinner piccolo /> : <Icona n="my_location" />}
         </button>
       </div>
-      <div className="punto">
-        <Icona n="location_on" piena />
-        <div>
-          <strong>Punto selezionato</strong>
-          <span>
-            {posizione.lat.toFixed(5)}, {posizione.lng.toFixed(5)}
-            {precisione != null && ` · precisione ±${precisione} m`}
-          </span>
-        </div>
-      </div>
+      <p className="nota">
+        <Icona n="location_on" piena className="rosso" />
+        <span>
+          {posizione.lat.toFixed(5)}, {posizione.lng.toFixed(5)}
+          {precisione != null && ` · ±${precisione} m`}
+        </span>
+      </p>
       {precisione != null && precisione > PRECISIONE_SCARSA_M && (
-        <p className="nota">La posizione è approssimativa: controlla bene il punto.</p>
+        <p className="nota">
+          <Icona n="info" />
+          <span>Posizione approssimativa: controlla bene il punto.</span>
+        </p>
       )}
     </Schermata>
   )

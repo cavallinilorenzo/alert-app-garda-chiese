@@ -3,26 +3,28 @@ import { useBozza } from '../bozza'
 import { Icona, Spinner } from '../comuni'
 import { cifreCellulare, invia, type ErroreInvio } from '../invio'
 import { Schermata, useProcedura, type Passo } from '../procedura'
-import { CATEGORIE, domandeDa, etichettaValore } from '../tassonomia'
+import { CATEGORIE, domandeDa, etichettaValore, isPericolo, riassuntoPericoli } from '../tassonomia'
 
 const MESSAGGI: Record<Exclude<ErroreInvio, 'fuori_perimetro'>, string> = {
   dati_non_validi: 'Alcuni dati non vanno bene. Controllali e riprova.',
-  foto_troppo_grande: 'La foto è troppo pesante. Scattane un’altra e riprova.',
-  rete: 'Non riusciamo a inviare la segnalazione. Verifica la connessione e riprova.',
+  foto_troppo_grande: 'La foto è troppo pesante. Scattane un’altra.',
+  rete: 'Invio non riuscito. Verifica la connessione e riprova.',
 }
 
-function Sezione({ titolo, passo, children }: { titolo: string; passo: Passo; children: ReactNode }) {
+type PropsRiga = { passo: Passo; icona: ReactNode; titolo: string; sotto?: string }
+
+/** Una riga del riepilogo: toccandola si corregge il suo passo e si torna qui. */
+function Riga({ passo, icona, titolo, sotto }: PropsRiga) {
   const { modifica } = useProcedura()
   return (
-    <section className="sezione">
-      <header>
-        <h2>{titolo}</h2>
-        <button className="modifica" onClick={() => modifica(passo)}>
-          <Icona n="edit" /> Modifica
-        </button>
-      </header>
-      {children}
-    </section>
+    <button className="riga-info" onClick={() => modifica(passo)}>
+      {icona}
+      <span>
+        <strong>{titolo}</strong>
+        {sotto && <small>{sotto}</small>}
+      </span>
+      <Icona n="chevron_right" />
+    </button>
   )
 }
 
@@ -56,12 +58,17 @@ export function Riepilogo() {
 
   const { campi, posizione } = bozza
   const categoria = CATEGORIE.find((c) => c.valore === campi.categoria)
-  const dettagli = domandeDa(campi).filter((d) => !d.obbligatorio && campi[d.campo] != null)
+  // Durata e quantità d'acqua, poi i pericoli: la prima è il titolo della riga, le altre sotto.
+  const dettagli = [
+    ...domandeDa(campi)
+      .filter((d) => !d.obbligatorio && !isPericolo(d.campo) && campi[d.campo] != null)
+      .map((d) => etichettaValore(d, campi[d.campo]!)),
+    riassuntoPericoli(campi),
+  ].filter((d) => d != null)
 
   return (
     <Schermata
-      titolo="Controlla e invia"
-      sotto="Verifica i dati prima di inviare la segnalazione."
+      titolo="Tutto giusto?"
       azione={
         <button className="btn verde" onClick={inviaSegnalazione} disabled={invio}>
           {invio ? <><Spinner chiaro piccolo /> Invio in corso…</> : <><Icona n="send" /> Invia la segnalazione</>}
@@ -74,47 +81,41 @@ export function Riepilogo() {
           <span>{MESSAGGI[errore]}</span>
         </div>
       )}
-      <Sezione titolo="Posizione" passo="posizione">
-        <div className="punto piatto">
-          <Icona n="location_on" piena />
-          <div>
-            <strong>{bozza.perimetro?.messaggio ?? 'Punto sulla mappa'}</strong>
-            {posizione && (
-              <span>
-                {posizione.lat.toFixed(5)}, {posizione.lng.toFixed(5)}
-              </span>
-            )}
-          </div>
-        </div>
-      </Sezione>
-      <Sezione titolo="Foto" passo="foto">
-        {anteprima && <img className="foto-mini" src={anteprima} alt="Foto del problema" />}
-      </Sezione>
-      <Sezione titolo="Il problema" passo="descrizione">
-        {categoria && (
-          <p className="categoria">
-            <span className="riga-icona"><Icona n={categoria.icona} /></span> {categoria.etichetta}
-          </p>
-        )}
-        <p className="descrizione">{campi.descrizione}</p>
+      <div className="gruppo">
+        <Riga
+          passo="foto"
+          icona={anteprima ? <img className="miniatura" src={anteprima} alt="" /> : <Icona n="photo_camera" />}
+          titolo="Foto"
+          sotto="Tocca per cambiarla"
+        />
+        <Riga
+          passo="posizione"
+          icona={<Icona n="location_on" />}
+          titolo={bozza.perimetro?.messaggio ?? 'Punto sulla mappa'}
+          sotto={posizione ? `${posizione.lat.toFixed(5)}, ${posizione.lng.toFixed(5)}` : undefined}
+        />
+        <Riga
+          passo="descrizione"
+          icona={<Icona n={categoria?.icona ?? 'water_drop'} />}
+          titolo={categoria?.etichetta ?? 'Il problema'}
+          sotto={campi.descrizione}
+        />
         {dettagli.length > 0 && (
-          <dl className="dettagli">
-            {dettagli.map((d) => (
-              <div key={d.campo}>
-                <dt>{d.etichetta}</dt>
-                <dd>{etichettaValore(d, campi[d.campo]!)}</dd>
-              </div>
-            ))}
-          </dl>
+          <Riga
+            passo="descrizione"
+            icona={<Icona n="schedule" />}
+            titolo={dettagli[0]}
+            sotto={dettagli.slice(1).join(' · ') || undefined}
+          />
         )}
-      </Sezione>
-      <Sezione titolo="Contatto" passo="contatto">
-        <p>+39 {cifreCellulare(bozza.cellulare)}</p>
-      </Sezione>
-      <p className="nota">
-        Inviando accetti che il Consorzio tratti posizione, foto, messaggio e numero solo per gestire questa
-        segnalazione.
-      </p>
+        <Riga
+          passo="contatto"
+          icona={<Icona n="call" />}
+          titolo={`+39 ${cifreCellulare(bozza.cellulare)}`}
+          sotto="Ti chiamiamo solo se serve"
+        />
+      </div>
+      <p className="legale">Inviando accetti che il Consorzio usi questi dati solo per questa segnalazione.</p>
     </Schermata>
   )
 }

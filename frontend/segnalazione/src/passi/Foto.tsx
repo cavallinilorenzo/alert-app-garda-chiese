@@ -70,12 +70,18 @@ export function Foto() {
 
   return (
     <Schermata
-      titolo="Scatta una foto del problema"
-      sotto="Inquadra il punto da vicino: aiuta il Consorzio a capire cosa serve."
+      titolo={anteprima && !attesa ? 'Va bene questa?' : 'Scatta una foto'}
       azione={
-        <button className="btn" disabled={!bozza.foto || !!attesa} onClick={() => vai('descrizione')}>
-          Continua
-        </button>
+        <>
+          <button className="btn" disabled={!bozza.foto || !!attesa} onClick={() => vai('descrizione')}>
+            Continua
+          </button>
+          {anteprima && !attesa && (
+            <button className="btn testo" onClick={apriFotocamera}>
+              <Icona n="replay" /> Rifai la foto
+            </button>
+          )}
+        </>
       }
     >
       {scartata && !attesa && (
@@ -93,17 +99,10 @@ export function Foto() {
         <div className="foto">
           <img src={anteprima} alt="Foto del problema" />
           {vista && (
-            <p className="nota">
-              <Icona n="photo_camera" />
-              <span>
-                Dalla foto sembra: <strong>{vista.etichetta.toLowerCase()}</strong>. Potrai correggerlo nel passo
-                successivo.
-              </span>
+            <p className="chip">
+              <Icona n="auto_awesome" /> Sembra: {vista.etichetta.toLowerCase()}
             </p>
           )}
-          <button className="btn secondario" onClick={apriFotocamera}>
-            <Icona n="replay" /> Rifai la foto
-          </button>
         </div>
       ) : (
         <button className="scatta" onClick={apriFotocamera}>

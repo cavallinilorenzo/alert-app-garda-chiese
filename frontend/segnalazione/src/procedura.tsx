@@ -74,6 +74,8 @@ export function ProceduraProvider({ children }: { children: ReactNode }) {
 }
 
 type PropsSchermata = {
+  /** Riga piccola sopra il titolo, per esempio "Domanda 1 di 5". */
+  occhiello?: string
   titolo?: string
   sotto?: string
   /** Azione principale, fissa in basso. */
@@ -88,7 +90,7 @@ type PropsSchermata = {
  * logo grande. Qui stanno anche il tastone del numero verde, che resta dal primo segnale di pericolo
  * fino alla Conferma, e la finestra, che così resta aperta se il pericolo si scopre al Continua.
  */
-export function Schermata({ titolo, sotto, azione, onIndietro, children }: PropsSchermata) {
+export function Schermata({ occhiello, titolo, sotto, azione, onIndietro, children }: PropsSchermata) {
   const { passo, vai, dalRiepilogo } = useProcedura()
   const { bozza, aggiorna } = useBozza()
   const precedente = dalRiepilogo && passo !== 'fuori_perimetro' ? 'riepilogo' : INDIETRO[passo]
@@ -133,6 +135,7 @@ export function Schermata({ titolo, sotto, azione, onIndietro, children }: Props
         </header>
       )}
       <main className="corpo">
+        {occhiello && <p className="occhiello">{occhiello}</p>}
         {titolo && <h1>{titolo}</h1>}
         {sotto && <p className="lead">{sotto}</p>}
         {children}

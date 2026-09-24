@@ -1,7 +1,16 @@
 import { useBozza } from './bozza'
 import { Icona } from './comuni'
 import { pericoloDichiarato, segnaleDiPericolo } from './pericolo'
-import { DESCRIZIONE_MAX, DESCRIZIONE_MIN, type Campi, type Domanda } from './tassonomia'
+import {
+  DESCRIZIONE_MAX,
+  DESCRIZIONE_MIN,
+  DOMANDA_PERICOLI,
+  PERICOLI,
+  campiPericoli,
+  rispostaPericoli,
+  type Campi,
+  type Domanda,
+} from './tassonomia'
 
 // Le risposte del passo Descrizione, a voce o a mano: i controlli di ogni campo e il segnale
 // di pericolo che apre la finestra del numero verde.
@@ -71,7 +80,7 @@ function CasellaDescrizione({ valore, onChange, onBlur }: PropsCasella) {
       <textarea
         rows={4}
         maxLength={DESCRIZIONE_MAX}
-        placeholder="Ad esempio: esce acqua dal terreno vicino alla strada"
+        placeholder="Esce acqua dal prato vicino alla strada"
         value={valore}
         onChange={(e) => onChange(e.target.value)}
         onBlur={onBlur}
@@ -80,5 +89,56 @@ function CasellaDescrizione({ valore, onChange, onBlur }: PropsCasella) {
         {corta ? `Almeno ${DESCRIZIONE_MIN} caratteri` : `${valore.length}/${DESCRIZIONE_MAX}`}
       </span>
     </label>
+  )
+}
+
+type PropsPericoli = {
+  campi: Campi
+  onChange: (campi: Campi) => void
+  /** Mostra anche "Nessun pericolo" e "Non lo so" sotto le tessere, per quando non sono nelle azioni. */
+  alternative?: boolean
+}
+
+/** La domanda dei pericoli: tre tessere da accendere, una o più. La prima accesa apre la finestra. */
+export function Pericoli({ campi, onChange, alternative }: PropsPericoli) {
+  const risposta = rispostaPericoli(campi)
+  const accesi = Array.isArray(risposta) ? risposta : []
+  const tocca = (campo: (typeof accesi)[number]) =>
+    onChange(campiPericoli(accesi.includes(campo) ? accesi.filter((c) => c !== campo) : [...accesi, campo]))
+
+  return (
+    <>
+      <div className="pericoli" role="group" aria-label={DOMANDA_PERICOLI}>
+        {PERICOLI.map((p) => {
+          const acceso = accesi.includes(p.campo)
+          return (
+            <button key={p.campo} className={`pericolo ${acceso ? 'acceso' : ''}`} aria-pressed={acceso} onClick={() => tocca(p.campo)}>
+              <Icona n={p.icona} piena={acceso} />
+              <strong>{p.etichetta}</strong>
+            </button>
+          )
+        })}
+      </div>
+      {alternative && (
+        <div className="griglia alternative" role="radiogroup" aria-label="Oppure">
+          {(
+            [
+              ['no', 'Nessun pericolo'],
+              ['non_so', 'Non lo so'],
+            ] as const
+          ).map(([valore, etichetta]) => (
+            <button
+              key={valore}
+              role="radio"
+              aria-checked={risposta === valore}
+              className={`riga ${risposta === valore ? 'attiva' : ''}`}
+              onClick={() => onChange(campiPericoli(valore))}
+            >
+              <span className="riga-testo">{etichetta}</span>
+            </button>
+          ))}
+        </div>
+      )}
+    </>
   )
 }

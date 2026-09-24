@@ -32,16 +32,13 @@ export function FinestraNumeroVerde({ onContinua }: { onContinua: () => void }) 
     <div className="velo">
       <div className="dialogo" role="alertdialog" aria-modal="true" aria-labelledby="emergenza-titolo">
         <span className="tondo rosso"><Icona n="warning" piena /></span>
-        <h2 id="emergenza-titolo">Qualcuno è in pericolo?</h2>
-        <p>
-          Se c’è un pericolo immediato chiama subito il numero verde emergenze del Consorzio. La chiamata è
-          gratuita.
-        </p>
+        <h2 id="emergenza-titolo">Chiama subito</h2>
+        <p>Numero verde emergenze del Consorzio, gratuito.</p>
         <a className="btn rosso" href={TEL_NUMERO_VERDE}>
-          <Icona n="call" piena /> Chiama {NUMERO_VERDE}
+          <Icona n="call" piena /> {NUMERO_VERDE}
         </a>
-        <button className="btn secondario" onClick={onContinua}>
-          Continua la segnalazione
+        <button className="btn testo" onClick={onContinua}>
+          Continuo la segnalazione
         </button>
       </div>
     </div>

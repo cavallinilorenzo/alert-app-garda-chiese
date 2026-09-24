@@ -13,8 +13,7 @@ export function Contatto() {
 
   return (
     <Schermata
-      titolo="Il tuo numero di cellulare"
-      sotto="Ti chiamiamo solo se ci serve un’informazione per trovare il problema."
+      titolo="Il tuo cellulare"
       azione={
         <button className="btn" disabled={!valido} onClick={() => vai('riepilogo')}>
           Continua
@@ -36,11 +35,11 @@ export function Contatto() {
       </label>
       {toccato && !valido && (
         <p className="errore-campo" role="alert">
-          Scrivi un numero di cellulare italiano, per esempio 333 123 4567.
+          Scrivi un cellulare italiano, per esempio 333 123 4567.
         </p>
       )}
       <p className="nota">
-        <Icona n="lock" /> Il numero è visibile solo al personale del Consorzio e non viene usato per altro.
+        <Icona n="lock" /> Lo vede solo il Consorzio.
       </p>
     </Schermata>
   )
