@@ -1,8 +1,10 @@
+from io import BytesIO
 from unittest.mock import patch
 
 import pytest
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
+from PIL import Image
 from rest_framework import status
 from rest_framework.test import APIClient
 
@@ -14,6 +16,13 @@ pytestmark = pytest.mark.django_db
 @pytest.fixture
 def client():
     return APIClient()
+
+
+def foto_jpeg():
+    # ImageField con Pillow valida il contenuto: serve un JPEG vero, non byte a caso.
+    buffer = BytesIO()
+    Image.new("RGB", (1, 1)).save(buffer, format="JPEG")
+    return SimpleUploadedFile("foto.jpg", buffer.getvalue(), content_type="image/jpeg")
 
 
 @pytest.fixture
@@ -75,7 +84,7 @@ def test_calcolo_priorita_bassa():
 
 def test_creazione_segnalazione(client, mock_geo):
     url = reverse("segnalazioni-create")
-    foto = SimpleUploadedFile("foto.jpg", b"file_content", content_type="image/jpeg")
+    foto = foto_jpeg()
     data = {
         "lat": 45.0,
         "lng": 10.0,
@@ -119,7 +128,7 @@ def test_creazione_segnalazione_fuori_perimetro(client, mock_geo):
         messaggio="Fuori perimetro",
     )
     url = reverse("segnalazioni-create")
-    foto = SimpleUploadedFile("foto.jpg", b"file_content", content_type="image/jpeg")
+    foto = foto_jpeg()
     data = {
         "lat": 45.0,
         "lng": 10.0,
