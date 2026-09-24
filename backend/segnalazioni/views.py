@@ -264,4 +264,5 @@ class SegnalazioneAzioniView(APIView):
             operatore=request.user,
             nota=nota,
         )
-        return Response({"status": "ok"})
+        serializer = SegnalazioneDetailSerializer(seg, context={'request': request})
+        return Response(serializer.data)
