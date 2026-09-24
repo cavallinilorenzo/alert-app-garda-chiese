@@ -89,6 +89,7 @@ components:
 paths:
   /perimetro/check:
     post:
+      operationId: checkPerimetro
       summary: Controllo perimetro (App)
       security: []
       requestBody:
@@ -127,9 +128,16 @@ paths:
                     distanza_m: 12.5
                     zona_id: 4
                     messaggio: "Punto valido nel comune di Mantova."
+        '400':
+          description: Richiesta non valida
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 
   /estrazione/vocale:
     post:
+      operationId: estraiVocale
       summary: Estrazione strutturata da audio (App)
       security: []
       requestBody:
@@ -167,6 +175,12 @@ paths:
                     campi:
                       categoria: "canale"
                     mancanti: ["tipo_danno"]
+        '400':
+          description: Audio non valido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 
   /segnalazioni:
     post:
@@ -236,6 +250,7 @@ paths:
                     fields: {}
 
     get:
+      operationId: listaSegnalazioni
       summary: Lista segnalazioni (Portale operatore)
       security:
         - bearerAuth: []
@@ -258,9 +273,16 @@ paths:
                   value:
                     items: []
                     total: 0
+        '401':
+          description: Autenticazione richiesta
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 
   /segnalazioni/stato/{token}:
     get:
+      operationId: statoSegnalazionePubblico
       summary: Pagina di stato pubblica (App/Web)
       security: []
       parameters:
@@ -284,9 +306,16 @@ paths:
                     timeline:
                       - stato: "ricevuta"
                         data: "2026-09-24T10:00:00Z"
+        '404':
+          description: Segnalazione non trovata
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 
   /auth/token:
     post:
+      operationId: ottieniToken
       summary: Login (Portale operatore)
       security: []
       requestBody:
@@ -319,9 +348,16 @@ paths:
                   value:
                     access: "eyJ..."
                     refresh: "eyJ..."
+        '401':
+          description: Credenziali non valide
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 
   /auth/token/refresh:
     post:
+      operationId: aggiornaToken
       summary: Refresh del token (Portale operatore)
       security: []
       requestBody:
@@ -349,9 +385,16 @@ paths:
                 success:
                   value:
                     access: "eyJ..."
+        '401':
+          description: Refresh token non valido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
                     
   /auth/me:
     get:
+      operationId: operatoreCorrente
       summary: Info operatore corrente (Portale operatore)
       security:
         - bearerAuth: []
@@ -373,9 +416,16 @@ paths:
                   value:
                     id: 1
                     nome_completo: "Mario Rossi"
+        '401':
+          description: Autenticazione richiesta
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 
   /auth/logout:
     post:
+      operationId: disconnettiOperatore
       summary: Logout con blacklist (Portale operatore)
       security:
         - bearerAuth: []
@@ -403,6 +453,18 @@ paths:
                 success:
                   value:
                     success: true
+        '400':
+          description: Refresh token mancante o non valido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Autenticazione richiesta
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 
   /acquaioli:
     get:
