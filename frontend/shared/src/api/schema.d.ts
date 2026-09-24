@@ -758,7 +758,7 @@ export interface components {
              * @description La categoria attuale, anche se l'Operatore l'ha corretta. Vuota se non indicata.
              * @enum {string}
              */
-            categoria: "acqua_che_affiora" | "canale_che_tracima" | "argine_danneggiato" | "ostruzione" | "paratoia_danneggiata" | "acqua_sporca" | "altro" | "";
+            categoria: "acqua_che_affiora" | "perdita_dal_canale" | "canale_che_tracima" | "argine_danneggiato" | "ostruzione" | "canale_asciutto" | "paratoia_danneggiata" | "acqua_sporca" | "altro" | "";
             /** @description Il comune del punto segnalato. Vuoto se non si riesce a ricavarlo. */
             comune: string;
             /** @description Il tracciato più vicino, come nella scheda del Portale operatore. */
