@@ -1,29 +1,29 @@
 # Come lavoriamo
 
-Guida per il team e per i nostri agenti AI (Claude Code, Codex, Antigravity). La decisione completa, con le motivazioni, è nel ticket [Struttura del monorepo, ownership e convenzioni git](https://github.com/cavallinilorenzo/alert-app-garda-chiese/issues/12). Se questa guida e il ticket non coincidono, vale il ticket.
+Guida per il team e per i nostri agenti AI (Claude Code, Codex, Antigravity). La decisione completa, con le motivazioni, è nel ticket [Struttura del monorepo, ownership e convenzioni git](https://github.com/cavallinilorenzo/alert-app-garda-chiese/issues/12). Se questa guida e il ticket non coincidono, vale il ticket, tranne che per la divisione del lavoro: la ownership per area descritta nel ticket non vale più, perché ora tutti lavorano su tutto.
 
 ## Chi fa cosa
 
-| Area | Chi | Cosa |
-|---|---|---|
-| `area:frontend` | @cavallinilorenzo | `frontend/`: App di segnalazione (mobile) e Portale operatore (desktop), React |
-| `area:backend` | @TrentoElProgrammatores, @itsmrma | `backend/`: Django REST Framework + JWT |
-| `area:condiviso` | tutti e tre | `api/openapi.yaml` e `CONTEXT.md` |
+Tutti lavorano su tutto: chiunque può prendere ticket di frontend, di backend o condivisi. Le etichette `area:frontend`, `area:backend` e `area:condiviso` dicono quale parte della repo tocca un ticket, non chi lo deve fare.
 
-Frontend e backend si parlano **solo via REST**. `api/openapi.yaml` è l'unico file che toccano entrambe le aree.
+| Area | Cosa |
+|---|---|
+| `area:frontend` | `frontend/`: App di segnalazione (mobile) e Portale operatore (desktop), React |
+| `area:backend` | `backend/`: Django REST Framework + JWT |
+| `area:condiviso` | `api/openapi.yaml` e `CONTEXT.md` |
 
-Il backend si divide in due metà, e chi prende quale lo decidono i due backend tra loro:
+Frontend e backend si parlano **solo via REST**, attraverso il contratto in `api/openapi.yaml`.
 
-- **A**: `segnalazioni` (modello, CRUD, ciclo di vita, azioni dell'operatore) più `accounts` (JWT, operatori, rubrica acquaioli).
-- **B**: `geo` (import KML, perimetro, infrastruttura più vicina, zona acquaiolo, GeoJSON) più `estrazione` (Gemini, interfaccia `Estrattore`).
+Il backend è diviso in quattro app:
 
-Le due metà comunicano tramite funzioni di servizio concordate prima, senza modificare l'una il codice dell'altra.
+- `segnalazioni` (modello, CRUD, ciclo di vita, azioni dell'operatore) e `accounts` (JWT, operatori, rubrica acquaioli).
+- `geo` (import KML, perimetro, infrastruttura più vicina, zona acquaiolo, GeoJSON) ed `estrazione` (Gemini, interfaccia `Estrattore`).
 
 ## Il lavoro parte da un ticket
 
 Tutto passa dalle GitHub Issues. Adesso stiamo scrivendo la spec nella [mappa](https://github.com/cavallinilorenzo/alert-app-garda-chiese/issues/1). Finita la spec, si apre una mappa di implementazione per area.
 
-1. Prendi un ticket della tua area che sia aperto, non assegnato e non bloccato.
+1. Prendi un ticket aperto, non assegnato e non bloccato, di qualunque area.
 2. **Assegnatelo prima di iniziare**: l'assegnazione è il claim e impedisce che due persone lavorino sulla stessa cosa.
 3. Con un agente AI: chiedigli di lavorare il ticket con la skill `wayfinder`, per esempio `/wayfinder <url della mappa o del ticket>` in Claude Code, oppure "usa la skill wayfinder su <url>" in Codex e Antigravity. L'agente deve avere `gh` installato e autenticato (`gh auth login`).
 4. I ticket `grilling` e `prototype` si fanno insieme a una persona: l'agente fa le domande e tu rispondi. I ticket `research` l'agente li fa da solo.
@@ -39,8 +39,8 @@ Tutto passa dalle GitHub Issues. Adesso stiamo scrivendo la spec nella [mappa](h
 
 ### Review
 
-- **`api/` richiede l'approvazione di un'altra persona** (`CODEOWNERS`). Chi modifica il contratto si fa approvare da uno degli altri due, meglio se dell'altra area.
-- `frontend/` e `backend/` si mergiano senza review obbligatoria. Ognuno lavora nella propria area e non modifica i file dell'altra.
+- **`api/` richiede l'approvazione di un'altra persona** (`CODEOWNERS`). Chi modifica il contratto si fa approvare da uno degli altri due.
+- `frontend/` e `backend/` si mergiano senza review obbligatoria.
 - I file di root (`docker-compose.yml`, `settings.py`, `urls.py` di root, `package.json` del workspace) si modificano solo dopo aver avvisato gli altri.
 
 ## Struttura della repo
