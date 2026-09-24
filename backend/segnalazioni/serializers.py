@@ -79,11 +79,9 @@ class DuplicatoCollegatoSerializer(serializers.ModelSerializer):
         fields = ["id", "codice_pratica", "cellulare", "foto", "created_at"]
 
     def get_foto(self, obj):
-        request = self.context.get("request")
-        return [
-            request.build_absolute_uri(f.immagine.url) if request else f.immagine.url
-            for f in obj.foto.all()
-        ]
+        # Percorsi relativi (/media/...): stessa origine del frontend. Un URL assoluto
+        # costruito dietro Nginx e il proxy HTTPS perde la porta e lo schema giusti.
+        return [f.immagine.url for f in obj.foto.all()]
 
 
 class OperatoreRiferimentoSerializer(serializers.ModelSerializer):
@@ -146,11 +144,9 @@ class SegnalazioneDetailSerializer(serializers.ModelSerializer):
         ]
 
     def get_foto(self, obj):
-        request = self.context.get("request")
-        return [
-            request.build_absolute_uri(f.immagine.url) if request else f.immagine.url
-            for f in obj.foto.all()
-        ]
+        # Percorsi relativi (/media/...): stessa origine del frontend. Un URL assoluto
+        # costruito dietro Nginx e il proxy HTTPS perde la porta e lo schema giusti.
+        return [f.immagine.url for f in obj.foto.all()]
 
 
 class SegnalazioneUpdateSerializer(serializers.ModelSerializer):

@@ -8,6 +8,7 @@ from PIL import Image
 from rest_framework import status
 from rest_framework.test import APIClient
 
+from accounts.models import Acquaiolo
 from segnalazioni.models import Evento, Foto, Segnalazione
 
 pytestmark = pytest.mark.django_db
@@ -114,6 +115,8 @@ def test_creazione_segnalazione(client, mock_geo):
     assert segnalazione.id_placemark == "123"
     assert Foto.objects.filter(segnalazione=segnalazione).exists()
     assert Evento.objects.filter(segnalazione=segnalazione).count() == 1
+    # l'Acquaiolo della zona 4 nella Rubrica è proposto come competente
+    assert segnalazione.acquaiolo_competente_id == Acquaiolo.objects.filter(zona_id=4).first().id
 
 
 def test_creazione_segnalazione_fuori_perimetro(client, mock_geo):

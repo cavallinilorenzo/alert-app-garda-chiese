@@ -301,7 +301,8 @@ export function Portale({ operatore, onEsci }: { operatore: Operatore | null; on
 
         {pagina === 'coda' && (
           <div className="pagina split" key="coda">
-            <Lista lista={lista} sel={sel} setSel={apri} compatta={!!s} lampo={lampo} />
+            {/* cliccare la segnalazione già aperta chiude la scheda */}
+            <Lista lista={lista} sel={sel} setSel={(id) => (id === sel ? setSel(null) : apri(id))} compatta={!!s} lampo={lampo} />
             {s && <Scheda key={s.id} s={s} onChiudi={() => setSel(null)} onApri={apri} daMappa={daMappa} />}
           </div>
         )}
