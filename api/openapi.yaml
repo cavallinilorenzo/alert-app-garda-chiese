@@ -178,7 +178,7 @@ components:
             description: URL dell'immagine.
         categoria:
           type: string
-          enum: [acqua_che_affiora, canale_che_tracima, argine_danneggiato, ostruzione, paratoia_danneggiata, acqua_sporca, altro, ""]
+          enum: [acqua_che_affiora, perdita_dal_canale, canale_che_tracima, argine_danneggiato, ostruzione, canale_asciutto, paratoia_danneggiata, acqua_sporca, altro, ""]
           description: La categoria attuale, anche se l'Operatore l'ha corretta. Vuota se non indicata.
         comune:
           type: string
