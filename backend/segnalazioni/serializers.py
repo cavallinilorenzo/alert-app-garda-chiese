@@ -221,4 +221,20 @@ class SegnalazioneDetailSerializer(serializers.ModelSerializer):
 class SegnalazioneUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Segnalazione
-        fields = ["lat", "lng", "categoria", "priorita", "acquaiolo_competente_id"]
+        fields = [
+            "lat",
+            "lng",
+            "categoria",
+            "priorita",
+            "override_motivazione",
+            "acquaiolo_competente_id",
+        ]
+
+    def validate(self, attrs):
+        priorita = attrs.get("priorita")
+        motivazione = attrs.get("override_motivazione", "").strip()
+        if priorita and priorita != self.instance.priorita_calcolata and not motivazione:
+            raise serializers.ValidationError(
+                {"override_motivazione": ["Indica perché cambi la priorità calcolata."]}
+            )
+        return attrs

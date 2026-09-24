@@ -36,8 +36,8 @@ export const Avatar = ({ nome, piccolo, accento }: { nome?: string | null; picco
     </span>
   )
 
-export const Pallino = ({ livello }: { livello: Priorita }) => (
-  <span className={`pallino-inline ${livello === 'critica' ? 'critica' : ''}`} style={{ background: COLORI[livello] }} />
+export const Pallino = ({ livello, grande }: { livello: Priorita; grande?: boolean }) => (
+  <span className={`pallino-inline ${livello === 'critica' ? 'critica' : ''} ${grande ? 'grande' : ''}`} style={{ background: COLORI[livello] }} />
 )
 
 export function Copia({ testo }: { testo: string }) {

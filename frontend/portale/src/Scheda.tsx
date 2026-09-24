@@ -1,7 +1,8 @@
 // La scheda della Segnalazione, in ordine di lettura e senza vuoti (ticket #10):
 // intestazione con assegnatario → pericolo → duplicati → foto e mappa → avanzamento e azioni →
 // cosa è successo | contatti e infrastruttura → registro (chiuso di default).
-import { useEffect, useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { createPortal } from 'react-dom'
 import { Avatar, Copia, Icona, Mappa, Pallino, titoloNome } from './comuni'
 import { usePortale } from './dati'
 import {
@@ -39,53 +40,106 @@ export const StatoPill = ({ s, senzaEsito }: { s: Segnalazione; senzaEsito?: boo
   </span>
 )
 
-// Una riga: perché ha questa priorità, entro quando va presa in carico, correzione con motivazione.
-function PrioritaDettaglio({ s }: { s: Segnalazione }) {
+// La priorità in testa alla scheda, grande perché è la prima cosa da capire. La matita accanto apre la scelta
+// a colori: si clicca il livello, si scrive il perché e Invio salva, senza altri tasti.
+function PrioritaChip({ s }: { s: Segnalazione }) {
   const { correggi } = usePortale()
   const [apri, setApri] = useState(false)
-  const [livello, setLivello] = useState<Priorita>(s.priorita)
+  const [livello, setLivello] = useState<Priorita | null>(null)
   const [motivo, setMotivo] = useState('')
-  const corretta = s.priorita !== s.priorita_calcolata
+  const [invio, setInvio] = useState(false)
+  const box = useRef<HTMLDivElement>(null)
+
+  const chiudi = () => {
+    setApri(false)
+    setLivello(null)
+    setMotivo('')
+  }
+  // clic fuori dalla scelta: si chiude senza salvare
+  useEffect(() => {
+    if (!apri) return
+    const fuori = (e: MouseEvent) => !box.current?.contains(e.target as Node) && chiudi()
+    document.addEventListener('mousedown', fuori)
+    return () => document.removeEventListener('mousedown', fuori)
+  }, [apri])
+
+  const salva = async () => {
+    if (!livello || !motivo.trim() || invio) return
+    setInvio(true)
+    const ok = await correggi(s.id, { priorita: livello, override_motivazione: motivo.trim() })
+    setInvio(false)
+    if (ok) chiudi()
+  }
+
+  return (
+    <div
+      className="prio-box"
+      ref={box}
+      // Esc chiude la scelta, non la scheda
+      onKeyDown={(e) => e.key === 'Escape' && apri && (e.stopPropagation(), chiudi())}
+    >
+      <button
+        className="prio-chip grande"
+        style={{ '--c': COLORI[s.priorita] } as React.CSSProperties}
+        onClick={() => (apri ? chiudi() : setApri(true))}
+        title="Cambia priorità"
+      >
+        <Pallino livello={s.priorita} grande /> Priorità {NOME_LIVELLO[s.priorita].toLowerCase()}
+        <Icona nome="edit" className="matita" />
+      </button>
+      {apri && (
+        <div className="popover prio-scelta" role="dialog" aria-label="Cambia priorità">
+          <div className="etichetta">Cambia priorità</div>
+          <div className="prio-livelli">
+            {LIVELLI.map((l) => (
+              <button
+                key={l}
+                className={`prio-livello ${l === s.priorita ? 'attuale' : ''} ${l === livello ? 'on' : ''}`}
+                style={{ '--c': COLORI[l] } as React.CSSProperties}
+                disabled={l === s.priorita}
+                onClick={() => setLivello(l)}
+              >
+                <strong>
+                  <Pallino livello={l} /> {NOME_LIVELLO[l]}
+                </strong>
+                <small>{l === s.priorita ? 'attuale' : l === s.priorita_calcolata ? 'calcolata' : TEMPI[l]}</small>
+              </button>
+            ))}
+          </div>
+          {livello && (
+            <label className="prio-motivo">
+              <input
+                autoFocus
+                placeholder={`Perché ${NOME_LIVELLO[livello].toLowerCase()}? (obbligatorio)`}
+                value={motivo}
+                disabled={invio}
+                onChange={(e) => setMotivo(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && salva()}
+              />
+              <small className="muto">Invio per confermare · Esc per annullare</small>
+            </label>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// Sotto il titolo: entro quando va presa in carico e, se un Operatore l'ha cambiata, chi e perché.
+function PrioritaDettaglio({ s }: { s: Segnalazione }) {
+  const cambio = [...s.registro].reverse().find((e) => e.tipo_evento === 'correzione_campo' && e.nota?.includes('priorità'))
   return (
     <div className="prio-dettaglio">
-      <div className="prio-riga">
-        <span>
-          {/* il livello è già nella label in alto: qui solo i tempi */}
-          {TEMPI[s.priorita][0].toUpperCase() + TEMPI[s.priorita].slice(1)}
-          {corretta && ` · calcolata ${NOME_LIVELLO[s.priorita_calcolata].toLowerCase()}, corretta: “${s.override_motivazione}”`}
+      <span>{TEMPI[s.priorita][0].toUpperCase() + TEMPI[s.priorita].slice(1)}</span>
+      {s.override_motivazione && (
+        <span className="prio-motivazione">
+          <Icona nome="edit_note" />
+          <span>
+            Cambiata{cambio?.operatore ? ` da ${cambio.operatore.nome_completo}` : ''}
+            {s.priorita !== s.priorita_calcolata && ` (calcolata ${NOME_LIVELLO[s.priorita_calcolata].toLowerCase()})`}: “
+            {s.override_motivazione}”
+          </span>
         </span>
-        {!apri && (
-          <button className="btn-link" onClick={() => setApri(true)}>
-            <Icona nome="edit" /> Correggi
-          </button>
-        )}
-      </div>
-      {apri && (
-        <div className="riga-form">
-          <select value={livello} onChange={(e) => setLivello(e.target.value as Priorita)}>
-            {LIVELLI.map((l) => (
-              <option key={l} value={l}>
-                {NOME_LIVELLO[l]}
-              </option>
-            ))}
-          </select>
-          <input placeholder="Motivazione (obbligatoria)" value={motivo} onChange={(e) => setMotivo(e.target.value)} />
-          <button
-            className="btn"
-            disabled={!motivo.trim() || livello === s.priorita}
-            onClick={async () => {
-              if (await correggi(s.id, { priorita: livello, override_motivazione: motivo })) {
-                setApri(false)
-                setMotivo('')
-              }
-            }}
-          >
-            Salva
-          </button>
-          <button className="btn-link" onClick={() => setApri(false)}>
-            Annulla
-          </button>
-        </div>
       )}
     </div>
   )
@@ -458,6 +512,7 @@ function Duplicati({ s, onApri }: { s: Segnalazione; onApri: (id: number) => voi
 
 function Foto({ src }: { src?: string }) {
   const [rotta, setRotta] = useState(false)
+  const [grande, setGrande] = useState(false)
   if (!src || rotta)
     return (
       <div className="foto-vuota">
@@ -466,9 +521,35 @@ function Foto({ src }: { src?: string }) {
       </div>
     )
   return (
-    <a href={src} target="_blank" rel="noreferrer" className="foto">
-      <img src={src} alt="Foto della segnalazione" onError={() => setRotta(true)} />
-    </a>
+    <>
+      <button className="foto" onClick={() => setGrande(true)} title="Ingrandisci la foto">
+        <img src={src} alt="Foto della segnalazione" onError={() => setRotta(true)} />
+      </button>
+      {grande && <FotoGrande src={src} onChiudi={() => setGrande(false)} />}
+    </>
+  )
+}
+
+// La foto ingrandita sopra il Portale, con lo sfondo sfocato e scurito. Si chiude con la X, cliccando fuori o con Esc.
+function FotoGrande({ src, onChiudi }: { src: string; onChiudi: () => void }) {
+  useEffect(() => {
+    // in cattura, così Esc chiude la foto e non anche la scheda
+    const tasto = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return
+      e.stopPropagation()
+      onChiudi()
+    }
+    window.addEventListener('keydown', tasto, true)
+    return () => window.removeEventListener('keydown', tasto, true)
+  }, [onChiudi])
+  return createPortal(
+    <div className="foto-grande" role="dialog" aria-modal="true" aria-label="Foto della segnalazione" onClick={onChiudi}>
+      <img src={src} alt="Foto della segnalazione" onClick={(e) => e.stopPropagation()} />
+      <button className="btn-icona foto-grande-chiudi" onClick={onChiudi} aria-label="Chiudi la foto" autoFocus>
+        <Icona nome="close" />
+      </button>
+    </div>,
+    document.body,
   )
 }
 
@@ -496,9 +577,7 @@ export function Scheda({ s, onChiudi, onApri, daMappa, ritardo }: PropsScheda) {
       <header {...entra('scheda-testa')}>
         <div className="scheda-titolo">
           <div className="sopra">
-            <span className="prio-chip" style={{ '--c': COLORI[s.priorita] } as React.CSSProperties}>
-              <Pallino livello={s.priorita} /> {NOME_LIVELLO[s.priorita]}
-            </span>
+            <PrioritaChip key={s.id} s={s} />
             <StatoPill s={s} />
             <span className="codice">{s.codice_pratica}</span>
           </div>
@@ -508,7 +587,7 @@ export function Scheda({ s, onChiudi, onApri, daMappa, ritardo }: PropsScheda) {
             <span>{dataOra(s.created_at)}</span>
             <span className="muto">via {NOME_CANALE[s.canale_ingresso]}</span>
           </div>
-          <PrioritaDettaglio key={`${s.id}-${s.priorita}`} s={s} />
+          <PrioritaDettaglio s={s} />
         </div>
         <div className="assegnatario">
           <Avatar nome={assegnata(s) ? acq?.nome : null} />

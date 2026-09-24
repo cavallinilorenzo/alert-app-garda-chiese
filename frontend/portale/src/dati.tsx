@@ -95,6 +95,20 @@ export function PortaleProvider({ children }: { children: ReactNode }) {
     caricaZone().then(setZone, () => {})
   }, [ricarica])
 
+  // Niente tasto Aggiorna: le segnalazioni si ricaricano da sole ogni 30 secondi e quando si torna sul Portale.
+  // In silenzio: se una ricarica non riesce resta la lista che c'è.
+  useEffect(() => {
+    const aggiorna = () => {
+      if (document.visibilityState === 'visible') caricaSegnalazioni().then(setSegnalazioni, () => {})
+    }
+    const t = setInterval(aggiorna, 30_000)
+    document.addEventListener('visibilitychange', aggiorna)
+    return () => {
+      clearInterval(t)
+      document.removeEventListener('visibilitychange', aggiorna)
+    }
+  }, [])
+
   const sostituisci = (s: Segnalazione) => setSegnalazioni((l) => l.map((x) => (x.id === s.id ? s : x)))
 
   const azione = async (id: number, corpo: CorpoAzione) => {
