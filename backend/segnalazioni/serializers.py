@@ -71,8 +71,37 @@ class EventoSerializer(serializers.ModelSerializer):
         fields = ["id", "stato", "nota", "created_at"]
 
 
+class DuplicatoCollegatoSerializer(serializers.ModelSerializer):
+    foto = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Segnalazione
+        fields = ["id", "codice_pratica", "cellulare", "foto", "created_at"]
+
+    def get_foto(self, obj):
+        request = self.context.get("request")
+        return [
+            request.build_absolute_uri(f.immagine.url) if request else f.immagine.url
+            for f in obj.foto.all()
+        ]
+
+
+class OperatoreRiferimentoSerializer(serializers.ModelSerializer):
+    nome_completo = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Segnalazione.operatore_riferimento.field.related_model
+        fields = ["id", "nome_completo"]
+
+    def get_nome_completo(self, obj):
+        return f"{obj.first_name} {obj.last_name}".strip() or obj.username
+
+
 class SegnalazioneDetailSerializer(serializers.ModelSerializer):
     registro = EventoSerializer(source="timeline", many=True, read_only=True)
+    foto = serializers.SerializerMethodField()
+    duplicati = DuplicatoCollegatoSerializer(many=True, read_only=True)
+    operatore_riferimento = OperatoreRiferimentoSerializer(read_only=True)
 
     class Meta:
         model = Segnalazione
@@ -80,15 +109,47 @@ class SegnalazioneDetailSerializer(serializers.ModelSerializer):
             "id",
             "codice_pratica",
             "stato_corrente",
+            "esito",
             "priorita",
+            "priorita_calcolata",
+            "override_motivazione",
+            "created_at",
             "lat",
             "lng",
+            "lat_originale",
+            "lng_originale",
             "descrizione",
             "cellulare",
+            "transcript_ai",
+            "foto",
             "categoria",
+            "categoria_originale",
+            "durata",
+            "quantita_acqua",
+            "pericolo_persone",
+            "pericolo_strada",
+            "pericolo_edifici",
+            "estratti_confidenza",
+            "layer",
+            "nome_tracciato",
+            "nome_completo_tracciato",
+            "tipo_tracciato",
+            "distanza_m",
+            "zona_id",
+            "acquaiolo_competente_id",
+            "operatore_riferimento",
             "is_duplicato",
+            "duplicato_di",
+            "duplicati",
             "registro",
             "messaggio_al_segnalante",
+        ]
+
+    def get_foto(self, obj):
+        request = self.context.get("request")
+        return [
+            request.build_absolute_uri(f.immagine.url) if request else f.immagine.url
+            for f in obj.foto.all()
         ]
 
 
