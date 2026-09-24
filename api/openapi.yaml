@@ -406,6 +406,7 @@ paths:
 
   /acquaioli:
     get:
+      operationId: listaAcquaioli
       summary: Lista della Rubrica acquaioli (Portale operatore)
       security:
         - bearerAuth: []
@@ -418,7 +419,14 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Acquaiolo'
+        '401':
+          description: Autenticazione richiesta
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
     post:
+      operationId: creaAcquaiolo
       summary: Crea un Acquaiolo nella Rubrica (Portale operatore)
       security:
         - bearerAuth: []
@@ -435,9 +443,22 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Acquaiolo'
+        '400':
+          description: Dati non validi
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Autenticazione richiesta
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 
   /acquaioli/{id}:
     patch:
+      operationId: modificaAcquaiolo
       summary: Modifica un Acquaiolo nella Rubrica (Portale operatore)
       security:
         - bearerAuth: []
@@ -467,3 +488,15 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Acquaiolo'
+        '400':
+          description: Dati non validi
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Autenticazione richiesta
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
