@@ -49,6 +49,13 @@ Il mezzo da cui arriva una segnalazione: web app, numero verde, email. Tutte le 
 **Fuori perimetro**:
 Una segnalazione la cui posizione non riguarda il reticolo consortile. Viene rifiutata prima dell'invio e non arriva al Consorzio.
 
+**Categoria**:
+Ciò che il segnalante vede (acqua che esce dal terreno, canale che esonda, canale senz'acqua…), non la causa: chi segnala non vede una condotta, ne vede gli effetti. Ogni segnalazione ne ha una sola.
+_Avoid_: tipo di guasto, causa
+
+**Pericolo**:
+Un rischio immediato dichiarato dal segnalante per persone, strade o edifici. Basta un pericolo per rendere la segnalazione critica; il danno a campi e colture non è un pericolo.
+
 **Operatore**:
 Persona del Consorzio che usa il portale per smistare e gestire le segnalazioni. Ha un account personale creato dall'amministratore: non esiste registrazione. L'acquaiolo non è un operatore.
 
