@@ -1,0 +1,92 @@
+import json
+from types import SimpleNamespace
+
+import pytest
+from google.genai import errors
+
+from contratti import CampoEstratto, EstrazioneNonDisponibile
+from estrazione.services import EstrattoreGemini, estrattore_predefinito
+
+
+class ClientGeminiFinto:
+    """Imita `genai.Client`: registra la richiesta e restituisce `testo` come risposta."""
+
+    def __init__(self, testo=None, errore=None):
+        self.richieste = []
+        self.models = SimpleNamespace(generate_content=self.generate_content)
+        self.testo = testo
+        self.errore = errore
+
+    def generate_content(self, **richiesta):
+        self.richieste.append(richiesta)
+        if self.errore:
+            raise self.errore
+        return SimpleNamespace(text=self.testo)
+
+
+def risposta_gemini(**campi):
+    return json.dumps({"transcript": "C'è acqua che esce dal campo.", "campi": campi})
+
+
+def test_trasforma_la_risposta_di_gemini_in_un_risultato():
+    client = ClientGeminiFinto(
+        risposta_gemini(
+            categoria={"valore": "acqua_che_affiora", "confidenza": 0.9},
+            descrizione={"valore": "Acqua che esce dal campo", "confidenza": 0.8},
+            durata={"valore": None, "confidenza": 0},
+        )
+    )
+
+    risultato = EstrattoreGemini(client, "gemini-3.1-flash-lite").estrai(b"aac", "audio/mp4")
+
+    assert risultato.transcript == "C'è acqua che esce dal campo."
+    assert risultato.campi["categoria"] == CampoEstratto("acqua_che_affiora", 0.9)
+    assert risultato.campi["descrizione"] == CampoEstratto("Acqua che esce dal campo", 0.8)
+    assert risultato.campi["durata"] == CampoEstratto(None, 0.0)
+    assert "durata" in risultato.mancanti
+    [richiesta] = client.richieste
+    assert richiesta["model"] == "gemini-3.1-flash-lite"
+    [audio] = [p for p in richiesta["contents"] if getattr(p, "inline_data", None)]
+    assert audio.inline_data.data == b"aac"
+    assert audio.inline_data.mime_type == "audio/m4a"
+
+
+def test_scarta_i_valori_che_non_rispettano_la_tassonomia():
+    client = ClientGeminiFinto(
+        risposta_gemini(
+            categoria={"valore": "tubo_rotto", "confidenza": 0.9},
+            pericolo_persone={"valore": "si", "confidenza": 1.4},
+            descrizione={"valore": "x" * 600, "confidenza": 0.5},
+            colore={"valore": "blu", "confidenza": 1},
+        )
+    )
+
+    risultato = EstrattoreGemini(client, "m").estrai(b"a", "audio/webm")
+
+    assert risultato.campi["categoria"].valore is None
+    assert "categoria" in risultato.mancanti
+    assert risultato.campi["pericolo_persone"] == CampoEstratto("si", 1.0)
+    assert len(risultato.campi["descrizione"].valore) == 500
+    assert "colore" not in risultato.campi
+
+
+@pytest.mark.parametrize(
+    "client",
+    [
+        ClientGeminiFinto(errore=errors.ServerError(503, {"error": {"message": "overloaded"}})),
+        ClientGeminiFinto(errore=TimeoutError()),
+        ClientGeminiFinto("non è json"),
+        ClientGeminiFinto(json.dumps({"campi": {}})),
+    ],
+    ids=["errore del server", "timeout", "risposta non json", "risposta senza transcript"],
+)
+def test_i_guasti_del_provider_diventano_estrazione_non_disponibile(client):
+    with pytest.raises(EstrazioneNonDisponibile):
+        EstrattoreGemini(client, "m").estrai(b"a", "audio/webm")
+
+
+def test_senza_chiave_gemini_l_estrazione_non_e_disponibile(settings):
+    settings.GEMINI_API_KEY = ""
+
+    with pytest.raises(EstrazioneNonDisponibile):
+        estrattore_predefinito()

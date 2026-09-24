@@ -17,6 +17,8 @@ env = environ.Env(
     DJANGO_ALLOWED_HOSTS=(list, ["localhost", "127.0.0.1"]),
     POSTGRES_HOST=(str, "localhost"),
     POSTGRES_PORT=(int, 5432),
+    GEMINI_API_KEY=(str, ""),
+    GEMINI_MODELLO=(str, "gemini-3.1-flash-lite"),
 )
 environ.Env.read_env(REPO_DIR / ".env")
 
@@ -96,6 +98,10 @@ STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# Estrazione vocale. Senza chiave l'endpoint risponde 503 e l'App passa al form a mano.
+GEMINI_API_KEY = env("GEMINI_API_KEY")
+GEMINI_MODELLO = env("GEMINI_MODELLO")
 
 # API: autenticazione JWT e accesso negato di default. Gli endpoint pubblici
 # (per esempio l'invio di una Segnalazione) lo dichiarano con AllowAny.

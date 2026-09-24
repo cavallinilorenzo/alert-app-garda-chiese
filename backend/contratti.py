@@ -8,6 +8,7 @@ Decisione: https://github.com/cavallinilorenzo/alert-app-garda-chiese/issues/26
 Coordinate sempre in WGS84: latitudine tra -90 e 90, longitudine tra -180 e 180.
 """
 
+from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import Literal, Protocol
 
@@ -85,4 +86,64 @@ class Geo(Protocol):
 
     def reverse_geocode(self, lat: float, lon: float) -> Indirizzo | None:
         """Indirizzo leggibile; None se non esiste. Solleva GeocodingNonDisponibile."""
+        ...
+
+
+# --- Estrazione -------------------------------------------------------------
+
+# Campi che l'Estrattore cerca nell'audio, nell'ordine della checklist vocale
+# (ticket "Tassonomia delle criticità e campi di una segnalazione", #5), con i valori
+# ammessi. `None` = testo libero.
+CAMPI_ESTRAZIONE: Mapping[str, tuple[str, ...] | None] = {
+    "categoria": (
+        "acqua_che_affiora",
+        "canale_che_tracima",
+        "argine_danneggiato",
+        "ostruzione",
+        "paratoia_danneggiata",
+        "acqua_sporca",
+        "altro",
+    ),
+    "descrizione": None,
+    "durata": (
+        "adesso",
+        "meno_di_un_ora",
+        "alcune_ore",
+        "piu_di_un_giorno",
+        "non_so",
+        "non_applicabile",
+    ),
+    "quantita_acqua": ("gocce", "piccolo_flusso", "molta_acqua", "non_so", "non_applicabile"),
+    "pericolo_persone": ("si", "no", "non_so"),
+    "pericolo_strada": ("si", "no", "non_so"),
+    "pericolo_edifici": ("si", "no", "non_so"),
+}
+
+
+@dataclass(frozen=True, slots=True)
+class CampoEstratto:
+    """`valore` è None se il Segnalante non l'ha detto; `confidenza` va da 0 a 1."""
+
+    valore: str | None
+    confidenza: float
+
+
+@dataclass(frozen=True, slots=True)
+class RisultatoEstrazione:
+    transcript: str
+    campi: Mapping[str, CampoEstratto]
+
+    @property
+    def mancanti(self) -> list[str]:
+        """I campi di CAMPI_ESTRAZIONE non detti, da compilare a mano nel form."""
+        return [
+            nome
+            for nome in CAMPI_ESTRAZIONE
+            if (campo := self.campi.get(nome)) is None or campo.valore is None
+        ]
+
+
+class Estrattore(Protocol):
+    def estrai(self, audio: bytes, mime_type: str) -> RisultatoEstrazione:
+        """Solleva EstrazioneNonDisponibile se il provider non risponde."""
         ...
