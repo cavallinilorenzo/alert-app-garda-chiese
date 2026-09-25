@@ -9,7 +9,11 @@ export const CENTRO_COMPRENSORIO = { lat: 45.3906, lng: 10.4868 }
 
 // Un punto sul Fosso Gerra e San Vigilio, in una zona con acquaiolo: dentro il perimetro. È dove
 // si porta il segnaposto chi prova l'App lontano dal Comprensorio (ticket #139).
-export const PUNTO_SUL_RETICOLO = { lat: 45.37939, lng: 10.5037 }
+export const PUNTI_SUL_RETICOLO = [
+  { lat: 45.37939, lng: 10.5037 }, // Fosso Gerra e San Vigilio
+  { lat: 45.3905, lng: 10.4870 }, // Castiglione
+  { lat: 45.3190, lng: 10.5800 }, // Guidizzolo
+]
 
 // Il Reticolo consortile disegnato sotto il segnaposto, per aiutare a trovare il canale giusto.
 const LAYER_RETICOLO = ['reticolo_principale', 'canale', 'condotta'] as const
