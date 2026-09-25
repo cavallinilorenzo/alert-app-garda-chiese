@@ -580,6 +580,16 @@ export function Scheda({ s, onChiudi, onApri, daMappa, ritardo }: PropsScheda) {
             <PrioritaChip key={s.id} s={s} />
             <StatoPill s={s} />
             <span className="codice">{s.codice_pratica}</span>
+            <a
+              href={`/stato/${encodeURIComponent(s.token_stato)}`}
+              target="_blank"
+              rel="noreferrer"
+              className="btn-icona"
+              title="Apri pagina di stato"
+              style={{ marginLeft: '4px' }}
+            >
+              <Icona nome="open_in_new" />
+            </a>
           </div>
           <h1>{titolo(s)}</h1>
           <div className="quando">

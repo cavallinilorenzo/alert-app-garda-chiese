@@ -29,6 +29,8 @@ export type Bozza = {
   perimetro: EsitoPerimetro | null
   /** La foto del problema, già ridotta per l'invio. */
   foto: File | null
+  /** True se la foto selezionata è un'immagine d'esempio, in modo da non mostrare chip AI errati. */
+  fotoIsEsempio: boolean
   /** I campi visti nella foto da `/estrazione/foto`; vuoto se non si vede niente o non si è potuta controllare. */
   campiFoto: Campi
   /** Le risposte, dette a voce o scelte a mano. */
@@ -50,6 +52,7 @@ const VUOTA: Bozza = {
   posizione: null,
   perimetro: null,
   foto: null,
+  fotoIsEsempio: false,
   campiFoto: {},
   campi: {},
   estrazione: null,
