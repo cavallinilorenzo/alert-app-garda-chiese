@@ -7,23 +7,9 @@ import type { Posizione } from './bozza'
 // Centro del Comprensorio, per chi sceglie il punto senza GPS.
 export const CENTRO_COMPRENSORIO = { lat: 45.3906, lng: 10.4868 }
 
-// Un punto sul Fosso Gerra e San Vigilio, in una zona con acquaiolo: dentro il perimetro. È dove
-// si porta il segnaposto chi prova l'App lontano dal Comprensorio (ticket #139).
-export const PUNTI_SUL_RETICOLO = [
-  { lat: 45.37939, lng: 10.5037 }, // Fosso Gerra e San Vigilio
-  { lat: 45.3905, lng: 10.4870 }, // Castiglione
-  { lat: 45.3190, lng: 10.5800 }, // Guidizzolo
-  { lat: 45.2700818, lng: 10.6455862 },
-  { lat: 45.2005070, lng: 10.5573991 },
-  { lat: 45.2231775, lng: 10.5181649 },
-  { lat: 45.2022467, lng: 10.4752855 },
-  { lat: 45.1596854, lng: 10.4953948 },
-  { lat: 45.2481123, lng: 10.4869193 },
-  { lat: 45.2193278, lng: 10.5265013 },
-  { lat: 45.2215462, lng: 10.4906921 },
-  { lat: 45.2033080, lng: 10.4674431 },
-  { lat: 45.1589782, lng: 10.5121460 },
-]
+// Fallback per chi prova l'App lontano dal Comprensorio, usato solo se il GeoJSON non è
+// ancora disponibile (errore di rete). In condizioni normali non viene mai usato.
+const FALLBACK_SUL_RETICOLO = { lat: 45.37939, lng: 10.5037 }
 
 // Il Reticolo consortile disegnato sotto il segnaposto, per aiutare a trovare il canale giusto.
 const LAYER_RETICOLO = ['reticolo_principale', 'canale', 'condotta'] as const
@@ -52,42 +38,66 @@ function caricaReticolo() {
   return reticolo
 }
 
-function haversineDist(lat1: number, lon1: number, lat2: number, lon2: number) {
-  const p = Math.PI / 180
-  const c = Math.cos
-  const a = 0.5 - c((lat2 - lat1) * p) / 2 + c(lat1 * p) * c(lat2 * p) * (1 - c((lon2 - lon1) * p)) / 2
-  return 12742 * Math.asin(Math.sqrt(a))
+// --- Punto più vicino sul reticolo -------------------------------------------
+// Proietta il punto P sul segmento AB e restituisce il punto più vicino sul segmento
+// e la distanza al quadrato (in coordinate piane, basta per il confronto).
+
+function proiettaSuSegmento(
+  pLat: number, pLng: number,
+  aLat: number, aLng: number,
+  bLat: number, bLng: number,
+) {
+  const dx = bLng - aLng
+  const dy = bLat - aLat
+  const len2 = dx * dx + dy * dy
+  // Segmento degenere (punto): restituisci A.
+  if (len2 === 0) {
+    const d = (pLng - aLng) ** 2 + (pLat - aLat) ** 2
+    return { lat: aLat, lng: aLng, d2: d }
+  }
+  // t è la posizione della proiezione lungo il segmento, clampata in [0, 1].
+  const t = Math.max(0, Math.min(1, ((pLng - aLng) * dx + (pLat - aLat) * dy) / len2))
+  const projLng = aLng + t * dx
+  const projLat = aLat + t * dy
+  const d2 = (pLng - projLng) ** 2 + (pLat - projLat) ** 2
+  return { lat: projLat, lng: projLng, d2 }
+}
+
+function cercaNellaLinea(
+  coords: number[][],
+  pLat: number, pLng: number,
+  best: { lat: number; lng: number; d2: number },
+) {
+  for (let i = 0; i < coords.length - 1; i++) {
+    const [aLng, aLat] = coords[i]
+    const [bLng, bLat] = coords[i + 1]
+    const proj = proiettaSuSegmento(pLat, pLng, aLat, aLng, bLat, bLng)
+    if (proj.d2 < best.d2) {
+      best.lat = proj.lat
+      best.lng = proj.lng
+      best.d2 = proj.d2
+    }
+  }
 }
 
 export async function puntoPiuVicinoSulReticolo(posizione: { lat: number; lng: number }) {
   const data = await caricaReticolo()
-  let minD = Infinity
-  let best = PUNTI_SUL_RETICOLO[0]
+  const best = { lat: FALLBACK_SUL_RETICOLO.lat, lng: FALLBACK_SUL_RETICOLO.lng, d2: Infinity }
 
   for (const [, fc] of data) {
     for (const f of fc.features) {
-      if (f.geometry.type === 'LineString') {
-        for (const [lng, lat] of f.geometry.coordinates) {
-          const d = haversineDist(posizione.lat, posizione.lng, lat, lng)
-          if (d < minD) {
-            minD = d
-            best = { lat, lng }
-          }
-        }
-      } else if (f.geometry.type === 'MultiLineString') {
-        for (const line of f.geometry.coordinates) {
-          for (const [lng, lat] of line) {
-            const d = haversineDist(posizione.lat, posizione.lng, lat, lng)
-            if (d < minD) {
-              minD = d
-              best = { lat, lng }
-            }
-          }
+      const g = f.geometry
+      if (!g) continue
+      if (g.type === 'LineString') {
+        cercaNellaLinea(g.coordinates as number[][], posizione.lat, posizione.lng, best)
+      } else if (g.type === 'MultiLineString') {
+        for (const line of g.coordinates as number[][][]) {
+          cercaNellaLinea(line, posizione.lat, posizione.lng, best)
         }
       }
     }
   }
-  return best
+  return { lat: best.lat, lng: best.lng }
 }
 
 const ICONA_SEGNAPOSTO = L.divIcon({

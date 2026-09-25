@@ -43,6 +43,8 @@ export function Foto() {
   const [anteprima, setAnteprima] = useState<string | null>(null)
   // Le foto d'esempio al posto dell'anteprima, per cambiare la foto già scelta.
   const [galleria, setGalleria] = useState(false)
+  // La foto attuale è un esempio precaricato: non mostrare il chip AI "Sembra: …".
+  const [isEsempio, setIsEsempio] = useState(false)
 
   useEffect(() => {
     if (!bozza.foto) return setAnteprima(null)
@@ -56,6 +58,7 @@ export function Foto() {
     if (!file) return
     setScartata(null)
     setGalleria(false)
+    setIsEsempio(!!esempio)
     setAttesa('Preparo la foto…')
     const foto = await riduci(file)
     setAttesa('Controllo la foto…')
@@ -126,11 +129,15 @@ export function Foto() {
       ) : conAnteprima ? (
         <div className="foto">
           <img src={anteprima} alt="Foto del problema" />
-          {vista && (
+          {isEsempio ? (
+            <p className="chip">
+              <Icona n="photo_library" /> Foto d'esempio
+            </p>
+          ) : vista ? (
             <p className="chip">
               <Icona n="auto_awesome" /> Sembra: {vista.etichetta.toLowerCase()}
             </p>
-          )}
+          ) : null}
         </div>
       ) : (
         <>
