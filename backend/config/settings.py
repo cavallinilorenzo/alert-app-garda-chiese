@@ -29,8 +29,8 @@ env = environ.Env(
     EMAIL_USE_TLS=(bool, True),
     EMAIL_HOST_USER=(str, ""),
     EMAIL_HOST_PASSWORD=(str, ""),
-    EMAIL_NOTIFICATION_RECIPIENT=(str, "garda-chiese-alert@outlook.it"),
-    DEFAULT_FROM_EMAIL=(str, "garda-chiese-alert@outlook.it"),
+    EMAIL_NOTIFICATION_RECIPIENT=(str, ""),
+    DEFAULT_FROM_EMAIL=(str, ""),
 )
 environ.Env.read_env(REPO_DIR / ".env")
 
