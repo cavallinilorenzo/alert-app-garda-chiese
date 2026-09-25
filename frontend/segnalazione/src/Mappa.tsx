@@ -13,6 +13,16 @@ export const PUNTI_SUL_RETICOLO = [
   { lat: 45.37939, lng: 10.5037 }, // Fosso Gerra e San Vigilio
   { lat: 45.3905, lng: 10.4870 }, // Castiglione
   { lat: 45.3190, lng: 10.5800 }, // Guidizzolo
+  { lat: 45.2700818, lng: 10.6455862 },
+  { lat: 45.2005070, lng: 10.5573991 },
+  { lat: 45.2231775, lng: 10.5181649 },
+  { lat: 45.2022467, lng: 10.4752855 },
+  { lat: 45.1596854, lng: 10.4953948 },
+  { lat: 45.2481123, lng: 10.4869193 },
+  { lat: 45.2193278, lng: 10.5265013 },
+  { lat: 45.2215462, lng: 10.4906921 },
+  { lat: 45.2033080, lng: 10.4674431 },
+  { lat: 45.1589782, lng: 10.5121460 },
 ]
 
 // Il Reticolo consortile disegnato sotto il segnaposto, per aiutare a trovare il canale giusto.
@@ -40,6 +50,44 @@ function caricaReticolo() {
     throw errore
   })
   return reticolo
+}
+
+function haversineDist(lat1: number, lon1: number, lat2: number, lon2: number) {
+  const p = Math.PI / 180
+  const c = Math.cos
+  const a = 0.5 - c((lat2 - lat1) * p) / 2 + c(lat1 * p) * c(lat2 * p) * (1 - c((lon2 - lon1) * p)) / 2
+  return 12742 * Math.asin(Math.sqrt(a))
+}
+
+export async function puntoPiuVicinoSulReticolo(posizione: { lat: number; lng: number }) {
+  const data = await caricaReticolo()
+  let minD = Infinity
+  let best = PUNTI_SUL_RETICOLO[0]
+
+  for (const [, fc] of data) {
+    for (const f of fc.features) {
+      if (f.geometry.type === 'LineString') {
+        for (const [lng, lat] of f.geometry.coordinates) {
+          const d = haversineDist(posizione.lat, posizione.lng, lat, lng)
+          if (d < minD) {
+            minD = d
+            best = { lat, lng }
+          }
+        }
+      } else if (f.geometry.type === 'MultiLineString') {
+        for (const line of f.geometry.coordinates) {
+          for (const [lng, lat] of line) {
+            const d = haversineDist(posizione.lat, posizione.lng, lat, lng)
+            if (d < minD) {
+              minD = d
+              best = { lat, lng }
+            }
+          }
+        }
+      }
+    }
+  }
+  return best
 }
 
 const ICONA_SEGNAPOSTO = L.divIcon({

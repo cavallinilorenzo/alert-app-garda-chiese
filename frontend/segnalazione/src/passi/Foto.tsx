@@ -62,7 +62,6 @@ export function Foto() {
     
     let analisi
     if (esempio) {
-      await new Promise(r => setTimeout(r, 600)) // Simula attesa per feedback utente
       analisi = esempio.analisi
     } else {
       analisi = await analizzaFoto(foto)
