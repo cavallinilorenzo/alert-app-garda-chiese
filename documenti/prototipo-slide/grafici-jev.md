@@ -4,6 +4,7 @@ Screenshot del grafico "Mean accuracy vs cost and time" di https://evals.typesaf
 
 - `grafico-jev-costo.png`: precisione contro costo per caso (USD, scala logaritmica)
 - `grafico-jev-tempo.png`: precisione contro secondi per caso (scala logaritmica)
+- `grafico-jev-costo-bianco.png`, `grafico-jev-tempo-bianco.png`: gli stessi grafici col tema chiaro del sito (`data-theme="light"`), sfondo portato a bianco pieno e bordo tolto. I dati non sono toccati.
 
 ## Cosa misura
 
