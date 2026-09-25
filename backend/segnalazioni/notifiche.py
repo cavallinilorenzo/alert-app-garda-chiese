@@ -48,6 +48,4 @@ def invia_email_nuova_segnalazione(segnalazione: Segnalazione) -> None:
             fail_silently=False,
         )
     except Exception:
-        logger.exception(
-            "Invio email fallito per la Segnalazione %s", segnalazione.codice_pratica
-        )
+        logger.exception("Invio email fallito per la Segnalazione %s", segnalazione.codice_pratica)

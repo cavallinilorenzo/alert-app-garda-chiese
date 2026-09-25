@@ -43,8 +43,7 @@ export function Foto() {
   const [anteprima, setAnteprima] = useState<string | null>(null)
   // Le foto d'esempio al posto dell'anteprima, per cambiare la foto già scelta.
   const [galleria, setGalleria] = useState(false)
-  // La foto attuale è un esempio precaricato: non mostrare il chip AI "Sembra: …".
-  const [isEsempio, setIsEsempio] = useState(false)
+  const isEsempio = bozza.fotoIsEsempio
 
   useEffect(() => {
     if (!bozza.foto) return setAnteprima(null)
@@ -58,7 +57,6 @@ export function Foto() {
     if (!file) return
     setScartata(null)
     setGalleria(false)
-    setIsEsempio(!!esempio)
     setAttesa('Preparo la foto…')
     const foto = await riduci(file)
     setAttesa('Controllo la foto…')
@@ -73,11 +71,11 @@ export function Foto() {
     setAttesa(null)
     // Una foto che non c'entra non si tiene: si chiede subito di rifarla.
     if (analisi && !analisi.pertinente && !esempio) {
-      aggiorna({ foto: null, campi: conCampiFoto(bozza.campi, bozza.campiFoto, {}), campiFoto: {} })
+      aggiorna({ foto: null, fotoIsEsempio: false, campi: conCampiFoto(bozza.campi, bozza.campiFoto, {}), campiFoto: {} })
       return setScartata(analisi.motivo ?? 'La foto non sembra mostrare il problema.')
     }
     const campiFoto = (analisi?.pertinente && analisi.campi) || {}
-    aggiorna({ foto, campi: conCampiFoto(bozza.campi, bozza.campiFoto, campiFoto), campiFoto })
+    aggiorna({ foto, fotoIsEsempio: !!esempio, campi: conCampiFoto(bozza.campi, bozza.campiFoto, campiFoto), campiFoto })
   }
 
   async function usaEsempio(esempio: FotoEsempio) {

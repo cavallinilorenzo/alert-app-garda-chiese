@@ -42,6 +42,7 @@ components:
       value:
         id: 123
         codice_pratica: "GCH-4B29"
+        token_stato: "550e8400-e29b-41d4-a716-446655440000"
         stato_corrente: "in_verifica"
         esito: ""
         priorita: "alta"
@@ -287,6 +288,7 @@ components:
       required:
         - id
         - codice_pratica
+        - token_stato
         - stato_corrente
         - esito
         - priorita
@@ -327,6 +329,8 @@ components:
         id:
           type: integer
         codice_pratica:
+          type: string
+        token_stato:
           type: string
         stato_corrente:
           $ref: '#/components/schemas/Stato'

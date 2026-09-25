@@ -5,13 +5,12 @@
 <h1 align="center">💧 Garda Chiese Alert App</h1>
 
 <p align="center">
-  <i>A unified platform for citizen reporting and infrastructure triage.<br/>Developed with ❤️ for the <a href="https://www.unimn.it/hackathon-acquam-mantova/"><strong>ACQUAM</strong> Hackathon.</i></a>
+  <i>A unified platform for citizen reporting and infrastructure triage.<br/>Developed with ❤️ for the <a href="https://www.unimn.it/hackathon-acquam-mantova/" target="_blank" rel="noopener noreferrer"><strong>ACQUAM</strong> Hackathon.</i></a>
 </p>
 
 <p align="center">
   <a href="#-about-the-project"><strong>About</strong></a> ·
   <a href="#-key-features"><strong>Features</strong></a> ·
-  <a href="#-public-access"><strong>Live Site</strong></a> ·
   <a href="#-local-setup--hosting"><strong>Local Setup</strong></a> ·
   <a href="#-architecture"><strong>Architecture</strong></a>
 </p>

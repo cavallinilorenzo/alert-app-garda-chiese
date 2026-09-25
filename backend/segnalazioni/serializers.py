@@ -174,6 +174,7 @@ class SegnalazioneDetailSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "codice_pratica",
+            "token_stato",
             "stato_corrente",
             "esito",
             "priorita",

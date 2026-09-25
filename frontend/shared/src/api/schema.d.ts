@@ -847,6 +847,7 @@ export interface components {
         SegnalazioneDettaglio: {
             id: number;
             codice_pratica: string;
+            token_stato: string;
             stato_corrente: components["schemas"]["Stato"];
             /**
              * @description Vuoto finché la Segnalazione non è Chiusa.
