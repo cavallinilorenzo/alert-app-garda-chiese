@@ -1,0 +1,333 @@
+<!doctype html>
+<!--
+  PROTOTIPO USA E GETTA — ticket "Prototipo del testo delle slide" (#152).
+  Non è il deck: serve solo ad approvare testo e impaginazione delle 7 slide
+  prima di generarle su Canva. Stile preso dagli esempi di Lorenzo
+  (blu notte, una parola in giallo, frecce gialle, sticker 3D, logo in basso a sinistra).
+  Gli emoji stanno al posto degli sticker 3D di Canva.
+  Si apre con un doppio clic.
+-->
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<title>PROTOTIPO · Slide Hack4Water Alert</title>
+<style>
+  :root {
+    --notte: #130F5C;      /* sfondo delle slide scure, come negli esempi */
+    --card: #1C1983;       /* riquadro in rilievo */
+    --giallo: #F2B84B;     /* parola in evidenza, frecce, numeri */
+    --bianco: #FFFFFF;
+    --inchiostro: #0B0B12;
+    --grigio: #6B6F80;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Inter", -apple-system, "Helvetica Neue", Arial, sans-serif;
+    background: #EEF0F4; color: var(--inchiostro);
+    padding: 24px 24px 80px;
+  }
+  header.pagina { max-width: 1500px; margin: 0 auto 24px; }
+  header.pagina h1 { font-size: 20px; }
+  header.pagina p { color: var(--grigio); font-size: 14px; margin-top: 4px; }
+  .barra {
+    position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%);
+    background: #111; color: #fff; border-radius: 999px; padding: 10px 18px;
+    font-size: 13px; display: flex; gap: 18px; align-items: center; z-index: 10;
+    box-shadow: 0 6px 24px rgba(0,0,0,.25);
+  }
+  .barra label { display: flex; gap: 6px; align-items: center; cursor: pointer; }
+
+  .riga {
+    max-width: 1500px; margin: 0 auto 40px;
+    display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 24px; align-items: start;
+  }
+  .scheda { background: #fff; border-radius: 12px; padding: 18px 20px; font-size: 13.5px; line-height: 1.45; }
+  .scheda h2 { font-size: 15px; margin-bottom: 10px; }
+  .scheda h2 span { color: var(--grigio); font-weight: 500; }
+  .scheda dt { font-weight: 700; margin-top: 8px; }
+  .scheda dd { color: #333; }
+  .scheda .dubbio { margin-top: 12px; background: #FFF6E3; border-left: 3px solid var(--giallo); padding: 8px 10px; border-radius: 6px; }
+
+  /* La slide: 16:9, dimensioni in cqw così scala con la larghezza. */
+  .slide {
+    aspect-ratio: 16 / 9; width: 100%; position: relative; overflow: hidden;
+    container-type: inline-size; border-radius: 6px;
+    box-shadow: 0 10px 30px rgba(19,15,92,.18);
+    background: var(--notte); color: var(--bianco);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    font-weight: 800;
+  }
+  .slide.chiara { background: var(--bianco); color: var(--inchiostro); }
+  .g { color: var(--giallo); }
+  .logo-bl { position: absolute; left: 3.2cqw; bottom: 3cqw; height: 3.6cqw; }
+  .logo-top { position: absolute; top: 5cqw; left: 50%; transform: translateX(-50%); height: 4.6cqw; }
+  .sticker { position: absolute; font-size: 9cqw; line-height: 1; filter: drop-shadow(0 .6cqw .8cqw rgba(0,0,0,.35)); }
+
+  /* L'onda del Portale, accendibile dalla barra in basso. */
+  .onda { display: none; position: absolute; left: 0; right: 0; bottom: 0; height: 16cqw; pointer-events: none; }
+  body.con-onda .slide:not(.chiara) .onda { display: block; }
+
+  /* 1 · Titolo */
+  .titolo-grande { font-size: 9.5cqw; line-height: .98; text-align: center; letter-spacing: -.02em; }
+  .sotto { font-size: 1.9cqw; font-weight: 600; margin-top: 2.4cqw; opacity: .95; }
+  .acquam { font-size: 1.2cqw; font-weight: 600; letter-spacing: .3em; opacity: .6; margin-top: 1cqw; }
+  .team { position: absolute; bottom: 4.2cqw; text-align: center; font-size: 1.35cqw; }
+  .team b { display: block; font-size: 1.35cqw; margin-bottom: .6cqw; letter-spacing: .1em; }
+  .team span { font-weight: 600; margin: 0 1cqw; }
+
+  /* 2 · QR */
+  .qr-riga { display: flex; align-items: center; gap: 6cqw; }
+  .qr-box { background: #fff; border-radius: 2cqw; padding: 1.6cqw; width: 26cqw; box-shadow: 0 1cqw 3cqw rgba(0,0,0,.35); }
+  .qr-box img { width: 100%; display: block; }
+  .qr-testo h3 { font-size: 6.4cqw; line-height: 1; letter-spacing: -.02em; }
+  .qr-testo p { font-size: 2.2cqw; font-weight: 600; margin-top: 2cqw; }
+  .qr-testo .url { font-size: 1.6cqw; opacity: .7; margin-top: 1.2cqw; font-weight: 500; }
+
+  /* 3 · 4 · riquadro con le cinque domande */
+  .titolo-slide { font-size: 4.6cqw; letter-spacing: -.01em; }
+  .sottotitolo { font-size: 1.7cqw; font-weight: 600; opacity: .8; margin-top: .8cqw; }
+  .cinque { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1.6cqw; margin-top: 4cqw; width: 86cqw; }
+  .casella {
+    background: var(--card); border-radius: 2cqw; padding: 2.6cqw 1.4cqw; text-align: center;
+    box-shadow: 0 1cqw 2.4cqw rgba(0,0,0,.3); min-height: 19cqw;
+    display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 1.2cqw;
+  }
+  .casella .d { font-size: 2.9cqw; }
+  .casella .w { font-size: 2.3cqw; color: var(--giallo); }
+  .casella .ico { font-size: 4.4cqw; line-height: 1; }
+  .casella .r { font-size: 1.55cqw; line-height: 1.2; font-weight: 700; }
+  .domanda-fondo { font-size: 1.6cqw; font-weight: 600; margin-top: 3cqw; opacity: .8; }
+  .domanda-fondo .freccia { color: var(--giallo); margin-right: .8cqw; }
+
+  /* 5 · Demo */
+  .demo h3 { font-size: 8cqw; letter-spacing: -.02em; text-align: center; }
+  .demo p { font-size: 2cqw; font-weight: 600; text-align: center; margin-top: 2cqw; opacity: .85; }
+  .flusso { display: flex; gap: 2cqw; align-items: center; justify-content: center; margin-top: 3cqw; font-size: 2.2cqw; }
+  .flusso .pill { background: var(--card); padding: 1.2cqw 2.4cqw; border-radius: 99cqw; }
+
+  /* 6 · Cosa viene dopo (slide chiara, come "Punti di forza") */
+  .dopo { position: absolute; inset: 0; padding: 7cqw 7cqw 0; }
+  .dopo h3 { font-size: 5cqw; letter-spacing: -.01em; }
+  .quattro { display: grid; grid-template-columns: repeat(4, 1fr); gap: 3cqw; margin-top: 4.4cqw; }
+  .futura .ico { font-size: 4.6cqw; }
+  .futura .etichetta { font-size: 1.5cqw; font-weight: 500; color: #333; margin-top: 1cqw; }
+  .futura .nome { font-size: 3cqw; line-height: 1.05; margin-top: .4cqw; letter-spacing: -.01em; white-space: nowrap; }
+  .futura .forte { font-size: 1.45cqw; font-weight: 600; line-height: 1.3; margin-top: 1.2cqw; color: #222; }
+  .futura .piccolo { font-size: 1.2cqw; font-weight: 600; color: var(--giallo); margin-top: .8cqw; }
+
+  /* 7 · Chiusura */
+  .grazie { font-size: 12cqw; letter-spacing: -.03em; }
+  .chiusura-sotto { font-size: 2.4cqw; font-weight: 600; margin-top: 1cqw; }
+</style>
+</head>
+<body>
+
+<header class="pagina">
+  <h1>PROTOTIPO · le 7 slide di Hack4Water Alert</h1>
+  <p>Stile preso dai tuoi esempi. Gli emoji stanno al posto degli sticker 3D di Canva. Accanto a ogni slide: testo, sticker, immagini, logo, QR e tempo. I box gialli sono le domande ancora aperte.</p>
+</header>
+
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <linearGradient id="gOnda" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2E6BD8" stop-opacity=".55"/>
+      <stop offset="1" stop-color="#1C1983" stop-opacity=".9"/>
+    </linearGradient>
+    <symbol id="onda" viewBox="0 0 1600 260" preserveAspectRatio="none">
+      <path d="M0 150 C 200 60, 380 60, 560 140 S 940 230, 1120 130 S 1440 40, 1600 110 V260 H0Z" fill="url(#gOnda)"/>
+      <path d="M0 200 C 240 140, 460 150, 700 200 S 1180 250, 1600 170 V260 H0Z" fill="#130F5C" opacity=".6"/>
+    </symbol>
+  </defs>
+</svg>
+
+<!-- 1 · TITOLO -->
+<div class="riga">
+  <div class="slide">
+    <img class="logo-top" src="logo-scuro.png" alt="Garda Chiese">
+    <div class="titolo-grande">HACK4WATER<br><span class="g">ALERT</span></div>
+    <div class="sotto">Challenge Consorzio di bonifica Garda Chiese · Settembre 2026</div>
+    <div class="acquam">ACQUAM 2026</div>
+    <div class="team"><b>TEAM</b><span>Lorenzo Cavallini</span><span>Matteo Benassi</span><span>Simone Trentin</span></div>
+    <div class="sticker" style="left:9cqw; top:52%">💧</div>
+    <div class="sticker" style="right:9cqw; top:16%">📱</div>
+    <svg class="onda"><use href="#onda"/></svg>
+  </div>
+  <dl class="scheda">
+    <h2>1 · Titolo <span>~0:15</span></h2>
+    <dt>Testo</dt><dd>"HACK4WATER" bianco + "ALERT" giallo; sotto la riga della challenge; "ACQUAM 2026" piccolo e spaziato; "TEAM" e i tre nomi in basso.</dd>
+    <dt>Sticker 3D</dt><dd>Goccia d'acqua (sinistra, in basso) e telefono (destra, in alto), come calendario e finestra web nel tuo esempio.</dd>
+    <dt>Immagini</dt><dd>Nessuna.</dd>
+    <dt>Logo</dt><dd>In alto al centro, versione bianca (<code>logo-scuro.png</code>).</dd>
+    <dt>QR</dt><dd>No.</dd>
+  </dl>
+</div>
+
+<!-- 2 · QR -->
+<div class="riga">
+  <div class="slide">
+    <div class="qr-riga">
+      <div class="qr-testo">
+        <h3>Prova <span class="g">tu</span></h3>
+        <p>Inquadra e manda una Segnalazione<br>mentre parliamo</p>
+        <div class="url">garda-chiese.simonetrentin.me</div>
+      </div>
+      <div class="qr-box"><img src="qr.svg" alt="QR code"></div>
+    </div>
+    <div class="sticker" style="left:6cqw; top:8cqw; font-size:7cqw">📸</div>
+    <img class="logo-bl" src="logo-scuro.png" alt="Garda Chiese">
+    <svg class="onda"><use href="#onda"/></svg>
+  </div>
+  <dl class="scheda">
+    <h2>2 · QR <span>~0:15</span></h2>
+    <dt>Testo</dt><dd>"Prova <b>tu</b>" (tu in giallo); una riga su cosa fare; l'indirizzo in piccolo per chi non inquadra.</dd>
+    <dt>Sticker 3D</dt><dd>Fotocamera in alto a sinistra.</dd>
+    <dt>Immagini</dt><dd>Nessuna.</dd>
+    <dt>Logo</dt><dd>In basso a sinistra, come nei tuoi esempi 2 e 3. Da qui in poi è sempre lì.</dd>
+    <dt>QR</dt><dd>A destra, grande, su un riquadro bianco (vero: porta a https://garda-chiese.simonetrentin.me). Su Canva va caricato a mano.</dd>
+  </dl>
+</div>
+
+<!-- 3 · IL PROBLEMA -->
+<div class="riga">
+  <div class="slide">
+    <div class="titolo-slide">IL <span class="g">PROBLEMA</span></div>
+    <div class="cinque">
+      <div class="casella"><div class="d">DOVE?</div><div class="w">Posizione</div></div>
+      <div class="casella"><div class="d">COSA?</div><div class="w">Criticità</div></div>
+      <div class="casella"><div class="d">QUANTO?</div><div class="w">Priorità</div></div>
+      <div class="casella"><div class="d">PROVE?</div><div class="w">Foto</div></div>
+      <div class="casella"><div class="d">STATO?</div><div class="w">Esito</div></div>
+    </div>
+    <div class="domanda-fondo"><span class="freccia">➜</span>Semplice per chi segnala, utile per il Consorzio</div>
+    <img class="logo-bl" src="logo-scuro.png" alt="Garda Chiese">
+    <svg class="onda"><use href="#onda"/></svg>
+  </div>
+  <dl class="scheda">
+    <h2>3 · Il problema <span>~0:45</span></h2>
+    <dt>Testo</dt><dd>"IL <b>PROBLEMA</b>" come nel tuo esempio 2. Cinque caselle con le loro parole dal deck della challenge: domanda bianca, parola gialla. In fondo, dopo la freccia gialla, la loro domanda accorciata.</dd>
+    <dt>Sticker / immagini</dt><dd>Nessuno: le caselle vuote rendono più forte la slide 4.</dd>
+    <dt>Logo</dt><dd>In basso a sinistra.</dd>
+    <div class="dubbio">La riga in fondo: accorciata così, o intera come nel loro deck ("Come rendere la segnalazione semplice per l'utente e utile per la struttura operativa?")? Il vincolo del reticolo consortile lo diciamo solo a voce?</div>
+  </dl>
+</div>
+
+<!-- 4 · COSA ABBIAMO FATTO -->
+<div class="riga">
+  <div class="slide">
+    <div class="titolo-slide">COSA ABBIAMO <span class="g">FATTO</span></div>
+    <div class="sottotitolo">App di segnalazione + Portale operatore</div>
+    <div class="cinque">
+      <div class="casella"><div class="d">DOVE?</div><div class="ico">📍</div><div class="r">GPS + solo sul reticolo</div></div>
+      <div class="casella"><div class="d">COSA?</div><div class="ico">🎙️</div><div class="r">Lo racconti a voce, l'AI compila</div></div>
+      <div class="casella"><div class="d">QUANTO?</div><div class="ico">🚦</div><div class="r">Priorità automatica<br><span class="g">pericolo → numero verde</span></div></div>
+      <div class="casella"><div class="d">PROVE?</div><div class="ico">📷</div><div class="r">Foto verificata dall'AI</div></div>
+      <div class="casella"><div class="d">STATO?</div><div class="ico">🔗</div><div class="r">Codice pratica e link di stato, senza account</div></div>
+    </div>
+    <img class="logo-bl" src="logo-scuro.png" alt="Garda Chiese">
+    <svg class="onda"><use href="#onda"/></svg>
+  </div>
+  <dl class="scheda">
+    <h2>4 · Cosa abbiamo fatto <span>~0:45</span></h2>
+    <dt>Testo</dt><dd>Stessa griglia della 3: al posto della parola gialla, un'icona e la nostra frase corta. Sottotitolo "App di segnalazione + Portale operatore". Sempre "AI", mai "Gemini".</dd>
+    <dt>Sticker 3D</dt><dd>Uno per casella: segnaposto, microfono, semaforo, fotocamera, link/spunta.</dd>
+    <dt>Immagini</dt><dd>Nessuna: gli screenshot li mostra la demo.</dd>
+    <dt>Logo</dt><dd>In basso a sinistra.</dd>
+    <div class="dubbio">In "QUANTO?" la seconda riga è in giallo per farla risaltare: va bene, o tutto bianco come le altre?</div>
+  </dl>
+</div>
+
+<!-- 5 · DEMO -->
+<div class="riga">
+  <div class="slide demo">
+    <h3>Passiamo alla <span class="g">demo</span></h3>
+    <div class="flusso"><span class="pill">📱 App di segnalazione</span><span class="g">➜</span><span class="pill">🖥️ Portale operatore</span></div>
+    <p>Una Segnalazione, dall'inizio alla fine</p>
+    <div class="sticker" style="right:8cqw; top:9cqw; font-size:8cqw">🚀</div>
+    <img class="logo-bl" src="logo-scuro.png" alt="Garda Chiese">
+    <svg class="onda"><use href="#onda"/></svg>
+  </div>
+  <dl class="scheda">
+    <h2>5 · Demo <span>~4:00</span></h2>
+    <dt>Testo</dt><dd>"Passiamo alla <b>demo</b>"; due pillole App ➜ Portale; una riga sotto.</dd>
+    <dt>Sticker 3D</dt><dd>Razzo in alto a destra (o un play).</dd>
+    <dt>Immagini</dt><dd>Nessuna: dopo questa slide si passa al portatile.</dd>
+    <dt>Logo</dt><dd>In basso a sinistra.</dd>
+  </dl>
+</div>
+
+<!-- 6 · COSA VIENE DOPO (chiara, come "Punti di forza") -->
+<div class="riga">
+  <div class="slide chiara">
+    <div class="dopo">
+      <h3>Cosa viene <span class="g">dopo</span></h3>
+      <div class="quattro">
+        <div class="futura">
+          <div class="ico">🧠</div>
+          <div class="etichetta">L'AI che capisce</div>
+          <div class="nome">JEV</div>
+          <div class="forte">La categoria non esce mai dalle 9 previste. Se non è sicura, chiede conferma.</div>
+          <div class="piccolo">meno di 1 € l'anno</div>
+        </div>
+        <div class="futura">
+          <div class="ico">☎️</div>
+          <div class="etichetta">Chatbot vocale</div>
+          <div class="nome">Numero <span class="g">verde</span></div>
+          <div class="forte">Al primo pericolo, subito un operatore umano. Anche chi non usa lo smartphone segnala.</div>
+        </div>
+        <div class="futura">
+          <div class="ico">📡</div>
+          <div class="etichetta">Sensori di pressione</div>
+          <div class="nome">Condotte</div>
+          <div class="forte">La Condotta ci avvisa da sola, prima che l'acqua affiori.</div>
+        </div>
+        <div class="futura">
+          <div class="ico">📊</div>
+          <div class="etichetta">Pianificazione</div>
+          <div class="nome">Statistiche</div>
+          <div class="forte">Ogni Segnalazione chiusa è già un dato: dove, cosa, com'è finita.</div>
+        </div>
+      </div>
+    </div>
+    <img class="logo-bl" src="logo.png" alt="Garda Chiese">
+  </div>
+  <dl class="scheda">
+    <h2>6 · Cosa viene dopo <span>~1:30</span></h2>
+    <dt>Testo</dt><dd>Slide chiara come il tuo esempio "Punti di forza": etichetta piccola sopra, nome grande, dato forte sotto. Ordine capire → ascoltare → prevenire → pianificare. Il costo di JEV in piccolo e in giallo.</dd>
+    <dt>Sticker 3D</dt><dd>Cervello, telefono, antenna/sensore, grafico: uno per colonna.</dd>
+    <dt>Immagini</dt><dd>Nessuna.</dd>
+    <dt>Logo</dt><dd>In basso a sinistra, versione a colori (<code>logo.png</code>).</dd>
+    <div class="dubbio">Unica slide chiara nel deck scuro: stacca il futuro dal presente. Ti convince, o la vuoi scura come le altre?</div>
+  </dl>
+</div>
+
+<!-- 7 · CHIUSURA -->
+<div class="riga">
+  <div class="slide">
+    <img class="logo-top" src="logo-scuro.png" alt="Garda Chiese">
+    <div class="grazie"><span class="g">Grazie</span></div>
+    <div class="chiusura-sotto">Domande?</div>
+    <div class="team"><b>HACK4WATER ALERT</b><span>Lorenzo Cavallini</span><span>Matteo Benassi</span><span>Simone Trentin</span></div>
+    <div class="sticker" style="left:10cqw; top:30%">💧</div>
+    <div class="sticker" style="right:10cqw; top:38%">🙌</div>
+    <svg class="onda"><use href="#onda"/></svg>
+  </div>
+  <dl class="scheda">
+    <h2>7 · Chiusura <span>~0:30</span></h2>
+    <dt>Testo</dt><dd>"Grazie" gigante in giallo, "Domande?" sotto, nome del progetto e team in basso.</dd>
+    <dt>Sticker 3D</dt><dd>Goccia (come la slide 1, fa da cornice) e mani alzate.</dd>
+    <dt>Immagini</dt><dd>Nessuna.</dd>
+    <dt>Logo</dt><dd>In alto al centro, come la slide 1.</dd>
+    <dt>QR</dt><dd>No (fuori scope).</dd>
+  </dl>
+</div>
+
+<div class="barra">
+  <strong>PROTOTIPO</strong>
+  <label><input type="checkbox" id="onda"> Onda del Portale sulle slide scure</label>
+</div>
+<script>
+  document.getElementById('onda').addEventListener('change', e =>
+    document.body.classList.toggle('con-onda', e.target.checked));
+</script>
+</body>
+</html>
