@@ -45,15 +45,6 @@ Before this project, citizens lacked a streamlined way to report issues like bro
 
 ---
 
-## 🌍 Public Access
-
-The project is publicly accessible and ready to be used! You can reach the live environments at the following links:
-
-> 🔗 **Citizen App**: `https://garda-chiese.simonetrentin.me`  
-> 🔗 **Operator Portal**: `https://garda-chiese.simonetrentin.me/portale/`
-
----
-
 ## 🚀 Local Setup & Hosting
 
 Want to run the platform locally or host it on your own server? We've made it incredibly simple using Docker.
