@@ -52,14 +52,22 @@ export function Foto() {
   }, [bozza.foto])
 
   // Una foto d'esempio mostra sempre un problema: l'analisi serve solo a prenderne i campi.
-  async function scelta(file: File | undefined, esempio = false) {
+  async function scelta(file: File | undefined, esempio?: FotoEsempio) {
     if (!file) return
     setScartata(null)
     setGalleria(false)
     setAttesa('Preparo la foto…')
     const foto = await riduci(file)
     setAttesa('Controllo la foto…')
-    const analisi = await analizzaFoto(foto)
+    
+    let analisi
+    if (esempio) {
+      await new Promise(r => setTimeout(r, 600)) // Simula attesa per feedback utente
+      analisi = esempio.analisi
+    } else {
+      analisi = await analizzaFoto(foto)
+    }
+    
     setAttesa(null)
     // Una foto che non c'entra non si tiene: si chiede subito di rifarla.
     if (analisi && !analisi.pertinente && !esempio) {
@@ -73,7 +81,7 @@ export function Foto() {
   async function usaEsempio(esempio: FotoEsempio) {
     setAttesa('Preparo la foto…')
     try {
-      await scelta(await caricaEsempio(esempio), true)
+      await scelta(await caricaEsempio(esempio), esempio)
     } catch {
       setAttesa(null)
       setScartata('Foto d’esempio non disponibile. Verifica la connessione e riprova.')

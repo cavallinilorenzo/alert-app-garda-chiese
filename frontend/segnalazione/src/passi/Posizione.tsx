@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { api } from 'shared/api'
 import { useBozza, type Posizione as PosizioneBozza } from '../bozza'
 import { Icona, Spinner } from '../comuni'
-import { CENTRO_COMPRENSORIO, Mappa, PUNTO_SUL_RETICOLO } from '../Mappa'
+import { CENTRO_COMPRENSORIO, Mappa, PUNTI_SUL_RETICOLO } from '../Mappa'
 import { Schermata, useProcedura } from '../procedura'
 
 // Oltre questa precisione chiediamo di controllare bene il punto.
@@ -51,7 +51,8 @@ export function Posizione() {
 
   // Per chi prova l'App lontano dal Comprensorio: il segnaposto va su un canale del Consorzio.
   function portaSulReticolo() {
-    aggiorna({ posizione: { ...PUNTO_SUL_RETICOLO, fonte: 'mappa' } })
+    const punto = PUNTI_SUL_RETICOLO[Math.floor(Math.random() * PUNTI_SUL_RETICOLO.length)]
+    aggiorna({ posizione: { ...punto, fonte: 'mappa' } })
     setAvviso(null)
   }
 
