@@ -14,7 +14,7 @@
     "typecheck": "tsc",
     "gen:api": "openapi-typescript ../api/openapi.yaml -o shared/src/api/schema.d.ts",
     "mock": "prism mock ../api/openapi.yaml --port 4010",
-    "test": "node --test segnalazione/src/*.test.ts"
+    "test": "tsx --test segnalazione/src/*.test.ts"
   },
   "devDependencies": {
     "@stoplight/prism-cli": "^5.14.2",
@@ -24,6 +24,7 @@
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.1.1",
     "openapi-typescript": "^7.13.0",
+    "tsx": "^4.23.15",
     "typescript": "^5.9.3",
     "vite": "^8.3.0"
   }
