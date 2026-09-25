@@ -5,7 +5,7 @@
 <h1 align="center">💧 Garda Chiese Alert App</h1>
 
 <p align="center">
-  <i>A unified platform for citizen reporting and infrastructure triage.<br/>Developed with ❤️ for the <strong>Hack4Water</strong> Hackathon.</i>
+  <i>A unified platform for citizen reporting and infrastructure triage.<br/>Developed with ❤️ for the <a href="https://www.unimn.it/hackathon-acquam-mantova/"><strong>ACQUAM</strong> Hackathon.</i></a>
 </p>
 
 <p align="center">
@@ -51,8 +51,6 @@ The project is publicly accessible and ready to be used! You can reach the live 
 
 > 🔗 **Citizen App**: `https://garda-chiese.simonetrentin.me`  
 > 🔗 **Operator Portal**: `https://garda-chiese.simonetrentin.me/portale/`
-
-*(Note: Replace the placeholders above with the actual deployed domain).*
 
 ---
 
