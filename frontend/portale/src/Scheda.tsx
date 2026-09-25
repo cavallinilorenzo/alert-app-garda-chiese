@@ -581,14 +581,14 @@ export function Scheda({ s, onChiudi, onApri, daMappa, ritardo }: PropsScheda) {
             <StatoPill s={s} />
             <span className="codice">{s.codice_pratica}</span>
             <a
-              href={`/stato/${encodeURIComponent(s.token_stato)}`}
+              href={`/stato/${s.token_stato}`}
               target="_blank"
               rel="noreferrer"
-              className="btn-icona"
+              className="btn"
               title="Apri pagina di stato"
-              style={{ marginLeft: '4px' }}
+              style={{ marginLeft: '8px', padding: '4px 8px', fontSize: '12px' }}
             >
-              <Icona nome="open_in_new" />
+              <Icona nome="open_in_new" /> Pagina pubblica
             </a>
           </div>
           <h1>{titolo(s)}</h1>
