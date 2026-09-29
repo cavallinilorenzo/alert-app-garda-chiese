@@ -1,5 +1,8 @@
 <p align="center">
-  <img src="./frontend/shared/marchio/logo.png" alt="Garda Chiese Logo" width="250" />
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="./frontend/shared/marchio/logo-scuro.png" />
+    <img src="./frontend/shared/marchio/logo.png" alt="Garda Chiese Logo" width="250" />
+  </picture>
 </p>
 
 <h1 align="center">💧 Garda Chiese Alert App</h1>
@@ -12,7 +15,8 @@
   <a href="#-about-the-project"><strong>About</strong></a> ·
   <a href="#-key-features"><strong>Features</strong></a> ·
   <a href="#-local-setup--hosting"><strong>Local Setup</strong></a> ·
-  <a href="#-architecture"><strong>Architecture</strong></a>
+  <a href="#-architecture"><strong>Architecture</strong></a> ·
+  <a href="https://canva.link/lambug4xglxm8f0" target="_blank" rel="noopener noreferrer"><strong>🎤 Presentation</strong></a>
 </p>
 
 <hr />
@@ -24,6 +28,8 @@ The **Garda Chiese Alert App** was conceptualized and built during the **Hack4Wa
 Before this project, citizens lacked a streamlined way to report issues like broken pipes, flooded fields, or damaged banks. This system bridges the gap by offering a two-sided platform:
 1. **Citizen Reporting App**: A frictionless, geo-localized reporting tool.
 2. **Operator Portal**: A dashboard for internal triage, assignment, and management.
+
+🎤 **Pitch presentation**: [view it on Canva](https://canva.link/lambug4xglxm8f0)
 
 ---
 
